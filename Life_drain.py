@@ -1,18 +1,30 @@
-from anki.hooks import addHook, wrap
-from anki import version as anki_version
+"""
+Anki Add-on: Life Drain
+Add a bar that is reduced as time passes. Completing reviews recovers it.
 
+Some of the code used here was originally done by Glutanimate, from the
+Addon called Progress Bar.
+For this reason, I copied the copyright of that Addon and appended my
+name.
+Copyright:  (c) Unknown author (nest0r/Ja-Dark?) 2017
+            (c) SebastienGllmt 2017 <https://github.com/SebastienGllmt/>
+            (c) Glutanimate 2017 <https://glutanimate.com/>
+            (c) Yutsuten 2018 <https://github.com/Yutsuten>
+License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
+"""
+
+from anki.hooks import addHook, wrap
 from aqt.qt import *
 from aqt import mw
 from aqt.progress import ProgressManager
 from aqt.utils import showInfo
 from aqt.reviewer import Reviewer
-from anki.hooks import wrap
 
 ############## USER CONFIGURATION START ##############
 
-# Maximum value for life bar
+# LIFE BAR PROPERTIES
 maxLife = 120 # Value in seconds
-recover = 20
+recover = 5
 
 # LIFE BAR APPEARANCE
 showPercent = False # Show the progress text percentage or not.
@@ -51,6 +63,7 @@ currentLife = maxLife
 drainThread = None
 progressManager = ProgressManager(mw)
 timer = None
+updateFrequency = 1 # In seconds
 nightModeImported = 0
 separatorStripCss = '''
     QMainWindow::separator {
@@ -146,7 +159,7 @@ def _createLifeBar():
     return lifeBar
 
 def _renderBar(state, oldState):
-    global lifeBar, timer
+    global lifeBar, timer, updateFrequency
     if state == "overview":
         if timer:
             timer.stop()
@@ -160,7 +173,7 @@ def _renderBar(state, oldState):
         if timer:
             timer.start()
         else:
-            timer = progressManager.timer(1000, _drainLife, True)
+            timer = progressManager.timer(updateFrequency * 1000, _drainLife, True)
 
 def _updateBar():
     global lifeBar
@@ -172,7 +185,7 @@ def _updateBar():
 
 def _updateLife(recovered):
     global currentLife, maxLife
-    currentLife += recovered
+    currentLife += recovered * updateFrequency
     if currentLife > maxLife:
         currentLife = maxLife
     elif currentLife < 0:
@@ -216,6 +229,8 @@ def keyHandler(self, evt, _old):
     key = unicode(evt.text())
     if key == 'p' and timer:
         _enableDrain(not timer.isActive())
+    else:
+        return _old(self, evt)
 
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, "around")
 
