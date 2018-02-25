@@ -2,10 +2,12 @@
 Anki Add-on: Life Drain
 Add a bar that is reduced as time passes. Completing reviews recovers it.
 
+**
 Some of the code used here was originally done by Glutanimate, from the
-Addon called Progress Bar.
-For this reason, I copied the copyright of that Addon and appended my
-name.
+Addon Progress Bar.
+For this reason, I copied the copyright of that Addon and appended my name.
+**
+
 Copyright:  (c) Unknown author (nest0r/Ja-Dark?) 2017
             (c) SebastienGllmt 2017 <https://github.com/SebastienGllmt/>
             (c) Glutanimate 2017 <https://glutanimate.com/>
@@ -24,7 +26,7 @@ from aqt.reviewer import Reviewer
 
 # LIFE BAR PROPERTIES
 maxLife = 120 # Value in seconds
-recover = 5
+recover = 25
 
 # LIFE BAR APPEARANCE
 showPercent = False # Show the progress text percentage or not.
