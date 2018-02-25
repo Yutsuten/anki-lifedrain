@@ -5,11 +5,14 @@ from aqt.qt import *
 from aqt import mw
 from aqt.progress import ProgressManager
 from aqt.utils import showInfo
+from aqt.reviewer import Reviewer
+from anki.hooks import wrap
 
 ############## USER CONFIGURATION START ##############
 
 # Maximum value for life bar
 maxLife = 120 # Value in seconds
+recover = 20
 
 # LIFE BAR APPEARANCE
 showPercent = False # Show the progress text percentage or not.
@@ -81,7 +84,7 @@ try:
 except ImportError:
     nightModeImported = 0
 
-def removeSeparatorStrip():
+def _removeSeparatorStrip():
     global nightModeImported
     if not nightModeImported or (nightModeImported and not Night_Mode.nm_state_on):
         mw.setStyleSheet(separatorStripCss)
@@ -142,34 +145,83 @@ def _createLifeBar():
     _dock(lifeBar)
     return lifeBar
 
-def _drainLife():
-    global currentLife, lifeBar
-    currentLife -= 1
-    if currentLife < 0:
-        currentLife = 0
-    if not lifeBar:
-        lifeBar = _createLifeBar()
-    lifeBar.hide()
-    lifeBar.setValue(currentLife)
-    lifeBar.show()
-    removeSeparatorStrip()
-
 def _renderBar(state, oldState):
     global lifeBar, timer
     if state == "overview":
-        if not lifeBar:
-            lifeBar = _createLifeBar()
-        lifeBar.hide()
-        lifeBar.setValue(currentLife)
-        lifeBar.show()
-        removeSeparatorStrip()
-        timer = progressManager.timer(1000, _drainLife, True)
+        if timer:
+            timer.stop()
+        _updateBar()
     elif state == "deckBrowser":
         if timer:
             timer.stop()
         if lifeBar:
             lifeBar.hide()
+    elif state == "review":
+        if timer:
+            timer.start()
+        else:
+            timer = progressManager.timer(1000, _drainLife, True)
 
+def _updateBar():
+    global lifeBar
+    if lifeBar:
+        lifeBar.hide()
+        lifeBar.setValue(currentLife)
+        lifeBar.show()
+        _removeSeparatorStrip()
 
+def _updateLife(recovered):
+    global currentLife, maxLife
+    currentLife += recovered
+    if currentLife > maxLife:
+        currentLife = maxLife
+    elif currentLife < 0:
+        currentLife = 0
+
+def _drainLife():
+    _enableDrain(True)
+    _updateLife(-1)
+    _updateBar()
+
+def _recoverLife():
+    _enableDrain(True)
+    _updateLife(recover)
+    _updateBar()
+
+def _undoReview():
+    _enableDrain(True)
+    # As _recoverLife is ran too, must multiply by 2
+    _updateLife(-2 * recover)
+    _updateBar()
+
+def _showAnswer():
+    _enableDrain(True)
+
+def _enableDrain(enable):
+    global timer
+    if timer:
+        if enable and not timer.isActive():
+            timer.start()
+        elif not enable and timer.isActive():
+            timer.stop()
+
+def _initializeBar():
+    global lifeBar, currentLife, maxLife
+    if not lifeBar:
+        lifeBar = _createLifeBar()
+    currentLife = maxLife
+
+def keyHandler(self, evt, _old):
+    global timer
+    key = unicode(evt.text())
+    if key == 'p' and timer:
+        _enableDrain(not timer.isActive())
+
+Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, "around")
+
+addHook("profileLoaded", _initializeBar)
 addHook("afterStateChange", _renderBar)
+addHook("showQuestion", _recoverLife)
+addHook("showAnswer", _showAnswer)
+addHook("reset", _undoReview)
 
