@@ -23,7 +23,7 @@ from aqt.reviewer import Reviewer
 
 
 config = {
-    'maxValue': 100,
+    'maxValue': 150,
     'recoverValue': 20,
     'position': 'bottom',
     'progressBarStyle': {
@@ -200,6 +200,8 @@ def afterStateChange(state, oldState):
         timer = ProgressManager(mw).timer(1000, timerTrigger, True)
     timer.stop()
 
+    if (status['reviewed']):
+        lifeBar.incCurrentValue(config['recoverValue'])
     status['reviewed'] = False
     status['screen'] = state
 
@@ -212,20 +214,27 @@ def afterStateChange(state, oldState):
         timer.start()
 
 def showQuestion():
-    pass
+    global lifeBar, config, status
+    activateTimer()
+    if (status['reviewed']):
+        lifeBar.incCurrentValue(config['recoverValue'])
 
 def showAnswer():
+    global status
+    activateTimer()
+    status['reviewed'] = True
+
+def reset():
+    global lifeBar, config, status
+    status['reviewed'] = False
+    if (status['screen'] == 'review'):
+        activateTimer()
+        lifeBar.incCurrentValue(-1 * config['recoverValue'])
+
+def activateTimer():
     global timer
     if not timer.isActive():
         timer.start()
-
-def reset():
-    global lifeBar, config, timer, status
-    if not timer.isActive():
-        timer.start()
-    if (status['screen'] == 'review'):
-        status['reviewed'] = False
-        lifeBar.incCurrentValue(-1 * config['recoverValue'])
 
 def keyHandler(self, evt, _old):
     '''
