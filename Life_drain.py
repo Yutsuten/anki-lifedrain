@@ -126,10 +126,10 @@ class AnkiProgressBar(object):
             )
 
     def _dockAt(self, place):
-        """
+        '''
         - Valid place values: top, bottom
         Default to bottom
-        """
+        '''
         if (place not in ['top', 'bottom']):
             place = 'bottom'
 
@@ -195,11 +195,11 @@ def afterStateChange(state, oldState):
         timer = ProgressManager(mw).timer(1000, timerTrigger, True)
     timer.stop()
 
-    if state == "deckBrowser":
+    if state == 'deckBrowser':
         lifeBar.hide()
-    elif state == "overview":
+    elif state == 'overview':
         lifeBar.show()
-    elif state == "review":
+    elif state == 'review':
         lifeBar.show()
         timer.start()
 
@@ -207,15 +207,33 @@ def showQuestion():
     pass
 
 def showAnswer():
-    pass
+    global timer
+    if not timer.isActive():
+        timer.start()
 
 def reset():
     pass
 
+def keyHandler(self, evt, _old):
+    '''
+    Add the P shortcut for pausing/unpausing the drain.
+    '''
+    global timer
+    key = unicode(evt.text())
+    if key == 'p' and timer:
+        if (timer.isActive()):
+            timer.stop()
+        else:
+            timer.start()
+    else:
+        return _old(self, evt)
 
-addHook("profileLoaded", profileLoaded)
-addHook("afterStateChange", afterStateChange)
-addHook("showQuestion", showQuestion)
-addHook("showAnswer", showAnswer)
-addHook("reset", reset)
+Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, "around")
+
+
+addHook('profileLoaded', profileLoaded)
+addHook('afterStateChange', afterStateChange)
+addHook('showQuestion', showQuestion)
+addHook('showAnswer', showAnswer)
+addHook('reset', reset)
 
