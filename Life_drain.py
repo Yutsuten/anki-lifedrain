@@ -24,12 +24,12 @@ from aqt.reviewer import Reviewer
 
 
 progressBarStyle = {
-    'height': 15,
+    'height': 17,
     'textColor': '#dddddd',
     'backgroundColor': '#222222',
     'foregroundColor': '#666666',
     'borderRadius': 0,
-    'customStyle': 'default'
+    'customStyle': 'plastique'
 }
 
 class AnkiProgressBar(object):
@@ -43,6 +43,7 @@ class AnkiProgressBar(object):
         self.resetBar()
         self.setTextVisible(False)
         self.setStyle(style)
+        self._removeSeparatorStrip()
         self._dockAt(dockPlace)
 
     def resetBar(self):
@@ -74,10 +75,18 @@ class AnkiProgressBar(object):
             palette.setColor(QPalette.WindowText, QColor(options['textColor']))
             palette.setColor(QPalette.Window, QColor(options['backgroundColor']))
 
-            pbdStyle = QStyleFactory.create("%s" % (options['customStyle']))
-
-            self._qProgressBar.setStyle(pbdStyle)
+            self._qProgressBar.setStyle(QStyleFactory.create(options['customStyle']))
             self._qProgressBar.setPalette(palette)
+            self._qProgressBar.setStyleSheet(
+                '''
+                QProgressBar {
+                    max-height: %spx;
+                }
+                '''
+                % (
+                    options['height'],
+                )
+            )
         else:
             self._qProgressBar.setStyleSheet(
                 '''
@@ -130,6 +139,20 @@ class AnkiProgressBar(object):
             mw.splitDockWidget(existing_widgets[0], dock, Qt.Vertical)
         mw.web.setFocus()
 
+    def _removeSeparatorStrip(self):
+        separatorStripCss = '''
+            QMainWindow::separator {
+                width: 0px;
+                height: 0px;
+            }
+        '''
+        try:
+            import Night_Mode
+            Night_Mode.nm_css_menu += separatorStripCss
+            if (not Night_Mode.nm_state_on):
+                mw.setStyleSheet(separatorStripCss)
+        except ImportError:
+            mw.setStyleSheet(separatorStripCss)
 
 lifeBar = AnkiProgressBar(100, progressBarStyle, 'bottom')
 lifeBar.setCurrentValue(60)
