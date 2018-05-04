@@ -29,7 +29,7 @@ progressBarStyle = {
     'backgroundColor': '#222222',
     'foregroundColor': '#666666',
     'borderRadius': 0,
-    'customStyle': 'plastique'
+    'customStyle': 'default'
 }
 
 class AnkiProgressBar(object):
@@ -161,7 +161,13 @@ class AnkiProgressBar(object):
         except ImportError:
             mw.setStyleSheet(separatorStripCss)
 
+
 lifeBar = AnkiProgressBar(100, progressBarStyle, 'bottom')
 lifeBar.setCurrentValue(60)
-lifeBar.incCurrentValue(10)
+
+
+def _timerTrigger():
+    lifeBar.incCurrentValue(-1)
+
+timer = ProgressManager(mw).timer(1000, _timerTrigger, True)
 
