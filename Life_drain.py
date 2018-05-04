@@ -47,11 +47,9 @@ class AnkiProgressBar(object):
         self.resetBar()
         self.setTextVisible(False)
         self.setStyle(config['progressBarStyle'])
-        self._removeSeparatorStrip()
         self._dockAt(config['position'])
 
     def show(self):
-        self._removeSeparatorStrip()
         self._qProgressBar.show()
 
     def hide(self):
@@ -125,6 +123,13 @@ class AnkiProgressBar(object):
                 )
             )
 
+    def _validateUpdateCurrentValue(self):
+        if (self._currentValue > self._maxValue):
+            self._currentValue = self._maxValue
+        elif (self._currentValue < 0):
+            self._currentValue = 0
+        self._qProgressBar.setValue(self._currentValue)
+
     def _dockAt(self, place):
         '''
         - Valid place values: top, bottom
@@ -151,14 +156,7 @@ class AnkiProgressBar(object):
             mw.splitDockWidget(existing_widgets[0], dock, Qt.Vertical)
         mw.web.setFocus()
 
-    def _validateUpdateCurrentValue(self):
-        if (self._currentValue > self._maxValue):
-            self._currentValue = self._maxValue
-        elif (self._currentValue < 0):
-            self._currentValue = 0
-        self._qProgressBar.setValue(self._currentValue)
-
-    def _removeSeparatorStrip(self):
+        # Remove separator strip
         separatorStripCss = '''
             QMainWindow::separator {
                 width: 0px;
@@ -187,9 +185,10 @@ def timerTrigger():
 
 def profileLoaded():
     global lifeBar, config, status
-    lifeBar = AnkiProgressBar(config)
-    lifeBar.hide()
     status['reviewed'] = False
+    if not lifeBar:
+        lifeBar = AnkiProgressBar(config)
+    lifeBar.hide()
 
 def afterStateChange(state, oldState):
     global lifeBar, config, timer, status
