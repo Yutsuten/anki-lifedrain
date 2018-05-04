@@ -57,11 +57,11 @@ class AnkiProgressBar(object):
 
     def setCurrentValue(self, currentValue):
         self._currentValue = currentValue
-        if (self._currentValue > self._maxValue):
-            self._currentValue = self._maxValue
-        elif (self._currentValue < 0):
-            self._currentValue = 0
-        self._qProgressBar.setValue(self._currentValue)
+        self._validateUpdateCurrentValue()
+
+    def incCurrentValue(self, increment):
+        self._currentValue += increment
+        self._validateUpdateCurrentValue()
 
     def setTextVisible(self, flag):
         self._qProgressBar.setTextVisible(flag)
@@ -139,6 +139,13 @@ class AnkiProgressBar(object):
             mw.splitDockWidget(existing_widgets[0], dock, Qt.Vertical)
         mw.web.setFocus()
 
+    def _validateUpdateCurrentValue(self):
+        if (self._currentValue > self._maxValue):
+            self._currentValue = self._maxValue
+        elif (self._currentValue < 0):
+            self._currentValue = 0
+        self._qProgressBar.setValue(self._currentValue)
+
     def _removeSeparatorStrip(self):
         separatorStripCss = '''
             QMainWindow::separator {
@@ -156,4 +163,5 @@ class AnkiProgressBar(object):
 
 lifeBar = AnkiProgressBar(100, progressBarStyle, 'bottom')
 lifeBar.setCurrentValue(60)
+lifeBar.incCurrentValue(10)
 
