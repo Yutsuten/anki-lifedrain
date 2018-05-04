@@ -4,8 +4,7 @@ Add a bar that is reduced as time passes. Completing reviews recovers it.
 
 **
 Some of the code used here was originally done by Glutanimate, from the
-Addon Progress Bar.
-For this reason, I copied the copyright of that Addon and appended my name.
+Addon Progress Bar. So I copied the copyright from that Addon and appended my name.
 **
 
 Copyright:  (c) Unknown author (nest0r/Ja-Dark?) 2017
@@ -25,6 +24,7 @@ from aqt.reviewer import Reviewer
 
 config = {
     'maxValue': 100,
+    'recoverValue': 20,
     'position': 'bottom',
     'progressBarStyle': {
         'height': 17,
@@ -176,24 +176,32 @@ class AnkiProgressBar(object):
 
 lifeBar = None
 timer = None
+status = {
+    'reviewed': False,
+    'screen': None
+}
 
 def timerTrigger():
     global lifeBar
     lifeBar.incCurrentValue(-1)
 
 def profileLoaded():
-    global lifeBar, config
+    global lifeBar, config, status
     lifeBar = AnkiProgressBar(config)
     lifeBar.hide()
+    status['reviewed'] = False
 
 def afterStateChange(state, oldState):
-    global lifeBar, config, timer
+    global lifeBar, config, timer, status
 
     if not lifeBar:
         lifeBar = AnkiProgressBar(config)
     if not timer:
         timer = ProgressManager(mw).timer(1000, timerTrigger, True)
     timer.stop()
+
+    status['reviewed'] = False
+    status['screen'] = state
 
     if state == 'deckBrowser':
         lifeBar.hide()
@@ -212,7 +220,12 @@ def showAnswer():
         timer.start()
 
 def reset():
-    pass
+    global lifeBar, config, timer, status
+    if not timer.isActive():
+        timer.start()
+    if (status['screen'] == 'review'):
+        status['reviewed'] = False
+        lifeBar.incCurrentValue(-1 * config['recoverValue'])
 
 def keyHandler(self, evt, _old):
     '''
