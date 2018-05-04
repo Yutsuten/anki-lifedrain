@@ -23,13 +23,17 @@ from aqt.utils import showInfo
 from aqt.reviewer import Reviewer
 
 
-progressBarStyle = {
-    'height': 17,
-    'textColor': '#dddddd',
-    'backgroundColor': '#222222',
-    'foregroundColor': '#666666',
-    'borderRadius': 0,
-    'customStyle': 'default'
+config = {
+    'maxValue': 100,
+    'position': 'bottom',
+    'progressBarStyle': {
+        'height': 17,
+        'textColor': '#dddddd',
+        'backgroundColor': '#222222',
+        'foregroundColor': '#666666',
+        'borderRadius': 0,
+        'customStyle': 'default'
+    }
 }
 
 class AnkiProgressBar(object):
@@ -37,17 +41,25 @@ class AnkiProgressBar(object):
     _maxValue = 1
     _currentValue = 1
 
-    def __init__(self, maxValue, style, dockPlace):
+    def __init__(self, config):
         self._qProgressBar = QProgressBar()
-        self.setMaxValue(maxValue)
+        self.setMaxValue(config['maxValue'])
         self.resetBar()
         self.setTextVisible(False)
-        self.setStyle(style)
+        self.setStyle(config['progressBarStyle'])
         self._removeSeparatorStrip()
-        self._dockAt(dockPlace)
+        self._dockAt(config['position'])
+
+    def show(self):
+        self._removeSeparatorStrip()
+        self._qProgressBar.show()
+
+    def hide(self):
+        self._qProgressBar.hide()
 
     def resetBar(self):
         self._currentValue = self._maxValue
+        self._validateUpdateCurrentValue()
 
     def setMaxValue(self, maxValue):
         self._maxValue = maxValue
@@ -162,12 +174,48 @@ class AnkiProgressBar(object):
             mw.setStyleSheet(separatorStripCss)
 
 
-lifeBar = AnkiProgressBar(100, progressBarStyle, 'bottom')
-lifeBar.setCurrentValue(60)
+lifeBar = None
+timer = None
 
-
-def _timerTrigger():
+def timerTrigger():
+    global lifeBar
     lifeBar.incCurrentValue(-1)
 
-timer = ProgressManager(mw).timer(1000, _timerTrigger, True)
+def profileLoaded():
+    global lifeBar, config
+    lifeBar = AnkiProgressBar(config)
+    lifeBar.hide()
+
+def afterStateChange(state, oldState):
+    global lifeBar, config, timer
+
+    if not lifeBar:
+        lifeBar = AnkiProgressBar(config)
+    if not timer:
+        timer = ProgressManager(mw).timer(1000, timerTrigger, True)
+    timer.stop()
+
+    if state == "deckBrowser":
+        lifeBar.hide()
+    elif state == "overview":
+        lifeBar.show()
+    elif state == "review":
+        lifeBar.show()
+        timer.start()
+
+def showQuestion():
+    pass
+
+def showAnswer():
+    pass
+
+def reset():
+    pass
+
+
+addHook("profileLoaded", profileLoaded)
+addHook("afterStateChange", afterStateChange)
+addHook("showQuestion", showQuestion)
+addHook("showAnswer", showAnswer)
+addHook("reset", reset)
 
