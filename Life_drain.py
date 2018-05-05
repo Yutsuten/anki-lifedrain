@@ -20,6 +20,7 @@ from aqt import mw, forms
 from aqt.progress import ProgressManager
 from aqt.utils import showInfo
 from aqt.reviewer import Reviewer
+from aqt.deckconf import DeckConf
 
 
 config = {
@@ -55,7 +56,6 @@ def lifeDrainTabUi(self, Dialog):
     maxLifeLabel = QLabel('Maximum life')
     self.maxLifeInput = QSpinBox(tabWidget)
     self.maxLifeInput.setRange(1, 1000)
-    self.maxLifeInput.setValue(120)
     layout.addWidget(maxLifeLabel, row, 0)
     layout.addWidget(self.maxLifeInput, row, 2)
     row += 1
@@ -63,7 +63,6 @@ def lifeDrainTabUi(self, Dialog):
     recoverLabel = QLabel('Recover')
     self.recoverInput = QSpinBox(tabWidget)
     self.recoverInput.setRange(1, 1000)
-    self.recoverInput.setValue(5)
     layout.addWidget(recoverLabel, row, 0)
     layout.addWidget(self.recoverInput, row, 2)
     row += 1
@@ -73,7 +72,19 @@ def lifeDrainTabUi(self, Dialog):
 
     self.tabWidget.addTab(tabWidget, "Life Drain")
 
+def loadConf(self):
+    self.conf = self.mw.col.decks.confForDid(self.deck['id'])
+    self.form.maxLifeInput.setValue(self.conf.get('maxLife', 120))
+    self.form.recoverInput.setValue(self.conf.get('recover', 5))
+
+def saveConf(self):
+    self.conf['maxLife'] = self.form.maxLifeInput.value()
+    self.conf['recover'] = self.form.recoverInput.value()
+
 forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, lifeDrainTabUi, pos='after')
+DeckConf.loadConf = wrap(DeckConf.loadConf, loadConf)
+DeckConf.saveConf = wrap(DeckConf.saveConf, saveConf, 'before')
+
 
 class AnkiProgressBar(object):
     _qProgressBar = None
