@@ -24,7 +24,7 @@ from aqt.reviewer import Reviewer
 
 config = {
     'maxValue': 150,
-    'recoverValue': 20,
+    'recoverValue': 22,
     'position': 'bottom',
     'progressBarStyle': {
         'height': 17,
@@ -72,6 +72,9 @@ class AnkiProgressBar(object):
     def incCurrentValue(self, increment):
         self._currentValue += increment
         self._validateUpdateCurrentValue()
+
+    def getCurrentValue(self):
+        return self._currentValue
 
     def setTextVisible(self, flag):
         self._qProgressBar.setTextVisible(flag)
@@ -156,23 +159,54 @@ class AnkiProgressBar(object):
             mw.splitDockWidget(existing_widgets[0], dock, Qt.Vertical)
         mw.web.setFocus()
 
-        # Remove separator strip
-        separatorStripCss = '''
-            QMainWindow::separator {
-                width: 0px;
-                height: 0px;
-            }
-        '''
-        try:
-            import Night_Mode
-            Night_Mode.nm_css_menu += separatorStripCss
-            if (not Night_Mode.nm_state_on):
-                mw.setStyleSheet(separatorStripCss)
-        except ImportError:
-            mw.setStyleSheet(separatorStripCss)
+
+class DeckProgressBarManager(object):
+    '''
+    Allow using the same instance of AnkiProgressBar with different configuration and
+    currentValue for each deck.
+    '''
+    _ankiProgressBar = None
+    _barInfo = {}
+    _currentDeck = None
+
+    def __init__(self, ankiProgressBar):
+        self._ankiProgressBar = ankiProgressBar
+
+    def addDeck(self, deckId):
+        self._barInfo[str(deckId)] = {
+            'currentValue': self._ankiProgressBar.getCurrentValue()
+        }
+
+    def setDeck(self, deckId):
+        if self._currentDeck:
+            self._barInfo[self._currentDeck]['currentValue'] = self._ankiProgressBar.getCurrentValue()
+        if deckId:
+            self._currentDeck = str(deckId)
+            self._ankiProgressBar.setCurrentValue(self._barInfo[self._currentDeck]['currentValue'])
+        else:
+            self._currentDeck = None
+
+    def getBar(self):
+        return self._ankiProgressBar
 
 
-lifeBar = None
+# Remove separator strip
+separatorStripCss = '''
+    QMainWindow::separator {
+        width: 0px;
+        height: 0px;
+    }
+'''
+try:
+    import Night_Mode
+    Night_Mode.nm_css_menu += separatorStripCss
+    if (not Night_Mode.nm_state_on):
+        mw.setStyleSheet(separatorStripCss)
+except ImportError:
+    mw.setStyleSheet(separatorStripCss)
+
+
+deckBarManager = None
 timer = None
 status = {
     'reviewed': False,
@@ -180,43 +214,44 @@ status = {
 }
 
 def timerTrigger():
-    global lifeBar
-    lifeBar.incCurrentValue(-1)
+    global deckBarManager
+    deckBarManager.getBar().incCurrentValue(-1)
 
 def profileLoaded():
-    global lifeBar, config, status
-    status['reviewed'] = False
-    if not lifeBar:
-        lifeBar = AnkiProgressBar(config)
-    lifeBar.hide()
+    global deckBarManager, config
+    progressBar = AnkiProgressBar(config)
+    deckBarManager = DeckProgressBarManager(progressBar)
+    for deckId in mw.col.decks.allIds():
+        deckBarManager.addDeck(deckId)
+    progressBar.hide()
 
 def afterStateChange(state, oldState):
-    global lifeBar, config, timer, status
+    global deckBarManager, config, timer, status
 
-    if not lifeBar:
-        lifeBar = AnkiProgressBar(config)
     if not timer:
         timer = ProgressManager(mw).timer(1000, timerTrigger, True)
     timer.stop()
 
-    if (status['reviewed']):
-        lifeBar.incCurrentValue(config['recoverValue'])
+    if (status['reviewed'] and state in ['overview', 'review']):
+        deckBarManager.getBar().incCurrentValue(config['recoverValue'])
     status['reviewed'] = False
     status['screen'] = state
 
-    if state == 'deckBrowser':
-        lifeBar.hide()
-    elif state == 'overview':
-        lifeBar.show()
-    elif state == 'review':
-        lifeBar.show()
+    if state in ['overview', 'review']:
+        deckBarManager.setDeck(mw.col.decks.current()['id'])
+        deckBarManager.getBar().show()
+    elif deckBarManager:
+        deckBarManager.getBar().hide()
+        deckBarManager.setDeck(None)
+
+    if state == 'review':
         timer.start()
 
 def showQuestion():
-    global lifeBar, config, status
+    global deckBarManager, config, status
     activateTimer()
     if (status['reviewed']):
-        lifeBar.incCurrentValue(config['recoverValue'])
+        deckBarManager.getBar().incCurrentValue(config['recoverValue'])
 
 def showAnswer():
     global status
@@ -224,11 +259,11 @@ def showAnswer():
     status['reviewed'] = True
 
 def reset():
-    global lifeBar, config, status
+    global deckBarManager, config, status
     status['reviewed'] = False
     if (status['screen'] == 'review'):
         activateTimer()
-        lifeBar.incCurrentValue(-1 * config['recoverValue'])
+        deckBarManager.getBar().incCurrentValue(-1 * config['recoverValue'])
 
 def activateTimer():
     global timer
