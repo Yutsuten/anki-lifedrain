@@ -54,12 +54,16 @@ def lifeDrainTabUi(self, Dialog):
 
     maxLifeLabel = QLabel('Maximum life')
     self.maxLifeInput = QSpinBox(tabWidget)
+    self.maxLifeInput.setRange(1, 1000)
+    self.maxLifeInput.setValue(120)
     layout.addWidget(maxLifeLabel, row, 0)
     layout.addWidget(self.maxLifeInput, row, 2)
     row += 1
 
     recoverLabel = QLabel('Recover')
     self.recoverInput = QSpinBox(tabWidget)
+    self.recoverInput.setRange(1, 1000)
+    self.recoverInput.setValue(5)
     layout.addWidget(recoverLabel, row, 0)
     layout.addWidget(self.recoverInput, row, 2)
     row += 1
