@@ -16,7 +16,7 @@ License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
 
 from anki.hooks import addHook, wrap
 from aqt.qt import *
-from aqt import mw
+from aqt import mw, forms
 from aqt.progress import ProgressManager
 from aqt.utils import showInfo
 from aqt.reviewer import Reviewer
@@ -35,6 +35,41 @@ config = {
         'customStyle': 'default'
     }
 }
+
+
+# Deck configuration GUI
+def lifeDrainTabUi(self, Dialog):
+    tabWidget = QWidget()
+    layout = QGridLayout(tabWidget)
+    row = 0
+
+    title = QLabel('<b>Life Drain Bar settings</b>')
+    layout.addWidget(title, row, 0, 1, 3)
+    row += 1
+
+    descriptionLabel = QLabel('The <b>maximum life</b> is the time in seconds for the life bar go from full to empty.\n<b>Recover</b> is the time in seconds that is recovered after answering a card.')
+    descriptionLabel.setWordWrap(True)
+    layout.addWidget(descriptionLabel, row, 0, 1, 3)
+    row += 1
+
+    maxLifeLabel = QLabel('Maximum life')
+    self.maxLifeInput = QSpinBox(tabWidget)
+    layout.addWidget(maxLifeLabel, row, 0)
+    layout.addWidget(self.maxLifeInput, row, 2)
+    row += 1
+
+    recoverLabel = QLabel('Recover')
+    self.recoverInput = QSpinBox(tabWidget)
+    layout.addWidget(recoverLabel, row, 0)
+    layout.addWidget(self.recoverInput, row, 2)
+    row += 1
+
+    spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+    layout.addItem(spacer, row, 0)
+
+    self.tabWidget.addTab(tabWidget, "Life Drain")
+
+forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, lifeDrainTabUi, pos='after')
 
 class AnkiProgressBar(object):
     _qProgressBar = None
@@ -284,7 +319,7 @@ def keyHandler(self, evt, _old):
     else:
         return _old(self, evt)
 
-Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, "around")
+Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
 
 
 addHook('profileLoaded', profileLoaded)
