@@ -18,7 +18,6 @@ from anki.hooks import addHook, wrap
 from aqt.qt import *
 from aqt import mw, forms
 from aqt.progress import ProgressManager
-from aqt.utils import showInfo
 from aqt.reviewer import Reviewer
 from aqt.deckconf import DeckConf
 
