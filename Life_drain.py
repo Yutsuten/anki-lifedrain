@@ -24,8 +24,6 @@ from aqt.deckconf import DeckConf
 
 
 config = {
-    'maxValue': 150,
-    'recoverValue': 22,
     'position': 'bottom',
     'progressBarStyle': {
         'height': 17,
@@ -78,8 +76,10 @@ def loadConf(self):
     self.form.recoverInput.setValue(self.conf.get('recover', 5))
 
 def saveConf(self):
+    global deckBarManager
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
+    deckBarManager.updateDeckConf(self.deck['id'], self.conf)
 
 forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, lifeDrainTabUi, pos='after')
 DeckConf.loadConf = wrap(DeckConf.loadConf, loadConf)
@@ -91,9 +91,9 @@ class AnkiProgressBar(object):
     _maxValue = 1
     _currentValue = 1
 
-    def __init__(self, config):
+    def __init__(self, config, maxValue):
         self._qProgressBar = QProgressBar()
-        self.setMaxValue(config['maxValue'])
+        self.setMaxValue(maxValue)
         self.resetBar()
         self.setTextVisible(False)
         self.setStyle(config['progressBarStyle'])
@@ -222,9 +222,11 @@ class DeckProgressBarManager(object):
     def __init__(self, ankiProgressBar):
         self._ankiProgressBar = ankiProgressBar
 
-    def addDeck(self, deckId):
+    def addDeck(self, deckId, conf):
         self._barInfo[str(deckId)] = {
-            'currentValue': self._ankiProgressBar.getCurrentValue()
+            'maxValue': conf.get('maxLife', 120),
+            'currentValue': conf.get('maxLife', 120),
+            'recoverValue': conf.get('recover', 5)
         }
 
     def setDeck(self, deckId):
@@ -232,9 +234,20 @@ class DeckProgressBarManager(object):
             self._barInfo[self._currentDeck]['currentValue'] = self._ankiProgressBar.getCurrentValue()
         if deckId:
             self._currentDeck = str(deckId)
+            self._ankiProgressBar.setMaxValue(self._barInfo[self._currentDeck]['maxValue'])
             self._ankiProgressBar.setCurrentValue(self._barInfo[self._currentDeck]['currentValue'])
         else:
             self._currentDeck = None
+
+    def updateDeckConf(self, deckId, conf):
+        self._barInfo[str(deckId)]['maxValue'] = conf.get('maxLife', 120)
+        self._barInfo[str(deckId)]['recoverValue'] = conf.get('recover', 5)
+
+    def recover(self, increment=True):
+        multiplier = 1
+        if not increment:
+            multiplier = -1
+        self._ankiProgressBar.incCurrentValue(multiplier * self._barInfo[self._currentDeck]['recoverValue'])
 
     def getBar(self):
         return self._ankiProgressBar
@@ -269,10 +282,10 @@ def timerTrigger():
 
 def profileLoaded():
     global deckBarManager, config
-    progressBar = AnkiProgressBar(config)
+    progressBar = AnkiProgressBar(config, 120)
     deckBarManager = DeckProgressBarManager(progressBar)
     for deckId in mw.col.decks.allIds():
-        deckBarManager.addDeck(deckId)
+        deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
     progressBar.hide()
 
 def afterStateChange(state, oldState):
@@ -283,7 +296,7 @@ def afterStateChange(state, oldState):
     timer.stop()
 
     if (status['reviewed'] and state in ['overview', 'review']):
-        deckBarManager.getBar().incCurrentValue(config['recoverValue'])
+        deckBarManager.recover()
     status['reviewed'] = False
     status['screen'] = state
 
@@ -301,7 +314,7 @@ def showQuestion():
     global deckBarManager, config, status
     activateTimer()
     if (status['reviewed']):
-        deckBarManager.getBar().incCurrentValue(config['recoverValue'])
+        deckBarManager.recover()
 
 def showAnswer():
     global status
@@ -313,7 +326,7 @@ def reset():
     status['reviewed'] = False
     if (status['screen'] == 'review'):
         activateTimer()
-        deckBarManager.getBar().incCurrentValue(-1 * config['recoverValue'])
+        deckBarManager.recover(False)
 
 def activateTimer():
     global timer
