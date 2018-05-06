@@ -23,6 +23,18 @@ from aqt.reviewer import Reviewer
 from aqt.deckconf import DeckConf
 
 
+## Bar design configuration ##
+
+# Position: 'top' or 'bottom'
+
+# CustomStyle:
+# 'default' to use a simple bar
+#
+# Other options are also available:
+# 'plastique', 'windowsxp', 'windows', 'windowsvista', 'motif', 'cde', 'cleanlooks'
+# 'macintosh', 'gtk', 'fusion', 'windowsvista'
+# Check more on http://doc.qt.io/qt-4.8/gallery.html
+
 config = {
     'position': 'bottom',
     'progressBarStyle': {
@@ -34,6 +46,8 @@ config = {
         'customStyle': 'default'
     }
 }
+
+## End configuration ##
 
 
 # Deck configuration GUI
