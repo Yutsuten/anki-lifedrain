@@ -3,7 +3,7 @@ Anki Add-on: Life Drain
 Add a bar that is reduced as time passes. Completing reviews recovers it.
 
 **
-Some of the code used here was originally done by Glutanimate, from the
+Some of the code (progress bar) used here was originally done by Glutanimate, from the
 Addon Progress Bar. So I copied the copyright from that Addon and appended my name.
 **
 
