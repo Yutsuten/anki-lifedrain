@@ -256,11 +256,6 @@ class AnkiProgressBar(object):
     def setTextVisible(self, flag):
         self._qProgressBar.setTextVisible(flag)
 
-    def delete(self):
-        self._dock.close()
-        del(self._dock)
-        del(self._qProgressBar)
-
     def setStyle(self, options):
         global STYLE_OPTIONS
         customStyle = STYLE_OPTIONS[options['customStyle']].replace(" ", "").lower()
@@ -339,6 +334,9 @@ class AnkiProgressBar(object):
             mw.splitDockWidget(existing_widgets[0], self._dock, Qt.Vertical)
         mw.web.setFocus()
 
+    def __del__(self):
+        self._dock.close()
+
 
 class DeckProgressBarManager(object):
     '''
@@ -374,7 +372,7 @@ class DeckProgressBarManager(object):
         self._barInfo[str(deckId)]['recoverValue'] = conf.get('recover', DEFAULTS['recover'])
 
     def updateAnkiProgressBar(self, ankiProgressBar):
-        self._ankiProgressBar.delete()
+        del(self._ankiProgressBar)
         self._ankiProgressBar = ankiProgressBar
 
     def recover(self, increment=True):
