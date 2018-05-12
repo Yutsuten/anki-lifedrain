@@ -25,30 +25,22 @@ from aqt.preferences import Preferences
 from aqt.utils import showInfo
 
 
-## Bar design configuration ##
+POSITION_OPTIONS = ['Top', 'Bottom']
+STYLE_OPTIONS = [
+    'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh',
+    'Motif', 'Plastique', 'Windows', 'Windows Vista', 'Windows XP'
+]
 
-# Position: 'top' or 'bottom'
-
-# CustomStyle:
-# 'default' to use a simple bar
-#
-# Other options are also available:
-# 'plastique', 'windowsxp', 'windows', 'windowsvista', 'motif', 'cde', 'cleanlooks'
-# 'macintosh', 'gtk', 'fusion', 'windowsvista'
-# Check more on http://doc.qt.io/qt-4.8/gallery.html
-
-config = {
-    'position': 'bottom',
-    'progressBarStyle': {
-        'height': 17,
-        'backgroundColor': '#222222',
-        'foregroundColor': '#666666',
-        'borderRadius': 0,
-        'customStyle': 'default'
-    }
+DEFAULTS = {
+    'maxLife': 120,
+    'recover': 5,
+    'barPosition': POSITION_OPTIONS.index('Bottom'),
+    'barHeight': 15,
+    'barBgColor': '#222222',
+    'barFgColor': '#666666',
+    'barBorderRadius': 0,
+    'barStyle': STYLE_OPTIONS.index('Default')
 }
-
-## End configuration ##
 
 
 # Settings GUI
@@ -66,8 +58,8 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
 
     positionLabel = QLabel('Position')
     self.positionList = QComboBox(tabWidget)
-    self.positionList.addItem('Top')
-    self.positionList.addItem('Bottom')
+    for position in POSITION_OPTIONS:
+        self.positionList.addItem(position)
     layout.addWidget(positionLabel, row, 0)
     layout.addWidget(self.positionList, row, 1, 1, 2)
     row += 1
@@ -108,35 +100,15 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
 
     styleLabel = QLabel('Style*')
     self.styleList = QComboBox(tabWidget)
-    self.styleList.addItem('Default')
-    self.styleList.addItem('Cde')
-    self.styleList.addItem('Cleanlooks')
-    self.styleList.addItem('Fusion')
-    self.styleList.addItem('Gtk')
-    self.styleList.addItem('Macintosh')
-    self.styleList.addItem('Motif')
-    self.styleList.addItem('Plastique')
-    self.styleList.addItem('Windows')
-    self.styleList.addItem('Windows Vista')
-    self.styleList.addItem('Windows XP')
+    for customStyle in STYLE_OPTIONS:
+        self.styleList.addItem(customStyle)
     layout.addWidget(styleLabel, row, 0)
     layout.addWidget(self.styleList, row, 1, 1, 2)
     row += 1
 
-    hideSeparatorStripLabel = QLabel('Hide separator**')
-    self.hideSeparatorStripCheckBox = QCheckBox(tabWidget)
-    layout.addWidget(hideSeparatorStripLabel, row, 0)
-    layout.addWidget(self.hideSeparatorStripCheckBox, row, 1, 1, 2)
-    row += 1
-
-    descriptionLabel = QLabel('*  Please keep in mind that some styles may not work well with another configurations!')
+    descriptionLabel = QLabel('* Please keep in mind that some styles may not work well with another configurations!')
     descriptionLabel.setWordWrap(True)
     layout.addWidget(descriptionLabel, row, 0, 1, 4)
-    row += 1
-
-    descriptionLabel2 = QLabel('** If while using other addons you find problems with the separator strip being hidden, uncheck this. Usually you will want this checked.')
-    descriptionLabel2.setWordWrap(True)
-    layout.addWidget(descriptionLabel2, row, 0, 1, 4)
     row += 1
 
     spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -150,21 +122,41 @@ def selectColorDialog(qColorDialog, previewLabel):
 
 def globalLoadConf(self, mw):
     conf = self.mw.col.conf
-    self.form.positionList.setCurrentIndex(conf.get('barPosition', 1))
-    self.form.heightInput.setValue(conf.get('barHeight', 17))
+    self.form.positionList.setCurrentIndex(conf.get('barPosition', DEFAULTS['barPosition']))
+    self.form.heightInput.setValue(conf.get('barHeight', DEFAULTS['barHeight']))
 
-    self.form.bgColorDialog.setCurrentColor(QColor(conf.get('barBgColor', '#222222')))
+    self.form.bgColorDialog.setCurrentColor(QColor(conf.get('barBgColor', DEFAULTS['barBgColor'])))
     self.form.bgColorPreview.setStyleSheet('QLabel { background-color: %s; }' % self.form.bgColorDialog.currentColor().name())
 
-    self.form.fgColorDialog.setCurrentColor(QColor(conf.get('barFgColor', '#666666')))
+    self.form.fgColorDialog.setCurrentColor(QColor(conf.get('barFgColor', DEFAULTS['barFgColor'])))
     self.form.fgColorPreview.setStyleSheet('QLabel { background-color: %s; }' % self.form.fgColorDialog.currentColor().name())
 
-    self.form.borderRadiusInput.setValue(conf.get('barBorderRadius', 0))
-    self.form.styleList.setCurrentIndex(conf.get('barStyle', 0))
-    self.form.hideSeparatorStripCheckBox.setChecked(conf.get('hideSeparator', True))
+    self.form.borderRadiusInput.setValue(conf.get('barBorderRadius', DEFAULTS['barBorderRadius']))
+    self.form.styleList.setCurrentIndex(conf.get('barStyle', DEFAULTS['barStyle']))
 
 def globalSaveConf(self):
+    global deckBarManager, config
     conf = self.mw.col.conf
+    conf['barPosition'] = self.form.positionList.currentIndex()
+    conf['barHeight'] = self.form.heightInput.value()
+    conf['barBgColor'] = self.form.bgColorDialog.currentColor().name()
+    conf['barFgColor'] = self.form.fgColorDialog.currentColor().name()
+    conf['barBorderRadius'] = self.form.borderRadiusInput.value()
+    conf['barStyle'] = self.form.styleList.currentIndex()
+
+    # Create new instance of the bar with new configurations
+    config = {
+        'position': conf.get('barPosition', DEFAULTS['barPosition']),
+        'progressBarStyle': {
+            'height': conf.get('barHeight', DEFAULTS['barHeight']),
+            'backgroundColor': conf.get('barBgColor', DEFAULTS['barBgColor']),
+            'foregroundColor': conf.get('barFgColor', DEFAULTS['barFgColor']),
+            'borderRadius': conf.get('barBorderRadius', DEFAULTS['barBorderRadius']),
+            'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
+        }
+    }
+    progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
+    deckBarManager.updateAnkiProgressBar(progressBar)
 
 forms.preferences.Ui_Preferences.setupUi = wrap(forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi, pos='after')
 Preferences.__init__ = wrap(Preferences.__init__, globalLoadConf, pos='after')
@@ -205,20 +197,20 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
 
     self.tabWidget.addTab(tabWidget, "Life Drain")
 
-def deckLoadConf(self):
+def loadDeckConf(self):
     self.conf = self.mw.col.decks.confForDid(self.deck['id'])
-    self.form.maxLifeInput.setValue(self.conf.get('maxLife', 120))
-    self.form.recoverInput.setValue(self.conf.get('recover', 5))
+    self.form.maxLifeInput.setValue(self.conf.get('maxLife', DEFAULTS['maxLife']))
+    self.form.recoverInput.setValue(self.conf.get('recover', DEFAULTS['recover']))
 
-def deckSaveConf(self):
+def saveDeckConf(self):
     global deckBarManager
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
     deckBarManager.updateDeckConf(self.deck['id'], self.conf)
 
 forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi, pos='after')
-DeckConf.loadConf = wrap(DeckConf.loadConf, deckLoadConf)
-DeckConf.saveConf = wrap(DeckConf.saveConf, deckSaveConf, pos='before')
+DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
+DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, pos='before')
 
 
 class AnkiProgressBar(object):
@@ -264,15 +256,22 @@ class AnkiProgressBar(object):
     def setTextVisible(self, flag):
         self._qProgressBar.setTextVisible(flag)
 
+    def delete(self):
+        self._dock.close()
+        del(self._dock)
+        del(self._qProgressBar)
+
     def setStyle(self, options):
-        if (options['customStyle'] != 'default'):
+        global STYLE_OPTIONS
+        customStyle = STYLE_OPTIONS[options['customStyle']].replace(" ", "").lower()
+        if (customStyle != 'default'):
             palette = QPalette()
             palette.setColor(QPalette.Base, QColor(options['backgroundColor']))
             palette.setColor(QPalette.Highlight, QColor(options['foregroundColor']))
             palette.setColor(QPalette.Button, QColor(options['backgroundColor']))
             palette.setColor(QPalette.Window, QColor(options['backgroundColor']))
 
-            self._qProgressBar.setStyle(QStyleFactory.create(options['customStyle']))
+            self._qProgressBar.setStyle(QStyleFactory.create(customStyle))
             self._qProgressBar.setPalette(palette)
             self._qProgressBar.setStyleSheet(
                 '''
@@ -316,29 +315,28 @@ class AnkiProgressBar(object):
         self._qProgressBar.setValue(self._currentValue)
 
     def _dockAt(self, place):
-        '''
-        - Valid place values: top, bottom
-        Default to bottom
-        '''
-        if (place not in ['top', 'bottom']):
-            place = 'bottom'
+        global POSITION_OPTIONS
+        place = POSITION_OPTIONS[place]
 
-        if (place == 'top'):
+        if place not in POSITION_OPTIONS:
+            place = DEFAULTS['barPosition']
+
+        if (place == 'Top'):
             dockArea = Qt.TopDockWidgetArea
-        elif (place == 'bottom'):
+        elif (place == 'Bottom'):
             dockArea = Qt.BottomDockWidgetArea
 
-        dock = QDockWidget()
+        self._dock = QDockWidget()
         tWidget = QWidget()
-        dock.setWidget(self._qProgressBar)
-        dock.setTitleBarWidget(tWidget)
+        self._dock.setWidget(self._qProgressBar)
+        self._dock.setTitleBarWidget(tWidget)
 
         existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == dockArea]
         if (len(existing_widgets) == 0):
-            mw.addDockWidget(dockArea, dock)
+            mw.addDockWidget(dockArea, self._dock)
         else:
             mw.setDockNestingEnabled(True)
-            mw.splitDockWidget(existing_widgets[0], dock, Qt.Vertical)
+            mw.splitDockWidget(existing_widgets[0], self._dock, Qt.Vertical)
         mw.web.setFocus()
 
 
@@ -356,9 +354,9 @@ class DeckProgressBarManager(object):
 
     def addDeck(self, deckId, conf):
         self._barInfo[str(deckId)] = {
-            'maxValue': conf.get('maxLife', 120),
-            'currentValue': conf.get('maxLife', 120),
-            'recoverValue': conf.get('recover', 5)
+            'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
+            'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
+            'recoverValue': conf.get('recover', DEFAULTS['recover'])
         }
 
     def setDeck(self, deckId):
@@ -372,8 +370,12 @@ class DeckProgressBarManager(object):
             self._currentDeck = None
 
     def updateDeckConf(self, deckId, conf):
-        self._barInfo[str(deckId)]['maxValue'] = conf.get('maxLife', 120)
-        self._barInfo[str(deckId)]['recoverValue'] = conf.get('recover', 5)
+        self._barInfo[str(deckId)]['maxValue'] = conf.get('maxLife', DEFAULTS['maxLife'])
+        self._barInfo[str(deckId)]['recoverValue'] = conf.get('recover', DEFAULTS['recover'])
+
+    def updateAnkiProgressBar(self, ankiProgressBar):
+        self._ankiProgressBar.delete()
+        self._ankiProgressBar = ankiProgressBar
 
     def recover(self, increment=True):
         multiplier = 1
@@ -386,12 +388,7 @@ class DeckProgressBarManager(object):
 
 
 # Remove separator strip
-separatorStripCss = '''
-    QMainWindow::separator {
-        width: 0px;
-        height: 0px;
-    }
-'''
+separatorStripCss = 'QMainWindow::separator { width: 0px; height: 0px; }'
 try:
     import Night_Mode
     Night_Mode.nm_css_menu += separatorStripCss
@@ -401,6 +398,7 @@ except ImportError:
     mw.setStyleSheet(separatorStripCss)
 
 
+config = {}
 deckBarManager = None
 timer = None
 status = {
@@ -414,7 +412,19 @@ def timerTrigger():
 
 def profileLoaded():
     global deckBarManager, config
-    progressBar = AnkiProgressBar(config, 120)
+
+    config = {
+        'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+        'progressBarStyle': {
+            'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+            'backgroundColor': mw.col.conf.get('barBgColor', DEFAULTS['barBgColor']),
+            'foregroundColor': mw.col.conf.get('barFgColor', DEFAULTS['barFgColor']),
+            'borderRadius': mw.col.conf.get('barBorderRadius', DEFAULTS['barBorderRadius']),
+            'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+        }
+    }
+
+    progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
     deckBarManager = DeckProgressBarManager(progressBar)
     for deckId in mw.col.decks.allIds():
         deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
