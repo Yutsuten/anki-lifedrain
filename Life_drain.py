@@ -1,6 +1,6 @@
 """
 Anki Add-on: Life Drain
-Add a bar that is reduced as time passes. Completing reviews recovers it.
+Add a bar that is reduced as time passes. Completing reviews recovers life.
 
 **
 Some of the code (progress bar) used here was originally done by Glutanimate, from the
@@ -20,6 +20,9 @@ from aqt import mw, forms
 from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.deckconf import DeckConf
+from aqt.preferences import Preferences
+
+from aqt.utils import showInfo
 
 
 ## Bar design configuration ##
@@ -38,7 +41,6 @@ config = {
     'position': 'bottom',
     'progressBarStyle': {
         'height': 17,
-        'textColor': '#dddddd',
         'backgroundColor': '#222222',
         'foregroundColor': '#666666',
         'borderRadius': 0,
@@ -49,8 +51,128 @@ config = {
 ## End configuration ##
 
 
-# Deck configuration GUI
-def lifeDrainTabUi(self, Dialog):
+# Settings GUI
+def globalSettingsLifeDrainTabUi(self, Preferences):
+    tabWidget = QWidget()
+    layout = QGridLayout(tabWidget)
+    layout.setColumnStretch(0, 3)
+    layout.setColumnStretch(3, 1)
+    layout.setColumnMinimumWidth(2, 50)
+    row = 0
+
+    title = QLabel('<b>Life Drain Bar style</b>')
+    layout.addWidget(title, row, 0, 1, 3)
+    row += 1
+
+    positionLabel = QLabel('Position')
+    self.positionList = QComboBox(tabWidget)
+    self.positionList.addItem('Top')
+    self.positionList.addItem('Bottom')
+    layout.addWidget(positionLabel, row, 0)
+    layout.addWidget(self.positionList, row, 1, 1, 2)
+    row += 1
+
+    heightLabel = QLabel('Height')
+    self.heightInput = QSpinBox(tabWidget)
+    self.heightInput.setRange(1, 40)
+    layout.addWidget(heightLabel, row, 0)
+    layout.addWidget(self.heightInput, row, 1, 1, 2)
+    row += 1
+
+    bgLabel = QLabel('Background color')
+    self.bgColorPreview = QLabel('')
+    bgSelectButton = QPushButton('Select')
+    self.bgColorDialog = QColorDialog(bgSelectButton)
+    bgSelectButton.pressed.connect(lambda: selectColorDialog(self.bgColorDialog, self.bgColorPreview))
+    layout.addWidget(bgLabel, row, 0)
+    layout.addWidget(bgSelectButton, row, 1)
+    layout.addWidget(self.bgColorPreview, row, 2)
+    row += 1
+
+    fgLabel = QLabel('Foreground color')
+    self.fgColorPreview = QLabel('')
+    fgSelectButton = QPushButton('Select')
+    self.fgColorDialog = QColorDialog(fgSelectButton)
+    fgSelectButton.pressed.connect(lambda: selectColorDialog(self.fgColorDialog, self.fgColorPreview))
+    layout.addWidget(fgLabel, row, 0)
+    layout.addWidget(fgSelectButton, row, 1)
+    layout.addWidget(self.fgColorPreview, row, 2)
+    row += 1
+
+    borderRadiusLabel = QLabel('Border radius')
+    self.borderRadiusInput = QSpinBox(tabWidget)
+    self.borderRadiusInput.setRange(0, 20)
+    layout.addWidget(borderRadiusLabel, row, 0)
+    layout.addWidget(self.borderRadiusInput, row, 1, 1, 2)
+    row += 1
+
+    styleLabel = QLabel('Style*')
+    self.styleList = QComboBox(tabWidget)
+    self.styleList.addItem('Default')
+    self.styleList.addItem('Cde')
+    self.styleList.addItem('Cleanlooks')
+    self.styleList.addItem('Fusion')
+    self.styleList.addItem('Gtk')
+    self.styleList.addItem('Macintosh')
+    self.styleList.addItem('Motif')
+    self.styleList.addItem('Plastique')
+    self.styleList.addItem('Windows')
+    self.styleList.addItem('Windows Vista')
+    self.styleList.addItem('Windows XP')
+    layout.addWidget(styleLabel, row, 0)
+    layout.addWidget(self.styleList, row, 1, 1, 2)
+    row += 1
+
+    hideSeparatorStripLabel = QLabel('Hide separator**')
+    self.hideSeparatorStripCheckBox = QCheckBox(tabWidget)
+    layout.addWidget(hideSeparatorStripLabel, row, 0)
+    layout.addWidget(self.hideSeparatorStripCheckBox, row, 1, 1, 2)
+    row += 1
+
+    descriptionLabel = QLabel('*  Please keep in mind that some styles may not work well with another configurations!')
+    descriptionLabel.setWordWrap(True)
+    layout.addWidget(descriptionLabel, row, 0, 1, 4)
+    row += 1
+
+    descriptionLabel2 = QLabel('** If while using other addons you find problems with the separator strip being hidden, uncheck this. Usually you will want this checked.')
+    descriptionLabel2.setWordWrap(True)
+    layout.addWidget(descriptionLabel2, row, 0, 1, 4)
+    row += 1
+
+    spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+    layout.addItem(spacer, row, 0)
+
+    self.tabWidget.addTab(tabWidget, "Life Drain")
+
+def selectColorDialog(qColorDialog, previewLabel):
+    if qColorDialog.exec_():
+        previewLabel.setStyleSheet('QLabel { background-color: %s; }' % qColorDialog.currentColor().name())
+
+def globalLoadConf(self, mw):
+    conf = self.mw.col.conf
+    self.form.positionList.setCurrentIndex(conf.get('barPosition', 1))
+    self.form.heightInput.setValue(conf.get('barHeight', 17))
+
+    self.form.bgColorDialog.setCurrentColor(QColor(conf.get('barBgColor', '#222222')))
+    self.form.bgColorPreview.setStyleSheet('QLabel { background-color: %s; }' % self.form.bgColorDialog.currentColor().name())
+
+    self.form.fgColorDialog.setCurrentColor(QColor(conf.get('barFgColor', '#666666')))
+    self.form.fgColorPreview.setStyleSheet('QLabel { background-color: %s; }' % self.form.fgColorDialog.currentColor().name())
+
+    self.form.borderRadiusInput.setValue(conf.get('barBorderRadius', 0))
+    self.form.styleList.setCurrentIndex(conf.get('barStyle', 0))
+    self.form.hideSeparatorStripCheckBox.setChecked(conf.get('hideSeparator', True))
+
+def globalSaveConf(self):
+    conf = self.mw.col.conf
+
+forms.preferences.Ui_Preferences.setupUi = wrap(forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi, pos='after')
+Preferences.__init__ = wrap(Preferences.__init__, globalLoadConf, pos='after')
+Preferences.accept = wrap(Preferences.accept, globalSaveConf, pos='before')
+
+
+# Deck settings GUI
+def deckSettingsLifeDrainTabUi(self, Dialog):
     tabWidget = QWidget()
     layout = QGridLayout(tabWidget)
     row = 0
@@ -83,20 +205,20 @@ def lifeDrainTabUi(self, Dialog):
 
     self.tabWidget.addTab(tabWidget, "Life Drain")
 
-def loadConf(self):
+def deckLoadConf(self):
     self.conf = self.mw.col.decks.confForDid(self.deck['id'])
     self.form.maxLifeInput.setValue(self.conf.get('maxLife', 120))
     self.form.recoverInput.setValue(self.conf.get('recover', 5))
 
-def saveConf(self):
+def deckSaveConf(self):
     global deckBarManager
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
     deckBarManager.updateDeckConf(self.deck['id'], self.conf)
 
-forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, lifeDrainTabUi, pos='after')
-DeckConf.loadConf = wrap(DeckConf.loadConf, loadConf)
-DeckConf.saveConf = wrap(DeckConf.saveConf, saveConf, 'before')
+forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi, pos='after')
+DeckConf.loadConf = wrap(DeckConf.loadConf, deckLoadConf)
+DeckConf.saveConf = wrap(DeckConf.saveConf, deckSaveConf, pos='before')
 
 
 class AnkiProgressBar(object):
@@ -148,7 +270,6 @@ class AnkiProgressBar(object):
             palette.setColor(QPalette.Base, QColor(options['backgroundColor']))
             palette.setColor(QPalette.Highlight, QColor(options['foregroundColor']))
             palette.setColor(QPalette.Button, QColor(options['backgroundColor']))
-            palette.setColor(QPalette.WindowText, QColor(options['textColor']))
             palette.setColor(QPalette.Window, QColor(options['backgroundColor']))
 
             self._qProgressBar.setStyle(QStyleFactory.create(options['customStyle']))
@@ -168,7 +289,6 @@ class AnkiProgressBar(object):
                 '''
                 QProgressBar {
                     text-align:center;
-                    color: %s;
                     background-color: %s;
                     border-radius: %dpx;
                     max-height: %spx;
@@ -180,7 +300,6 @@ class AnkiProgressBar(object):
                 }
                 '''
                 % (
-                    options['textColor'],
                     options['backgroundColor'],
                     options['borderRadius'],
                     options['height'],
