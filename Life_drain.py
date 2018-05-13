@@ -16,6 +16,7 @@ License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
 
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
+from anki.collection import _Collection
 from aqt.qt import *
 from aqt import mw, forms
 from aqt.progress import ProgressManager
@@ -483,6 +484,10 @@ def suspend(self, ids):
     global status
     status['newCardState'] = True
 
+def delete(self, card):
+    global status
+    status['newCardState'] = True
+
 def activateTimer():
     global timer
     if not timer.isActive():
@@ -515,4 +520,5 @@ addHook('leech', leech)
 Scheduler.buryNote = wrap(Scheduler.buryNote, bury)
 Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
 Scheduler.suspendCards = wrap(Scheduler.suspendCards, suspend)
+_Collection.remCards = wrap(_Collection.remCards, delete)
 
