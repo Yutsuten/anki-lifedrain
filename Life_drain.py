@@ -15,6 +15,7 @@ License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
 """
 
 from anki.hooks import addHook, wrap
+from anki.sched import Scheduler
 from aqt.qt import *
 from aqt import mw, forms
 from aqt.progress import ProgressManager
@@ -158,9 +159,9 @@ def globalSaveConf(self):
     progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
     deckBarManager.updateAnkiProgressBar(progressBar)
 
-forms.preferences.Ui_Preferences.setupUi = wrap(forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi, pos='after')
-Preferences.__init__ = wrap(Preferences.__init__, globalLoadConf, pos='after')
-Preferences.accept = wrap(Preferences.accept, globalSaveConf, pos='before')
+forms.preferences.Ui_Preferences.setupUi = wrap(forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi)
+Preferences.__init__ = wrap(Preferences.__init__, globalLoadConf)
+Preferences.accept = wrap(Preferences.accept, globalSaveConf, 'before')
 
 
 # Deck settings GUI
@@ -208,9 +209,9 @@ def saveDeckConf(self):
     self.conf['recover'] = self.form.recoverInput.value()
     deckBarManager.updateDeckConf(self.deck['id'], self.conf)
 
-forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi, pos='after')
+forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi)
 DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
-DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, pos='before')
+DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
 
 
 class AnkiProgressBar(object):
@@ -401,6 +402,7 @@ deckBarManager = None
 timer = None
 status = {
     'reviewed': False,
+    'newCardState': False,
     'screen': None
 }
 
@@ -461,12 +463,25 @@ def showAnswer():
     activateTimer()
     status['reviewed'] = True
 
-def reset():
-    global deckBarManager, config, status
-    status['reviewed'] = False
-    if (status['screen'] == 'review'):
+def undo():
+    global deckBarManager, status
+    if (status['screen'] == 'review' and not status['newCardState']):
         activateTimer()
+        status['reviewed'] = False
         deckBarManager.recover(False)
+    status['newCardState'] = False
+
+def leech(self, card):
+    global status
+    status['newCardState'] = True
+
+def bury(self, ids):
+    global status
+    status['newCardState'] = True
+
+def suspend(self, ids):
+    global status
+    status['newCardState'] = True
 
 def activateTimer():
     global timer
@@ -494,5 +509,10 @@ addHook('profileLoaded', profileLoaded)
 addHook('afterStateChange', afterStateChange)
 addHook('showQuestion', showQuestion)
 addHook('showAnswer', showAnswer)
-addHook('reset', reset)
+addHook('reset', undo)
+addHook('leech', leech)
+
+Scheduler.buryNote = wrap(Scheduler.buryNote, bury)
+Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
+Scheduler.suspendCards = wrap(Scheduler.suspendCards, suspend)
 
