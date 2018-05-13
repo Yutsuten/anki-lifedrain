@@ -38,8 +38,8 @@ DEFAULTS = {
     'recover': 5,
     'barPosition': POSITION_OPTIONS.index('Bottom'),
     'barHeight': 15,
-    'barBgColor': '#222222',
-    'barFgColor': '#666666',
+    'barBgColor': '#f3f3f2',
+    'barFgColor': '#489ef6',
     'barBorderRadius': 0,
     'barStyle': STYLE_OPTIONS.index('Default')
 }
@@ -157,7 +157,7 @@ def globalSaveConf(self):
             'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
-    progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
+    progressBar = AnkiProgressBar(config, deckBarManager.getBar().getCurrentValue())
     deckBarManager.updateAnkiProgressBar(progressBar)
 
 forms.preferences.Ui_Preferences.setupUi = wrap(forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi)
@@ -353,11 +353,12 @@ class DeckProgressBarManager(object):
         self._ankiProgressBar = ankiProgressBar
 
     def addDeck(self, deckId, conf):
-        self._barInfo[str(deckId)] = {
-            'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
-            'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
-            'recoverValue': conf.get('recover', DEFAULTS['recover'])
-        }
+        if str(deckId) not in self._barInfo:
+            self._barInfo[str(deckId)] = {
+                'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
+                'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
+                'recoverValue': conf.get('recover', DEFAULTS['recover'])
+            }
 
     def setDeck(self, deckId):
         if self._currentDeck:
@@ -424,12 +425,11 @@ def profileLoaded():
             'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
-
     progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
+    progressBar.hide()
     deckBarManager = DeckProgressBarManager(progressBar)
     for deckId in mw.col.decks.allIds():
         deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
-    progressBar.hide()
 
 def afterStateChange(state, oldState):
     global deckBarManager, config, timer, status
