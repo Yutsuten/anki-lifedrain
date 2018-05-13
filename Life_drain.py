@@ -472,7 +472,7 @@ def undo():
         deckBarManager.recover(False)
     status['newCardState'] = False
 
-def leech(self, card):
+def leech(card):
     global status
     status['newCardState'] = True
 
@@ -484,7 +484,7 @@ def suspend(self, ids):
     global status
     status['newCardState'] = True
 
-def delete(self, card):
+def delete(self, ids, notes=True):
     global status
     status['newCardState'] = True
 
