@@ -23,6 +23,7 @@ from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.deckconf import DeckConf
 from aqt.preferences import Preferences
+from aqt.editcurrent import EditCurrent
 
 from aqt.utils import showInfo
 
@@ -213,6 +214,14 @@ def saveDeckConf(self):
 forms.dconf.Ui_Dialog.setupUi = wrap(forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi)
 DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
 DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
+
+
+# Edit during review
+def onEdit(*args):
+    global status
+    status['reviewed'] = False
+
+EditCurrent.__init__ = wrap(EditCurrent.__init__, onEdit)
 
 
 class AnkiProgressBar(object):
@@ -443,12 +452,13 @@ def afterStateChange(state, oldState):
     status['reviewed'] = False
     status['screen'] = state
 
-    if state in ['overview', 'review']:
-        deckBarManager.setDeck(mw.col.decks.current()['id'])
-        deckBarManager.getBar().show()
-    elif deckBarManager:
-        deckBarManager.getBar().hide()
-        deckBarManager.setDeck(None)
+    if deckBarManager:
+        if state == 'deckBrowser':
+            deckBarManager.getBar().hide()
+            deckBarManager.setDeck(None)
+        else:
+            deckBarManager.setDeck(mw.col.decks.current()['id'])
+            deckBarManager.getBar().show()
 
     if state == 'review':
         timer.start()
