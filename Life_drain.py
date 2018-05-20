@@ -503,6 +503,10 @@ def activateTimer():
     if not timer.isActive():
         timer.start()
 
+def newDeck():
+    for deckId in mw.col.decks.allIds():
+        deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
+
 def keyHandler(self, evt, _old):
     '''
     Add the P shortcut for pausing/unpausing the drain.
@@ -526,6 +530,7 @@ addHook('showQuestion', showQuestion)
 addHook('showAnswer', showAnswer)
 addHook('reset', undo)
 addHook('leech', leech)
+addHook('newDeck', newDeck)
 
 Scheduler.buryNote = wrap(Scheduler.buryNote, bury)
 Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
