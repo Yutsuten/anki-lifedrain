@@ -25,8 +25,6 @@ from aqt.deckconf import DeckConf
 from aqt.preferences import Preferences
 from aqt.editcurrent import EditCurrent
 
-from aqt.utils import showInfo
-
 
 POSITION_OPTIONS = ['Top', 'Bottom']
 STYLE_OPTIONS = [
@@ -109,7 +107,7 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
     layout.addWidget(self.styleList, row, 1, 1, 2)
     row += 1
 
-    descriptionLabel = QLabel('* Please keep in mind that some styles may not work well with another configurations!')
+    descriptionLabel = QLabel('* Please keep in mind that some styles may not work well in some platforms!')
     descriptionLabel.setWordWrap(True)
     layout.addWidget(descriptionLabel, row, 0, 1, 4)
     row += 1
