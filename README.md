@@ -8,6 +8,14 @@ Your life reduces within time, and you must answer the questions in order to rec
 The objective is to give the user a visual feedback of how fast the questions are being answered.
 If the life is low, it means that the user is distracted or taking too much time to answer.
 
+## Install
+### Recommended way
+- Anki addons: [Life Drain](https://ankiweb.net/shared/info/715575551)
+
+### Manual
+- Anki 2.0: Copy the file `lifedrain.py` (inside folder `lifedrain`) into you addons folder.
+- Anki 2.1: Copy the folder `lifedrain` into your addons folder.
+
 ## Screenshot
 
 ![Review](screenshots/review_screen.png)
