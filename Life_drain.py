@@ -18,7 +18,7 @@ from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
 from anki.collection import _Collection
 from aqt.qt import *
-from aqt import mw, forms
+from aqt import mw, forms, appVersion
 from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.deckconf import DeckConf
@@ -507,21 +507,34 @@ def newDeck():
     for deckId in mw.col.decks.allIds():
         deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
 
-def keyHandler(self, evt, _old):
-    '''
-    Add the P shortcut for pausing/unpausing the drain.
-    '''
+def toggleTimer():
     global timer
-    key = unicode(evt.text())
-    if key == 'p' and timer:
+    if timer:
         if (timer.isActive()):
             timer.stop()
         else:
             timer.start()
-    else:
-        return _old(self, evt)
 
-Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
+# Dealing with key presses is different in Anki 2.0 and 2.1
+# This if/elif block deals with the differences
+if appVersion.startswith('2.0'):
+    def keyHandler(self, evt, _old):
+        key = unicode(evt.text())
+        if key == 'p':
+            toggleTimer()
+        else:
+            return _old(self, evt)
+
+    Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
+
+elif appVersion.startswith('2.1'):
+    def _shortcutKeys():
+        global shortcutKeys
+        return shortcutKeys
+
+    shortcutKeys = mw.reviewer._shortcutKeys()
+    shortcutKeys.append(tuple(['p', toggleTimer]))
+    mw.reviewer._shortcutKeys = _shortcutKeys
 
 
 addHook('profileLoaded', profileLoaded)
