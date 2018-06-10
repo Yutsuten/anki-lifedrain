@@ -466,6 +466,8 @@ def showQuestion():
     activateTimer()
     if (status['reviewed']):
         deckBarManager.recover()
+    status['reviewed'] = False
+    status['newCardState'] = False
 
 def showAnswer():
     global status
@@ -475,7 +477,6 @@ def showAnswer():
 def undo():
     global deckBarManager, status
     if (status['screen'] == 'review' and not status['newCardState']):
-        activateTimer()
         status['reviewed'] = False
         deckBarManager.recover(False)
     status['newCardState'] = False
