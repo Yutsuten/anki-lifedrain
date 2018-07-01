@@ -210,10 +210,6 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
     layout = qt.QGridLayout(tabWidget)
     row = 0
 
-    title = qt.QLabel('<b>Life Drain Bar settings</b>')
-    layout.addWidget(title, row, 0, 1, 3)
-    row += 1
-
     descriptionLabel = qt.QLabel(
         'The <b>maximum life</b> is the time in seconds for the life bar go '
         'from full to empty.\n<b>Recover</b> is the time in seconds that is '
@@ -273,7 +269,7 @@ DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
 def customStudyLifeDrainUi(self, Dialog):
     row = 0
 
-    lifeDrainGroupBox = qt.QGroupBox('Life Drain options')
+    lifeDrainGroupBox = qt.QGroupBox('Life Drain')
     layout = qt.QGridLayout(lifeDrainGroupBox)
     row = 0
 
@@ -291,7 +287,8 @@ def customStudyLifeDrainUi(self, Dialog):
     layout.addWidget(self.recoverInput, row, 2)
     row += 1
 
-    self.verticalLayout.insertWidget(2, lifeDrainGroupBox)
+    index = 2 if appVersion.startswith('2.0') else 3
+    self.verticalLayout.insertWidget(index, lifeDrainGroupBox)
 
 
 forms.dyndconf.Ui_Dialog.setupUi = wrap(
