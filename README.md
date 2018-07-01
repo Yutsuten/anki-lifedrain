@@ -5,15 +5,15 @@ Your life reduces within time, and you must answer the questions in order to rec
 
 ## Objective
 
-The objective is to give the user a visual feedback of how fast the questions are being answered.
-If the life is low, it means that the user is distracted or taking too much time to answer.
+The objective is to give a visual feedback of how fast the questions are being answered.
+If the life is low, it means that you are distracted or taking too much time to answer.
 
 ## Install
 ### Recommended way
-- Anki addons: [Life Drain](https://ankiweb.net/shared/info/715575551)
+- [AnkiWeb](https://ankiweb.net/shared/info/715575551)
 
 ### Manual
-- Anki 2.0: Copy the file `lifedrain.py` (inside folder `lifedrain`) into you addons folder.
+- Anki 2.0: Copy the file `lifedrain.py` (inside folder `lifedrain`) into your addons folder.
 - Anki 2.1: Copy the folder `lifedrain` into your addons folder.
 
 ## Screenshot
@@ -44,7 +44,9 @@ Select a deck, then in `Options`, select the tab `Life Drain`:
 
 ![Deck options](screenshots/deck_options.png)
 
-As it is written in the screenshot:
+Filtered deck configurations (Added in 2018-07-01):
+
+![Custom deck options](screenshots/custom_deck_options.png)
 
 - **Maximum life**: Is the time in seconds for the life bar go from full to empty.
 - **Recover**: Is the time in seconds that is recovered after answering a card.
@@ -63,9 +65,14 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) addon showed me t
 
 And then I just thought: why not to have a life bar with drain in Anki?
 
+## CHANGELOG
+- **2018-05-20**: Initial release.
+- **2018-06-10**: Fixed bugs when suspending cards while reviewing.
+- **2018-07-01**: Added life drain options to filtered decks.
+
 ## Contribute
 
-If you find any bugs, feel free to open issues. I'll try to answer / fix those whenever I can!
+If you find any bugs, feel free to open issues. I'll try to answer / fix those as soon as I can!
 
 If you want to help even more, fell free to open a PR too!
 
