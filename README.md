@@ -10,10 +10,10 @@ If the life is low, it means that the user is distracted or taking too much time
 
 ## Install
 ### Recommended way
-- Anki addons: [Life Drain](https://ankiweb.net/shared/info/715575551)
+- [AnkiWeb](https://ankiweb.net/shared/info/715575551)
 
 ### Manual
-- Anki 2.0: Copy the file `lifedrain.py` (inside folder `lifedrain`) into you addons folder.
+- Anki 2.0: Copy the file `lifedrain.py` (inside folder `lifedrain`) into your addons folder.
 - Anki 2.1: Copy the folder `lifedrain` into your addons folder.
 
 ## Screenshot
@@ -72,7 +72,7 @@ And then I just thought: why not to have a life bar with drain in Anki?
 
 ## Contribute
 
-If you find any bugs, feel free to open issues. I'll try to answer / fix those whenever I can!
+If you find any bugs, feel free to open issues. I'll try to answer / fix those as soon as I can!
 
 If you want to help even more, fell free to open a PR too!
 
