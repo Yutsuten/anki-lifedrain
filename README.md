@@ -5,7 +5,7 @@ Your life reduces within time, and you must answer the questions in order to rec
 
 ## Objective
 
-The objective is to give the user a visual feedback of how fast the questions are being answered.
+The objective is to give a visual feedback of how fast the questions are being answered.
 If the life is low, it means that you are distracted or taking too much time to answer.
 
 ## Install
