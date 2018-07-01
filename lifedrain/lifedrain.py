@@ -22,6 +22,7 @@ from aqt import qt, mw, forms, appVersion
 from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.deckconf import DeckConf
+from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.preferences import Preferences
 from aqt.editcurrent import EditCurrent
 
@@ -209,10 +210,6 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
     layout = qt.QGridLayout(tabWidget)
     row = 0
 
-    title = qt.QLabel('<b>Life Drain Bar settings</b>')
-    layout.addWidget(title, row, 0, 1, 3)
-    row += 1
-
     descriptionLabel = qt.QLabel(
         'The <b>maximum life</b> is the time in seconds for the life bar go '
         'from full to empty.\n<b>Recover</b> is the time in seconds that is '
@@ -266,6 +263,39 @@ forms.dconf.Ui_Dialog.setupUi = wrap(
 )
 DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
 DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
+
+
+# Filtered deck settings GUI
+def customStudyLifeDrainUi(self, Dialog):
+    row = 0
+
+    lifeDrainGroupBox = qt.QGroupBox('Life Drain')
+    layout = qt.QGridLayout(lifeDrainGroupBox)
+    row = 0
+
+    maxLifeLabel = qt.QLabel('Maximum life')
+    self.maxLifeInput = qt.QSpinBox(lifeDrainGroupBox)
+    self.maxLifeInput.setRange(1, 1000)
+    layout.addWidget(maxLifeLabel, row, 0, 1, 2)
+    layout.addWidget(self.maxLifeInput, row, 2)
+    row += 1
+
+    recoverLabel = qt.QLabel('Recover')
+    self.recoverInput = qt.QSpinBox(lifeDrainGroupBox)
+    self.recoverInput.setRange(1, 1000)
+    layout.addWidget(recoverLabel, row, 0, 1, 2)
+    layout.addWidget(self.recoverInput, row, 2)
+    row += 1
+
+    index = 2 if appVersion.startswith('2.0') else 3
+    self.verticalLayout.insertWidget(index, lifeDrainGroupBox)
+
+
+forms.dyndconf.Ui_Dialog.setupUi = wrap(
+    forms.dyndconf.Ui_Dialog.setupUi, customStudyLifeDrainUi
+)
+FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, loadDeckConf)
+FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, saveDeckConf, 'before')
 
 
 # Edit during review
