@@ -22,6 +22,7 @@ from aqt import qt, mw, forms, appVersion
 from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.deckconf import DeckConf
+from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.preferences import Preferences
 from aqt.editcurrent import EditCurrent
 
@@ -266,6 +267,38 @@ forms.dconf.Ui_Dialog.setupUi = wrap(
 )
 DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
 DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
+
+
+# Filtered deck settings GUI
+def customStudyLifeDrainUi(self, Dialog):
+    row = 0
+
+    lifeDrainGroupBox = qt.QGroupBox('Life Drain options')
+    layout = qt.QGridLayout(lifeDrainGroupBox)
+    row = 0
+
+    maxLifeLabel = qt.QLabel('Maximum life')
+    self.maxLifeInput = qt.QSpinBox(lifeDrainGroupBox)
+    self.maxLifeInput.setRange(1, 1000)
+    layout.addWidget(maxLifeLabel, row, 0, 1, 2)
+    layout.addWidget(self.maxLifeInput, row, 2)
+    row += 1
+
+    recoverLabel = qt.QLabel('Recover')
+    self.recoverInput = qt.QSpinBox(lifeDrainGroupBox)
+    self.recoverInput.setRange(1, 1000)
+    layout.addWidget(recoverLabel, row, 0, 1, 2)
+    layout.addWidget(self.recoverInput, row, 2)
+    row += 1
+
+    self.verticalLayout.insertWidget(2, lifeDrainGroupBox)
+
+
+forms.dyndconf.Ui_Dialog.setupUi = wrap(
+    forms.dyndconf.Ui_Dialog.setupUi, customStudyLifeDrainUi
+)
+FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, loadDeckConf)
+FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, saveDeckConf, 'before')
 
 
 # Edit during review
