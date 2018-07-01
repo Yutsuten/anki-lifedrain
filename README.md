@@ -44,7 +44,7 @@ Select a deck, then in `Options`, select the tab `Life Drain`:
 
 ![Deck options](screenshots/deck_options.png)
 
-Filtered deck configurations (Added in 2018-07-01)
+Filtered deck configurations (Added in 2018-07-01):
 
 ![Custom deck options](screenshots/custom_deck_options.png)
 
