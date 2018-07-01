@@ -44,7 +44,9 @@ Select a deck, then in `Options`, select the tab `Life Drain`:
 
 ![Deck options](screenshots/deck_options.png)
 
-As it is written in the screenshot:
+Filtered deck configurations (Added in 2018-07-01)
+
+![Custom deck options](screenshots/custom_deck_options.png)
 
 - **Maximum life**: Is the time in seconds for the life bar go from full to empty.
 - **Recover**: Is the time in seconds that is recovered after answering a card.
@@ -62,6 +64,11 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) addon showed me t
 [Osu!](https://osu.ppy.sh/) is a rhythm game I play, and one of its features is a life bar that reduces while playing, and to recover it you have to click the circles in the correct timing.
 
 And then I just thought: why not to have a life bar with drain in Anki?
+
+## CHANGELOG
+- **2018-05-20**: Initial release.
+- **2018-06-10**: Fixed bugs when suspending cards while reviewing.
+- **2018-07-01**: Added life drain options to filtered decks.
 
 ## Contribute
 
