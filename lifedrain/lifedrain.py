@@ -332,7 +332,7 @@ class AnkiProgressBar(object):
 
     def setMaxValue(self, maxValue):
         self._maxValue = maxValue
-        if (self._maxValue <= 0):
+        if self._maxValue <= 0:
             self._maxValue = 1
         self._qProgressBar.setRange(0, self._maxValue)
 
@@ -354,7 +354,7 @@ class AnkiProgressBar(object):
         global STYLE_OPTIONS
         customStyle = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
-        if (customStyle != 'default'):
+        if customStyle != 'default':
             palette = qt.QPalette()
             palette.setColor(
                 qt.QPalette.Base, qt.QColor(options['backgroundColor'])
@@ -406,9 +406,9 @@ class AnkiProgressBar(object):
             )
 
     def _validateUpdateCurrentValue(self):
-        if (self._currentValue > self._maxValue):
+        if self._currentValue > self._maxValue:
             self._currentValue = self._maxValue
-        elif (self._currentValue < 0):
+        elif self._currentValue < 0:
             self._currentValue = 0
         self._qProgressBar.setValue(self._currentValue)
 
@@ -419,9 +419,9 @@ class AnkiProgressBar(object):
         if place not in POSITION_OPTIONS:
             place = DEFAULTS['barPosition']
 
-        if (place == 'Top'):
+        if place == 'Top':
             dockArea = qt.Qt.TopDockWidgetArea
-        elif (place == 'Bottom'):
+        elif place == 'Bottom':
             dockArea = qt.Qt.BottomDockWidgetArea
 
         self._dock = qt.QDockWidget()
@@ -433,7 +433,7 @@ class AnkiProgressBar(object):
             widget for widget in mw.findChildren(qt.QDockWidget)
             if mw.dockWidgetArea(widget) == dockArea
         ]
-        if (len(existing_widgets) == 0):
+        if not existing_widgets:
             mw.addDockWidget(dockArea, self._dock)
         else:
             mw.setDockNestingEnabled(True)
@@ -486,7 +486,7 @@ class DeckProgressBarManager(object):
             conf.get('recover', DEFAULTS['recover'])
 
     def updateAnkiProgressBar(self, ankiProgressBar):
-        del(self._ankiProgressBar)
+        del self._ankiProgressBar
         self._ankiProgressBar = ankiProgressBar
 
     def recover(self, increment=True):
@@ -506,7 +506,7 @@ separatorStripCss = 'QMainWindow::separator { width: 0px; height: 0px; }'
 try:
     import Night_Mode
     Night_Mode.nm_css_menu += separatorStripCss
-    if (not Night_Mode.nm_state_on):
+    if not Night_Mode.nm_state_on:
         mw.setStyleSheet(separatorStripCss)
 except ImportError:
     mw.setStyleSheet(separatorStripCss)
@@ -557,7 +557,7 @@ def afterStateChange(state, oldState):
         timer = ProgressManager(mw).timer(1000, timerTrigger, True)
     timer.stop()
 
-    if (status['reviewed'] and state in ['overview', 'review']):
+    if status['reviewed'] and state in ['overview', 'review']:
         deckBarManager.recover()
     status['reviewed'] = False
     status['screen'] = state
@@ -577,7 +577,7 @@ def afterStateChange(state, oldState):
 def showQuestion():
     global deckBarManager, config, status
     activateTimer()
-    if (status['reviewed']):
+    if status['reviewed']:
         deckBarManager.recover()
     status['reviewed'] = False
     status['newCardState'] = False
@@ -591,7 +591,7 @@ def showAnswer():
 
 def undo():
     global deckBarManager, status
-    if (status['screen'] == 'review' and not status['newCardState']):
+    if status['screen'] == 'review' and not status['newCardState']:
         status['reviewed'] = False
         deckBarManager.recover(False)
     status['newCardState'] = False
@@ -631,7 +631,7 @@ def newDeck():
 def toggleTimer():
     global timer
     if timer:
-        if (timer.isActive()):
+        if timer.isActive():
             timer.stop()
         else:
             timer.start()
