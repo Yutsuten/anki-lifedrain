@@ -1,0 +1,23 @@
+[MASTER]
+# Load modules inside anki folder
+init-hook='import sys, os; sys.path.append(os.getcwd() + '/anki-2.0.52')'
+# Members inside aqt.qt module are not recognized by pylint
+extension-pkg-whitelist=aqt.qt
+
+[BASIC]
+# Anki and PyQt uses camel case, so change the default to it
+function-rgx=_?_?[a-z][A-Za-z0-9]{1,30}$
+method-rgx=_?_?[a-z][A-Za-z0-9]{1,30}_?_?$
+attr-rgx=_?_?[a-z][A-Za-z0-9]{1,30}$
+argument-rgx=_?[a-z][A-Za-z0-9]{1,30}$
+variable-rgx=_?[a-z][A-Za-z0-9]{1,30}$
+inlinevar-rgx=_?[a-z][A-Za-z0-9]{1,30}$
+
+[TYPECHECK]
+# Members inside aqt.qt module are not recognized by pylint
+ignored-modules=aqt.qt
+
+[MESSAGES CONTROL]
+# To extend anki methods I have to put exactly the same number of arguments,
+# even if I do not use, and often I have to extend a protected method
+disable=unused-argument,protected-access

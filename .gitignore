@@ -1,2 +1,5 @@
 # Dist files
 *.zip
+
+# Anki folder
+anki-2.0.*/
