@@ -1,4 +1,4 @@
-"""
+'''
 Anki Add-on: Life Drain
 Add a bar that is reduced as time passes. Completing reviews recovers life.
 
@@ -13,7 +13,7 @@ Copyright:  (c) Unknown author (nest0r/Ja-Dark?) 2017
             (c) Glutanimate 2017 <https://glutanimate.com/>
             (c) Yutsuten 2018 <https://github.com/Yutsuten>
 License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
-"""
+'''
 
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
@@ -32,7 +32,6 @@ STYLE_OPTIONS = [
     'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh',
     'Motif', 'Plastique', 'Windows', 'Windows Vista', 'Windows XP'
 ]
-
 DEFAULTS = {
     'maxLife': 120,
     'recover': 5,
@@ -45,8 +44,43 @@ DEFAULTS = {
 }
 
 
-# Settings GUI
+# Saving data inside a class to access it as lifeDrain.config
+class LifeDrain(object):  # pylint: disable=too-few-public-methods
+    '''
+    Contains the state of the life drain.
+    '''
+    config = {}
+    deckBarManager = None
+    timer = None
+    status = {
+        'reviewed': False,
+        'newCardState': False,
+        'screen': None
+    }
+    shortcutKeys = None
+
+
+# Variable with the state the life drain
+# Pylint complains that it is a constant, so I disabled this check
+lifeDrain = LifeDrain()  # pylint: disable=invalid-name
+
+
+# Allowed this method to use global statement, as I don't see any other
+# way to access my variables inside the methods extended from Anki.
+# Adding new parameters to those methods is not possible, and cannot use
+# classes because it adds a parameter 'self' to the methods
+def getLifeDrain():
+    '''
+    Gets the state of the life drain.
+    '''
+    global lifeDrain  # pylint: disable=invalid-name,global-statement
+    return lifeDrain
+
+
 def globalSettingsLifeDrainTabUi(self, Preferences):
+    '''
+    Appends LifeDrain tab to Global Settings dialog.
+    '''
     tabWidget = qt.QWidget()
     layout = qt.QGridLayout(tabWidget)
     layout.setColumnStretch(0, 3)
@@ -129,6 +163,9 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
 
 
 def selectColorDialog(qColorDialog, previewLabel):
+    '''
+    Shows the select color dialog and updates the preview color in settings.
+    '''
     if qColorDialog.exec_():
         previewLabel.setStyleSheet(
             'QLabel { background-color: %s; }'
@@ -137,6 +174,9 @@ def selectColorDialog(qColorDialog, previewLabel):
 
 
 def globalLoadConf(self, mw):
+    '''
+    Loads LifeDrain global configurations.
+    '''
     conf = self.mw.col.conf
     self.form.positionList.setCurrentIndex(
         conf.get('barPosition', DEFAULTS['barPosition'])
@@ -170,7 +210,11 @@ def globalLoadConf(self, mw):
 
 
 def globalSaveConf(self):
-    global deckBarManager, config
+    '''
+    Saves LifeDrain global configurations.
+    '''
+    lifeDrain = getLifeDrain()
+
     conf = self.mw.col.conf
     conf['barPosition'] = self.form.positionList.currentIndex()
     conf['barHeight'] = self.form.heightInput.value()
@@ -192,20 +236,15 @@ def globalSaveConf(self):
         }
     }
     progressBar = AnkiProgressBar(
-        config, deckBarManager.getBar().getCurrentValue()
+        config, lifeDrain.deckBarManager.getBar().getCurrentValue()
     )
-    deckBarManager.updateAnkiProgressBar(progressBar)
+    lifeDrain.deckBarManager.updateAnkiProgressBar(progressBar)
 
 
-forms.preferences.Ui_Preferences.setupUi = wrap(
-    forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi
-)
-Preferences.__init__ = wrap(Preferences.__init__, globalLoadConf)
-Preferences.accept = wrap(Preferences.accept, globalSaveConf, 'before')
-
-
-# Deck settings GUI
 def deckSettingsLifeDrainTabUi(self, Dialog):
+    '''
+    Appends a new tab to deck settings dialog.
+    '''
     tabWidget = qt.QWidget()
     layout = qt.QGridLayout(tabWidget)
     row = 0
@@ -242,6 +281,9 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
 
 
 def loadDeckConf(self):
+    '''
+    Loads LifeDrain deck configurations.
+    '''
     self.conf = self.mw.col.decks.confForDid(self.deck['id'])
     self.form.maxLifeInput.setValue(
         self.conf.get('maxLife', DEFAULTS['maxLife'])
@@ -252,21 +294,20 @@ def loadDeckConf(self):
 
 
 def saveDeckConf(self):
-    global deckBarManager
+    '''
+    Saves LifeDrain deck configurations.
+    '''
+    lifeDrain = getLifeDrain()
+
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
-    deckBarManager.updateDeckConf(self.deck['id'], self.conf)
+    lifeDrain.deckBarManager.updateDeckConf(self.deck['id'], self.conf)
 
 
-forms.dconf.Ui_Dialog.setupUi = wrap(
-    forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi
-)
-DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
-DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
-
-
-# Filtered deck settings GUI
 def customStudyLifeDrainUi(self, Dialog):
+    '''
+    Adds LifeDrain configurations to custom study dialog.
+    '''
     row = 0
 
     lifeDrainGroupBox = qt.QGroupBox('Life Drain')
@@ -291,6 +332,20 @@ def customStudyLifeDrainUi(self, Dialog):
     self.verticalLayout.insertWidget(index, lifeDrainGroupBox)
 
 
+forms.preferences.Ui_Preferences.setupUi = wrap(
+    forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi
+)
+Preferences.__init__ = wrap(Preferences.__init__, globalLoadConf)
+Preferences.accept = wrap(Preferences.accept, globalSaveConf, 'before')
+
+
+forms.dconf.Ui_Dialog.setupUi = wrap(
+    forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi
+)
+DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
+DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
+
+
 forms.dyndconf.Ui_Dialog.setupUi = wrap(
     forms.dyndconf.Ui_Dialog.setupUi, customStudyLifeDrainUi
 )
@@ -298,16 +353,10 @@ FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, loadDeckConf)
 FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, saveDeckConf, 'before')
 
 
-# Edit during review
-def onEdit(*args):
-    global status
-    status['reviewed'] = False
-
-
-EditCurrent.__init__ = wrap(EditCurrent.__init__, onEdit)
-
-
 class AnkiProgressBar(object):
+    '''
+    Creates and manages a Progress Bar in Anki.
+    '''
     _qProgressBar = None
     _maxValue = 1
     _currentValue = 1
@@ -321,37 +370,64 @@ class AnkiProgressBar(object):
         self._dockAt(config['position'])
 
     def show(self):
+        '''
+        Shows the progress bar.
+        '''
         self._qProgressBar.show()
 
     def hide(self):
+        '''
+        Hides the progress bar.
+        '''
         self._qProgressBar.hide()
 
     def resetBar(self):
+        '''
+        Resets bar, setting current value to maximum.
+        '''
         self._currentValue = self._maxValue
         self._validateUpdateCurrentValue()
 
     def setMaxValue(self, maxValue):
+        '''
+        Sets the maximum value for the bar.
+        '''
         self._maxValue = maxValue
         if self._maxValue <= 0:
             self._maxValue = 1
         self._qProgressBar.setRange(0, self._maxValue)
 
     def setCurrentValue(self, currentValue):
+        '''
+        Sets the current value for the bar.
+        '''
         self._currentValue = currentValue
         self._validateUpdateCurrentValue()
 
     def incCurrentValue(self, increment):
+        '''
+        Increments the current value of the bar.
+        Negative values will decrement.
+        '''
         self._currentValue += increment
         self._validateUpdateCurrentValue()
 
     def getCurrentValue(self):
+        '''
+        Gets the current value of the bar.
+        '''
         return self._currentValue
 
     def setTextVisible(self, flag):
+        '''
+        Sets the visibility of the text on bar.
+        '''
         self._qProgressBar.setTextVisible(flag)
 
     def setStyle(self, options):
-        global STYLE_OPTIONS
+        '''
+        Sets the style of the bar.
+        '''
         customStyle = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
         if customStyle != 'default':
@@ -406,6 +482,9 @@ class AnkiProgressBar(object):
             )
 
     def _validateUpdateCurrentValue(self):
+        '''
+        When updating current value, makes sure that the value is [0; max].
+        '''
         if self._currentValue > self._maxValue:
             self._currentValue = self._maxValue
         elif self._currentValue < 0:
@@ -413,7 +492,9 @@ class AnkiProgressBar(object):
         self._qProgressBar.setValue(self._currentValue)
 
     def _dockAt(self, place):
-        global POSITION_OPTIONS
+        '''
+        Docks the bar at the specified place in the Anki window.
+        '''
         place = POSITION_OPTIONS[place]
 
         if place not in POSITION_OPTIONS:
@@ -429,15 +510,15 @@ class AnkiProgressBar(object):
         self._dock.setWidget(self._qProgressBar)
         self._dock.setTitleBarWidget(tWidget)
 
-        existing_widgets = [
+        existingWidgets = [
             widget for widget in mw.findChildren(qt.QDockWidget)
             if mw.dockWidgetArea(widget) == dockArea
         ]
-        if not existing_widgets:
+        if not existingWidgets:
             mw.addDockWidget(dockArea, self._dock)
         else:
             mw.setDockNestingEnabled(True)
-            mw.splitDockWidget(existing_widgets[0], self._dock, qt.Qt.Vertical)
+            mw.splitDockWidget(existingWidgets[0], self._dock, qt.Qt.Vertical)
         mw.web.setFocus()
 
     def __del__(self):
@@ -457,6 +538,9 @@ class DeckProgressBarManager(object):
         self._ankiProgressBar = ankiProgressBar
 
     def addDeck(self, deckId, conf):
+        '''
+        Adds a deck to the manager.
+        '''
         if str(deckId) not in self._barInfo:
             self._barInfo[str(deckId)] = {
                 'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
@@ -465,6 +549,9 @@ class DeckProgressBarManager(object):
             }
 
     def setDeck(self, deckId):
+        '''
+        Sets the current deck.
+        '''
         if self._currentDeck:
             self._barInfo[self._currentDeck]['currentValue'] = \
                 self._ankiProgressBar.getCurrentValue()
@@ -480,16 +567,25 @@ class DeckProgressBarManager(object):
             self._currentDeck = None
 
     def updateDeckConf(self, deckId, conf):
+        '''
+        Updates deck's current state.
+        '''
         self._barInfo[str(deckId)]['maxValue'] = \
             conf.get('maxLife', DEFAULTS['maxLife'])
         self._barInfo[str(deckId)]['recoverValue'] = \
             conf.get('recover', DEFAULTS['recover'])
 
     def updateAnkiProgressBar(self, ankiProgressBar):
+        '''
+        Updates the AnkiProgressBar instance.
+        '''
         del self._ankiProgressBar
         self._ankiProgressBar = ankiProgressBar
 
     def recover(self, increment=True):
+        '''
+        Abstraction for recovering life, increments the bar if increment is True (default).
+        '''
         multiplier = 1
         if not increment:
             multiplier = -1
@@ -498,37 +594,46 @@ class DeckProgressBarManager(object):
         )
 
     def getBar(self):
+        '''
+        Gets AnkiProgressBar instance.
+        '''
         return self._ankiProgressBar
 
 
 # Remove separator strip
-separatorStripCss = 'QMainWindow::separator { width: 0px; height: 0px; }'
+SEPARATOR_STRIP_CSS = 'QMainWindow::separator { width: 0px; height: 0px; }'
 try:
     import Night_Mode
-    Night_Mode.nm_css_menu += separatorStripCss
+    Night_Mode.nm_css_menu += SEPARATOR_STRIP_CSS
     if not Night_Mode.nm_state_on:
-        mw.setStyleSheet(separatorStripCss)
+        mw.setStyleSheet(SEPARATOR_STRIP_CSS)
 except ImportError:
-    mw.setStyleSheet(separatorStripCss)
+    mw.setStyleSheet(SEPARATOR_STRIP_CSS)
 
 
-config = {}
-deckBarManager = None
-timer = None
-status = {
-    'reviewed': False,
-    'newCardState': False,
-    'screen': None
-}
+def onEdit(*args):
+    '''
+    Updates reviewed status to False when user goes to edit mode.
+    '''
+    lifeDrain = getLifeDrain()
+    lifeDrain.status['reviewed'] = False
 
 
 def timerTrigger():
-    global deckBarManager
-    deckBarManager.getBar().incCurrentValue(-1)
+    '''
+    When a second passed, this function is triggered.
+    It decrements the bar by 1 unit.
+    '''
+    lifeDrain = getLifeDrain()
+    lifeDrain.deckBarManager.getBar().incCurrentValue(-1)
 
 
 def profileLoaded():
-    global deckBarManager, config
+    '''
+    Called when an Anki profile is loaded.
+    Sets up some variables for the LifeDrain bar.
+    '''
+    lifeDrain = getLifeDrain()
 
     config = {
         'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
@@ -545,118 +650,161 @@ def profileLoaded():
     }
     progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
     progressBar.hide()
-    deckBarManager = DeckProgressBarManager(progressBar)
+    lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
     for deckId in mw.col.decks.allIds():
-        deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
+        lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
 
 
 def afterStateChange(state, oldState):
-    global deckBarManager, config, timer, status
+    '''
+    Called when user alternates between deckBrowser, overview, review screens.
+    It updates some variables and shows/hides the bar.
+    '''
+    lifeDrain = getLifeDrain()
 
-    if not timer:
-        timer = ProgressManager(mw).timer(1000, timerTrigger, True)
-    timer.stop()
+    if not lifeDrain.timer:
+        lifeDrain.timer = ProgressManager(mw).timer(1000, timerTrigger, True)
+    lifeDrain.timer.stop()
 
-    if status['reviewed'] and state in ['overview', 'review']:
-        deckBarManager.recover()
-    status['reviewed'] = False
-    status['screen'] = state
+    if lifeDrain.status['reviewed'] and state in ['overview', 'review']:
+        lifeDrain.deckBarManager.recover()
+    lifeDrain.status['reviewed'] = False
+    lifeDrain.status['screen'] = state
 
-    if deckBarManager:
+    if lifeDrain.deckBarManager:
         if state == 'deckBrowser':
-            deckBarManager.getBar().hide()
-            deckBarManager.setDeck(None)
+            lifeDrain.deckBarManager.getBar().hide()
+            lifeDrain.deckBarManager.setDeck(None)
         else:
-            deckBarManager.setDeck(mw.col.decks.current()['id'])
-            deckBarManager.getBar().show()
+            lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
+            lifeDrain.deckBarManager.getBar().show()
 
     if state == 'review':
-        timer.start()
+        lifeDrain.timer.start()
 
 
 def showQuestion():
-    global deckBarManager, config, status
+    '''
+    Called when a question is shown.
+    '''
+    lifeDrain = getLifeDrain()
     activateTimer()
-    if status['reviewed']:
-        deckBarManager.recover()
-    status['reviewed'] = False
-    status['newCardState'] = False
+    if lifeDrain.status['reviewed']:
+        lifeDrain.deckBarManager.recover()
+    lifeDrain.status['reviewed'] = False
+    lifeDrain.status['newCardState'] = False
 
 
 def showAnswer():
-    global status
+    '''
+    Called when an answer is shown.
+    '''
+    lifeDrain = getLifeDrain()
     activateTimer()
-    status['reviewed'] = True
+    lifeDrain.status['reviewed'] = True
 
 
 def undo():
-    global deckBarManager, status
-    if status['screen'] == 'review' and not status['newCardState']:
-        status['reviewed'] = False
-        deckBarManager.recover(False)
-    status['newCardState'] = False
+    '''
+    Deals with undoing.
+    '''
+    lifeDrain = getLifeDrain()
+    if lifeDrain.status['screen'] == 'review' and not lifeDrain.status['newCardState']:
+        lifeDrain.status['reviewed'] = False
+        lifeDrain.deckBarManager.recover(False)
+    lifeDrain.status['newCardState'] = False
 
 
 def leech(card):
-    global status
-    status['newCardState'] = True
+    '''
+    Called when the card becomes a leech.
+    '''
+    lifeDrain = getLifeDrain()
+    lifeDrain.status['newCardState'] = True
 
 
 def bury(self, ids):
-    global status
-    status['newCardState'] = True
+    '''
+    Called when the card is buried.
+    '''
+    lifeDrain = getLifeDrain()
+    lifeDrain.status['newCardState'] = True
 
 
 def suspend(self, ids):
-    global status
-    status['newCardState'] = True
+    '''
+    Called when the card is suspended.
+    '''
+    lifeDrain = getLifeDrain()
+    lifeDrain.status['newCardState'] = True
 
 
 def delete(self, ids, notes=True):
-    global status
-    status['newCardState'] = True
+    '''
+    Called when the card is deleted.
+    '''
+    lifeDrain = getLifeDrain()
+    lifeDrain.status['newCardState'] = True
 
 
 def activateTimer():
-    global timer
-    if not timer.isActive():
-        timer.start()
+    '''
+    Activates the timer that reduces the bar.
+    '''
+    lifeDrain = getLifeDrain()
+    if not lifeDrain.timer.isActive():
+        lifeDrain.timer.start()
 
 
 def newDeck():
+    '''
+    Called when a new deck is created.
+    Updates the list of decks the manager knows.
+    '''
+    lifeDrain = getLifeDrain()
     for deckId in mw.col.decks.allIds():
-        deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
+        lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
 
 
 def toggleTimer():
-    global timer
-    if timer:
-        if timer.isActive():
-            timer.stop()
+    '''
+    Toggle the timer to pause/unpause the drain.
+    '''
+    lifeDrain = getLifeDrain()
+    if lifeDrain.timer:
+        if lifeDrain.timer.isActive():
+            lifeDrain.timer.stop()
         else:
-            timer.start()
+            lifeDrain.timer.start()
 
 
 # Dealing with key presses is different in Anki 2.0 and 2.1
 # This if/elif block deals with the differences
 if appVersion.startswith('2.0'):
     def keyHandler(self, evt, _old):
+        '''
+        Appends 'p' shortcut to pause the drain.
+        '''
         key = evt.text()
         if key == 'p':
             toggleTimer()
         else:
-            return _old(self, evt)
+            _old(self, evt)
 
     Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
 
 elif appVersion.startswith('2.1'):
-    def _shortcutKeys():
-        global shortcutKeys
-        return shortcutKeys
+    def customShortcutKeys():
+        '''
+        Appends 'p' shortcut to pause the drain.
+        '''
+        lifeDrain = getLifeDrain()
+        return lifeDrain.shortcutKeys
 
-    shortcutKeys = mw.reviewer._shortcutKeys()
-    shortcutKeys.append(tuple(['p', toggleTimer]))
-    mw.reviewer._shortcutKeys = _shortcutKeys
+    lifeDrain = getLifeDrain()  # pylint: disable=invalid-name
+    lifeDrain.shortcutKeys = mw.reviewer._shortcutKeys()
+    lifeDrain.shortcutKeys.append(tuple(['p', toggleTimer]))
+    mw.reviewer._shortcutKeys = customShortcutKeys
 
 
 addHook('profileLoaded', profileLoaded)
@@ -671,3 +819,4 @@ Scheduler.buryNote = wrap(Scheduler.buryNote, bury)
 Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
 Scheduler.suspendCards = wrap(Scheduler.suspendCards, suspend)
 _Collection.remCards = wrap(_Collection.remCards, delete)
+EditCurrent.__init__ = wrap(EditCurrent.__init__, onEdit)
