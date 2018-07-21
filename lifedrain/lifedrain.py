@@ -77,89 +77,107 @@ def getLifeDrain():
     return lifeDrain
 
 
+def guiSettingsSetupLayout(widget):
+    '''
+    Sets up the layout used for the menus used in Life Drain.
+    '''
+    layout = qt.QGridLayout(widget)
+    layout.setColumnStretch(0, 2)
+    layout.setColumnStretch(1, 4)
+    layout.setColumnStretch(2, 3)
+    layout.setColumnStretch(3, 2)
+    layout.setColumnMinimumWidth(2, 50)
+    return layout
+
+
+def createLabel(self, row, text):
+    '''
+    Creates a label that occupies the whole line and wraps if it is too big.
+    '''
+    label = qt.QLabel(text)
+    label.setWordWrap(True)
+    self.lifeDrainLayout.addWidget(label, row, 0, 1, 4)
+
+
+def createComboBox(self, row, cbName, labelText, options):
+    '''
+    Creates a combo box with the specified label and options.
+    '''
+    label = qt.QLabel(labelText)
+    setattr(self, cbName, qt.QComboBox(self.lifeDrainWidget))
+    for option in options:
+        getattr(self, cbName).addItem(option)
+    self.lifeDrainLayout.addWidget(label, row, 0)
+    self.lifeDrainLayout.addWidget(getattr(self, cbName), row, 2, 1, 2)
+
+
+def createSpinBox(self, row, sbName, labelText, valRange):
+    '''
+    Creates a spin box with the specified label and range.
+    '''
+    label = qt.QLabel(labelText)
+    setattr(self, sbName, qt.QSpinBox(self.lifeDrainWidget))
+    getattr(self, sbName).setRange(valRange[0], valRange[1])
+    self.lifeDrainLayout.addWidget(label, row, 0)
+    self.lifeDrainLayout.addWidget(getattr(self, sbName), row, 2, 1, 2)
+
+
+def createColorSelect(self, row, csName, labelText):
+    '''
+    Creates a color select with the specified label.
+    '''
+    label = qt.QLabel(labelText)
+    selectButton = qt.QPushButton('Select')
+    csPreviewName = '%sPreview' % csName
+    csDialogName = '%sDialog' % csName
+    setattr(self, csPreviewName, qt.QLabel(''))
+    setattr(self, csDialogName, qt.QColorDialog(selectButton))
+    selectButton.pressed.connect(
+        lambda: selectColorDialog(getattr(self, csDialogName), getattr(self, csPreviewName))
+    )
+    self.lifeDrainLayout.addWidget(label, row, 0)
+    self.lifeDrainLayout.addWidget(selectButton, row, 2)
+    self.lifeDrainLayout.addWidget(getattr(self, csPreviewName), row, 3)
+
+
+def fillRemainingSpace(self, row):
+    '''
+    Fills the remaining space, so what comes after this is in the bottom.
+    '''
+    spacer = qt.QSpacerItem(
+        1, 1, qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding
+    )
+    self.lifeDrainLayout.addItem(spacer, row, 0)
+
+
 def globalSettingsLifeDrainTabUi(self, Preferences):
     '''
     Appends LifeDrain tab to Global Settings dialog.
     '''
-    tabWidget = qt.QWidget()
-    layout = qt.QGridLayout(tabWidget)
-    layout.setColumnStretch(0, 3)
-    layout.setColumnStretch(3, 1)
-    layout.setColumnMinimumWidth(2, 50)
+    self.lifeDrainWidget = qt.QWidget()
+    self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
     row = 0
-
-    title = qt.QLabel('<b>Life Drain Bar style</b>')
-    layout.addWidget(title, row, 0, 1, 3)
+    createLabel(self, row, '<b>Life Drain Bar style</b>')
     row += 1
-
-    positionLabel = qt.QLabel('Position')
-    self.positionList = qt.QComboBox(tabWidget)
-    for position in POSITION_OPTIONS:
-        self.positionList.addItem(position)
-    layout.addWidget(positionLabel, row, 0)
-    layout.addWidget(self.positionList, row, 1, 1, 2)
+    createComboBox(self, row, 'positionList', 'Position', POSITION_OPTIONS)
     row += 1
-
-    heightLabel = qt.QLabel('Height')
-    self.heightInput = qt.QSpinBox(tabWidget)
-    self.heightInput.setRange(1, 40)
-    layout.addWidget(heightLabel, row, 0)
-    layout.addWidget(self.heightInput, row, 1, 1, 2)
+    createSpinBox(self, row, 'heightInput', 'Height', [1, 40])
     row += 1
-
-    bgLabel = qt.QLabel('Background color')
-    self.bgColorPreview = qt.QLabel('')
-    bgSelectButton = qt.QPushButton('Select')
-    self.bgColorDialog = qt.QColorDialog(bgSelectButton)
-    bgSelectButton.pressed.connect(
-        lambda: selectColorDialog(self.bgColorDialog, self.bgColorPreview)
+    createColorSelect(self, row, 'bgColor', 'Background color')
+    row += 1
+    createColorSelect(self, row, 'fgColor', 'Foreground color')
+    row += 1
+    createSpinBox(self, row, 'borderRadiusInput', 'Border radius', [0, 20])
+    row += 1
+    createComboBox(self, row, 'styleList', 'Style*', STYLE_OPTIONS)
+    row += 1
+    createLabel(
+        self, row,
+        ' * Please keep in mind that some styles may not work well in some platforms!'
     )
-    layout.addWidget(bgLabel, row, 0)
-    layout.addWidget(bgSelectButton, row, 1)
-    layout.addWidget(self.bgColorPreview, row, 2)
     row += 1
-
-    fgLabel = qt.QLabel('Foreground color')
-    self.fgColorPreview = qt.QLabel('')
-    fgSelectButton = qt.QPushButton('Select')
-    self.fgColorDialog = qt.QColorDialog(fgSelectButton)
-    fgSelectButton.pressed.connect(
-        lambda: selectColorDialog(self.fgColorDialog, self.fgColorPreview)
-    )
-    layout.addWidget(fgLabel, row, 0)
-    layout.addWidget(fgSelectButton, row, 1)
-    layout.addWidget(self.fgColorPreview, row, 2)
-    row += 1
-
-    borderRadiusLabel = qt.QLabel('Border radius')
-    self.borderRadiusInput = qt.QSpinBox(tabWidget)
-    self.borderRadiusInput.setRange(0, 20)
-    layout.addWidget(borderRadiusLabel, row, 0)
-    layout.addWidget(self.borderRadiusInput, row, 1, 1, 2)
-    row += 1
-
-    styleLabel = qt.QLabel('Style*')
-    self.styleList = qt.QComboBox(tabWidget)
-    for customStyle in STYLE_OPTIONS:
-        self.styleList.addItem(customStyle)
-    layout.addWidget(styleLabel, row, 0)
-    layout.addWidget(self.styleList, row, 1, 1, 2)
-    row += 1
-
-    descriptionLabel = qt.QLabel(
-        ' * Please keep in mind that some styles may not work well in some '
-        'platforms!'
-    )
-    descriptionLabel.setWordWrap(True)
-    layout.addWidget(descriptionLabel, row, 0, 1, 4)
-    row += 1
-
-    spacer = qt.QSpacerItem(
-        1, 1, qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding
-    )
-    layout.addItem(spacer, row, 0)
-
-    self.tabWidget.addTab(tabWidget, "Life Drain")
+    fillRemainingSpace(self, row)
+    self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
 
 
 def selectColorDialog(qColorDialog, previewLabel):
@@ -245,39 +263,22 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
     '''
     Appends a new tab to deck settings dialog.
     '''
-    tabWidget = qt.QWidget()
-    layout = qt.QGridLayout(tabWidget)
+    self.lifeDrainWidget = qt.QWidget()
+    self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
     row = 0
-
-    descriptionLabel = qt.QLabel(
+    createLabel(
+        self, row,
         'The <b>maximum life</b> is the time in seconds for the life bar go '
         'from full to empty.\n<b>Recover</b> is the time in seconds that is '
         'recovered after answering a card.'
     )
-    descriptionLabel.setWordWrap(True)
-    layout.addWidget(descriptionLabel, row, 0, 1, 3)
     row += 1
-
-    maxLifeLabel = qt.QLabel('Maximum life')
-    self.maxLifeInput = qt.QSpinBox(tabWidget)
-    self.maxLifeInput.setRange(1, 1000)
-    layout.addWidget(maxLifeLabel, row, 0)
-    layout.addWidget(self.maxLifeInput, row, 2)
+    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 1000])
     row += 1
-
-    recoverLabel = qt.QLabel('Recover')
-    self.recoverInput = qt.QSpinBox(tabWidget)
-    self.recoverInput.setRange(1, 1000)
-    layout.addWidget(recoverLabel, row, 0)
-    layout.addWidget(self.recoverInput, row, 2)
+    createSpinBox(self, row, 'recoverInput', 'Recover', [1, 1000])
     row += 1
-
-    spacer = qt.QSpacerItem(
-        1, 1, qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding
-    )
-    layout.addItem(spacer, row, 0)
-
-    self.tabWidget.addTab(tabWidget, "Life Drain")
+    fillRemainingSpace(self, row)
+    self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
 
 
 def loadDeckConf(self):
@@ -308,28 +309,15 @@ def customStudyLifeDrainUi(self, Dialog):
     '''
     Adds LifeDrain configurations to custom study dialog.
     '''
+    self.lifeDrainWidget = qt.QGroupBox('Life Drain')
+    self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
     row = 0
-
-    lifeDrainGroupBox = qt.QGroupBox('Life Drain')
-    layout = qt.QGridLayout(lifeDrainGroupBox)
-    row = 0
-
-    maxLifeLabel = qt.QLabel('Maximum life')
-    self.maxLifeInput = qt.QSpinBox(lifeDrainGroupBox)
-    self.maxLifeInput.setRange(1, 1000)
-    layout.addWidget(maxLifeLabel, row, 0, 1, 2)
-    layout.addWidget(self.maxLifeInput, row, 2)
+    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 1000])
     row += 1
-
-    recoverLabel = qt.QLabel('Recover')
-    self.recoverInput = qt.QSpinBox(lifeDrainGroupBox)
-    self.recoverInput.setRange(1, 1000)
-    layout.addWidget(recoverLabel, row, 0, 1, 2)
-    layout.addWidget(self.recoverInput, row, 2)
+    createSpinBox(self, row, 'recoverInput', 'Recover', [1, 1000])
     row += 1
-
     index = 2 if appVersion.startswith('2.0') else 3
-    self.verticalLayout.insertWidget(index, lifeDrainGroupBox)
+    self.verticalLayout.insertWidget(index, self.lifeDrainWidget)
 
 
 forms.preferences.Ui_Preferences.setupUi = wrap(
