@@ -781,13 +781,13 @@ if appVersion.startswith('2.0'):
     Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
 
 elif appVersion.startswith('2.1'):
-    def _add_shortcut(shortcuts):
+    def _addShortcut(shortcuts):
         '''
         Appends 'p' shortcut to pause the drain.
         '''
         shortcuts.append(tuple(['p', toggleTimer]))
 
-    addHook('reviewStateShortcuts', _add_shortcut)
+    addHook('reviewStateShortcuts', _addShortcut)
 
 
 addHook('profileLoaded', profileLoaded)
