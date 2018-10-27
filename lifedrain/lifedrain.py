@@ -57,7 +57,6 @@ class LifeDrain(object):  # pylint: disable=too-few-public-methods
         'newCardState': False,
         'screen': None
     }
-    shortcutKeys = None
 
 
 # Variable with the state the life drain
@@ -782,17 +781,13 @@ if appVersion.startswith('2.0'):
     Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
 
 elif appVersion.startswith('2.1'):
-    def customShortcutKeys():
+    def _addShortcut(shortcuts):
         '''
         Appends 'p' shortcut to pause the drain.
         '''
-        lifeDrain = getLifeDrain()
-        return lifeDrain.shortcutKeys
+        shortcuts.append(tuple(['p', toggleTimer]))
 
-    lifeDrain = getLifeDrain()  # pylint: disable=invalid-name
-    lifeDrain.shortcutKeys = mw.reviewer._shortcutKeys()
-    lifeDrain.shortcutKeys.append(tuple(['p', toggleTimer]))
-    mw.reviewer._shortcutKeys = customShortcutKeys
+    addHook('reviewStateShortcuts', _addShortcut)
 
 
 addHook('profileLoaded', profileLoaded)
