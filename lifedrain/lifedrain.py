@@ -32,6 +32,18 @@ STYLE_OPTIONS = [
     'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh',
     'Motif', 'Plastique', 'Windows', 'Windows Vista', 'Windows XP'
 ]
+TEXT_FORMAT = [
+    {'text': 'None'},
+    {'text': 'current/total (XX%)', 'format': '%v/%m (%p%)'},
+    {'text': 'current/total', 'format': '%v/%m'},
+    {'text': 'current', 'format': '%v'},
+    {'text': 'XX%', 'format': '%p%'},
+    {'text': 'mm:ss'}
+]
+TEXT_OPTIONS = []
+for text_format in TEXT_FORMAT:
+    TEXT_OPTIONS.append(text_format['text'])
+
 DEFAULTS = {
     'maxLife': 120,
     'recover': 5,
@@ -40,6 +52,8 @@ DEFAULTS = {
     'barBgColor': '#f3f3f2',
     'barFgColor': '#489ef6',
     'barBorderRadius': 0,
+    'barText': 0,
+    'barTextColor': '#FFF',
     'barStyle': STYLE_OPTIONS.index('Default')
 }
 
@@ -168,6 +182,10 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
     row += 1
     createSpinBox(self, row, 'borderRadiusInput', 'Border radius', [0, 20])
     row += 1
+    createComboBox(self, row, 'textList', 'Text', TEXT_OPTIONS)
+    row += 1
+    createColorSelect(self, row, 'textColor', 'Text color')
+    row += 1
     createComboBox(self, row, 'styleList', 'Style*', STYLE_OPTIONS)
     row += 1
     createLabel(
@@ -221,6 +239,19 @@ def globalLoadConf(self, mw):
     self.form.borderRadiusInput.setValue(
         conf.get('barBorderRadius', DEFAULTS['barBorderRadius'])
     )
+
+    self.form.textList.setCurrentIndex(
+        conf.get('barText', DEFAULTS['barText'])
+    )
+
+    self.form.textColorDialog.setCurrentColor(
+        qt.QColor(conf.get('barTextColor', DEFAULTS['barTextColor']))
+    )
+    self.form.textColorPreview.setStyleSheet(
+        'QLabel { background-color: %s; }'
+        % self.form.textColorDialog.currentColor().name()
+    )
+
     self.form.styleList.setCurrentIndex(
         conf.get('barStyle', DEFAULTS['barStyle'])
     )
@@ -238,6 +269,8 @@ def globalSaveConf(self):
     conf['barBgColor'] = self.form.bgColorDialog.currentColor().name()
     conf['barFgColor'] = self.form.fgColorDialog.currentColor().name()
     conf['barBorderRadius'] = self.form.borderRadiusInput.value()
+    conf['barText'] = self.form.textList.currentIndex()
+    conf['barTextColor'] = self.form.textColorDialog.currentColor().name()
     conf['barStyle'] = self.form.styleList.currentIndex()
 
     # Create new instance of the bar with new configurations
@@ -249,6 +282,8 @@ def globalSaveConf(self):
             'foregroundColor': conf.get('barFgColor', DEFAULTS['barFgColor']),
             'borderRadius': conf.get(
                 'barBorderRadius', DEFAULTS['barBorderRadius']),
+            'text': conf.get('barText', DEFAULTS['barText']),
+            'textColor': conf.get('barTextColor', DEFAULTS['barTextColor']),
             'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
@@ -352,7 +387,6 @@ class AnkiProgressBar(object):
         self._qProgressBar = qt.QProgressBar()
         self.setMaxValue(maxValue)
         self.resetBar()
-        self.setTextVisible(False)
         self.setStyle(config['progressBarStyle'])
         self._dockAt(config['position'])
 
@@ -405,16 +439,15 @@ class AnkiProgressBar(object):
         '''
         return self._currentValue
 
-    def setTextVisible(self, flag):
-        '''
-        Sets the visibility of the text on bar.
-        '''
-        self._qProgressBar.setTextVisible(flag)
-
     def setStyle(self, options):
         '''
         Sets the style of the bar.
         '''
+        self._qProgressBar.setTextVisible(options['text'] != 'None')
+        textFormat = TEXT_FORMAT[options['text']]
+        if 'format' in textFormat:
+            self._qProgressBar.setFormat(textFormat['format'])
+
         customStyle = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
         if customStyle != 'default':
@@ -452,6 +485,7 @@ class AnkiProgressBar(object):
                     background-color: %s;
                     border-radius: %dpx;
                     max-height: %spx;
+                    color: %s;
                 }
                 QProgressBar::chunk {
                     background-color: %s;
@@ -463,6 +497,7 @@ class AnkiProgressBar(object):
                     options['backgroundColor'],
                     options['borderRadius'],
                     options['height'],
+                    options['textColor'],
                     options['foregroundColor'],
                     options['borderRadius']
                 )
@@ -632,6 +667,8 @@ def profileLoaded():
                 'barFgColor', DEFAULTS['barFgColor']),
             'borderRadius': mw.col.conf.get(
                 'barBorderRadius', DEFAULTS['barBorderRadius']),
+            'text': mw.col.conf.get('barText', DEFAULTS['barText']),
+            'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
             'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
