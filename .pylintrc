@@ -1,6 +1,6 @@
 [MASTER]
 # Load modules inside anki folder
-init-hook='import sys, os; sys.path.append(os.getcwd() + '/anki-2.0.52')'
+init-hook='import sys, os; sys.path.append(os.getcwd() + \'/anki-2.0.52\')'
 # Members inside aqt.qt module are not recognized by pylint
 extension-pkg-whitelist=aqt.qt
 
