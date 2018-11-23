@@ -66,6 +66,7 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) addon showed me t
 And then I just thought: why not to have a life bar with drain in Anki?
 
 ## CHANGELOG
+- **2018-11-23**: Added option to show remaining life.
 - **2018-10-27**: Fixed keyboard shortcut affecting other addons on Anki 2.1.
 - **2018-07-01**: Added life drain options to filtered decks.
 - **2018-06-10**: Fixed bugs when suspending cards while reviewing.
