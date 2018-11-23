@@ -53,7 +53,7 @@ DEFAULTS = {
     'barFgColor': '#489ef6',
     'barBorderRadius': 0,
     'barText': 0,
-    'barTextColor': '#FFF',
+    'barTextColor': '#000',
     'barStyle': STYLE_OPTIONS.index('Default')
 }
 
@@ -522,8 +522,8 @@ class AnkiProgressBar(object):
         self._qProgressBar.setValue(self._currentValue)
 
     def _updateTimerText(self):
-        minutes = self._currentValue / 60
-        seconds = self._currentValue % 60
+        minutes = int(self._currentValue / 60)
+        seconds = int(self._currentValue % 60)
         self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
 
     def _dockAt(self, place):
