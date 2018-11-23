@@ -440,11 +440,6 @@ class AnkiProgressBar(object):
         if self._textFormat == 'mm:ss':
             self._updateTimerText()
 
-    def _updateTimerText(self):
-        minutes = self._currentValue / 60
-        seconds = self._currentValue % 60
-        self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
-
     def getCurrentValue(self):
         '''
         Gets the current value of the bar.
@@ -525,6 +520,11 @@ class AnkiProgressBar(object):
         elif self._currentValue < 0:
             self._currentValue = 0
         self._qProgressBar.setValue(self._currentValue)
+
+    def _updateTimerText(self):
+        minutes = self._currentValue / 60
+        seconds = self._currentValue % 60
+        self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
 
     def _dockAt(self, place):
         '''
