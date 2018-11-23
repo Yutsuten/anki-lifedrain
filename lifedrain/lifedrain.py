@@ -443,7 +443,7 @@ class AnkiProgressBar(object):
         '''
         Sets the style of the bar.
         '''
-        self._qProgressBar.setTextVisible(options['text'] != 'None')
+        self._qProgressBar.setTextVisible(options['text'] != 0)  # 0 is the index of None
         textFormat = TEXT_FORMAT[options['text']]
         if 'format' in textFormat:
             self._qProgressBar.setFormat(textFormat['format'])
