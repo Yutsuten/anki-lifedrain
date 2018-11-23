@@ -38,7 +38,7 @@ TEXT_FORMAT = [
     {'text': 'current/total', 'format': '%v/%m'},
     {'text': 'current', 'format': '%v'},
     {'text': 'XX%', 'format': '%p%'},
-    {'text': 'mm:ss'}
+    {'text': 'mm:ss', 'format': 'mm:ss'}
 ]
 TEXT_OPTIONS = []
 for text_format in TEXT_FORMAT:
@@ -382,6 +382,7 @@ class AnkiProgressBar(object):
     _qProgressBar = None
     _maxValue = 1
     _currentValue = 1
+    _textFormat = ''
 
     def __init__(self, config, maxValue):
         self._qProgressBar = qt.QProgressBar()
@@ -408,6 +409,8 @@ class AnkiProgressBar(object):
         '''
         self._currentValue = self._maxValue
         self._validateUpdateCurrentValue()
+        if self._textFormat == 'mm:ss':
+            self._updateTimerText()
 
     def setMaxValue(self, maxValue):
         '''
@@ -424,6 +427,8 @@ class AnkiProgressBar(object):
         '''
         self._currentValue = currentValue
         self._validateUpdateCurrentValue()
+        if self._textFormat == 'mm:ss':
+            self._updateTimerText()
 
     def incCurrentValue(self, increment):
         '''
@@ -432,6 +437,13 @@ class AnkiProgressBar(object):
         '''
         self._currentValue += increment
         self._validateUpdateCurrentValue()
+        if self._textFormat == 'mm:ss':
+            self._updateTimerText()
+
+    def _updateTimerText(self):
+        minutes = self._currentValue / 60
+        seconds = self._currentValue % 60
+        self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
 
     def getCurrentValue(self):
         '''
@@ -446,6 +458,7 @@ class AnkiProgressBar(object):
         self._qProgressBar.setTextVisible(options['text'] != 0)  # 0 is the index of None
         textFormat = TEXT_FORMAT[options['text']]
         if 'format' in textFormat:
+            self._textFormat = textFormat['format']
             self._qProgressBar.setFormat(textFormat['format'])
 
         customStyle = STYLE_OPTIONS[options['customStyle']] \
