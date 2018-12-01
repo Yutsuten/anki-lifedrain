@@ -109,9 +109,10 @@ def getLifeDrain():
         progressBar.hide()
         lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
 
-    # Keep deck list always updated
-    for deckId in mw.col.decks.allIds():
-        lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
+    if mw.col is not None:
+        # Keep deck list always updated
+        for deckId in mw.col.decks.allIds():
+            lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
 
     return lifeDrain
 
@@ -730,7 +731,8 @@ def afterStateChange(state, oldState):
         lifeDrain.deckBarManager.getBar().hide()
         lifeDrain.deckBarManager.setDeck(None)
     else:
-        lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
+        if mw.col is not None:
+            lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
         lifeDrain.deckBarManager.getBar().show()
 
     if state == 'review':
