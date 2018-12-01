@@ -307,9 +307,11 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
         'recovered after answering a card.'
     )
     row += 1
-    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 1000])
+    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
     row += 1
-    createSpinBox(self, row, 'recoverInput', 'Recover', [1, 1000])
+    createSpinBox(self, row, 'recoverInput', 'Recover', [0, 1000])
+    row += 1
+    createSpinBox(self, row, 'currentValueInput', 'Current life', [0, 10000])
     row += 1
     fillRemainingSpace(self, row)
     self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
@@ -319,12 +321,17 @@ def loadDeckConf(self):
     '''
     Loads LifeDrain deck configurations.
     '''
+    lifeDrain = getLifeDrain()
+
     self.conf = self.mw.col.decks.confForDid(self.deck['id'])
     self.form.maxLifeInput.setValue(
         self.conf.get('maxLife', DEFAULTS['maxLife'])
     )
     self.form.recoverInput.setValue(
         self.conf.get('recover', DEFAULTS['recover'])
+    )
+    self.form.currentValueInput.setValue(
+        lifeDrain.deckBarManager.getDeckConf(self.deck['id'])['currentValue']
     )
 
 
@@ -336,6 +343,7 @@ def saveDeckConf(self):
 
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
+    self.conf['currentValue'] = self.form.currentValueInput.value()
     lifeDrain.deckBarManager.updateDeckConf(self.deck['id'], self.conf)
 
 
@@ -346,9 +354,11 @@ def customStudyLifeDrainUi(self, Dialog):
     self.lifeDrainWidget = qt.QGroupBox('Life Drain')
     self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
     row = 0
-    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 1000])
+    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
     row += 1
-    createSpinBox(self, row, 'recoverInput', 'Recover', [1, 1000])
+    createSpinBox(self, row, 'recoverInput', 'Recover', [0, 1000])
+    row += 1
+    createSpinBox(self, row, 'currentValueInput', 'Current life', [0, 10000])
     row += 1
     index = 2 if appVersion.startswith('2.0') else 3
     self.verticalLayout.insertWidget(index, self.lifeDrainWidget)
@@ -587,9 +597,6 @@ class DeckProgressBarManager(object):
         '''
         Sets the current deck.
         '''
-        if self._currentDeck:
-            self._barInfo[self._currentDeck]['currentValue'] = \
-                self._ankiProgressBar.getCurrentValue()
         if deckId:
             self._currentDeck = str(deckId)
             self._ankiProgressBar.setMaxValue(
@@ -601,14 +608,25 @@ class DeckProgressBarManager(object):
         else:
             self._currentDeck = None
 
+    def getDeckConf(self, deckId):
+        '''
+        Get the settings and state of a deck.
+        '''
+        return self._barInfo[str(deckId)]
+
     def updateDeckConf(self, deckId, conf):
         '''
         Updates deck's current state.
         '''
-        self._barInfo[str(deckId)]['maxValue'] = \
-            conf.get('maxLife', DEFAULTS['maxLife'])
-        self._barInfo[str(deckId)]['recoverValue'] = \
-            conf.get('recover', DEFAULTS['recover'])
+        maxLife = conf.get('maxLife', DEFAULTS['maxLife'])
+        recover = conf.get('recover', DEFAULTS['recover'])
+        currentValue = conf.get('currentValue', DEFAULTS['maxLife'])
+        if currentValue > maxLife:
+            currentValue = maxLife
+
+        self._barInfo[str(deckId)]['maxValue'] = maxLife
+        self._barInfo[str(deckId)]['recoverValue'] = recover
+        self._barInfo[str(deckId)]['currentValue'] = currentValue
 
     def updateAnkiProgressBar(self, ankiProgressBar):
         '''
