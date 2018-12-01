@@ -87,6 +87,32 @@ def getLifeDrain():
     Gets the state of the life drain.
     '''
     global lifeDrain  # pylint: disable=invalid-name,global-statement
+
+    # Create deckBarManager, should run only once
+    if lifeDrain.deckBarManager is None:
+        config = {
+            'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+            'progressBarStyle': {
+                'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+                'backgroundColor': mw.col.conf.get(
+                    'barBgColor', DEFAULTS['barBgColor']),
+                'foregroundColor': mw.col.conf.get(
+                    'barFgColor', DEFAULTS['barFgColor']),
+                'borderRadius': mw.col.conf.get(
+                    'barBorderRadius', DEFAULTS['barBorderRadius']),
+                'text': mw.col.conf.get('barText', DEFAULTS['barText']),
+                'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+                'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+            }
+        }
+        progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
+        progressBar.hide()
+        lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
+
+    # Keep deck list always updated
+    for deckId in mw.col.decks.allIds():
+        lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
+
     return lifeDrain
 
 
@@ -684,35 +710,6 @@ def timerTrigger():
     lifeDrain.deckBarManager.getBar().incCurrentValue(-1)
 
 
-def profileLoaded():
-    '''
-    Called when an Anki profile is loaded.
-    Sets up some variables for the LifeDrain bar.
-    '''
-    lifeDrain = getLifeDrain()
-
-    config = {
-        'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
-        'progressBarStyle': {
-            'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
-            'backgroundColor': mw.col.conf.get(
-                'barBgColor', DEFAULTS['barBgColor']),
-            'foregroundColor': mw.col.conf.get(
-                'barFgColor', DEFAULTS['barFgColor']),
-            'borderRadius': mw.col.conf.get(
-                'barBorderRadius', DEFAULTS['barBorderRadius']),
-            'text': mw.col.conf.get('barText', DEFAULTS['barText']),
-            'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
-            'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
-        }
-    }
-    progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
-    progressBar.hide()
-    lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
-    for deckId in mw.col.decks.allIds():
-        lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
-
-
 def afterStateChange(state, oldState):
     '''
     Called when user alternates between deckBrowser, overview, review screens.
@@ -729,13 +726,12 @@ def afterStateChange(state, oldState):
     lifeDrain.status['reviewed'] = False
     lifeDrain.status['screen'] = state
 
-    if lifeDrain.deckBarManager:
-        if state == 'deckBrowser':
-            lifeDrain.deckBarManager.getBar().hide()
-            lifeDrain.deckBarManager.setDeck(None)
-        else:
-            lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
-            lifeDrain.deckBarManager.getBar().show()
+    if state == 'deckBrowser':
+        lifeDrain.deckBarManager.getBar().hide()
+        lifeDrain.deckBarManager.setDeck(None)
+    else:
+        lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
+        lifeDrain.deckBarManager.getBar().show()
 
     if state == 'review':
         lifeDrain.timer.start()
@@ -814,16 +810,6 @@ def activateTimer():
         lifeDrain.timer.start()
 
 
-def newDeck():
-    '''
-    Called when a new deck is created.
-    Updates the list of decks the manager knows.
-    '''
-    lifeDrain = getLifeDrain()
-    for deckId in mw.col.decks.allIds():
-        lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
-
-
 def toggleTimer():
     '''
     Toggle the timer to pause/unpause the drain.
@@ -861,13 +847,11 @@ elif appVersion.startswith('2.1'):
     addHook('reviewStateShortcuts', _addShortcut)
 
 
-addHook('profileLoaded', profileLoaded)
 addHook('afterStateChange', afterStateChange)
 addHook('showQuestion', showQuestion)
 addHook('showAnswer', showAnswer)
 addHook('reset', undo)
 addHook('leech', leech)
-addHook('newDeck', newDeck)
 
 Scheduler.buryNote = wrap(Scheduler.buryNote, bury)
 Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
