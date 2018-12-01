@@ -646,6 +646,9 @@ class DeckProgressBarManager(object):
             multiplier * self._barInfo[self._currentDeck]['recoverValue']
         )
 
+        self._barInfo[self._currentDeck]['currentValue'] = \
+            self._ankiProgressBar.getCurrentValue()
+
     def getBar(self):
         '''
         Gets AnkiProgressBar instance.
