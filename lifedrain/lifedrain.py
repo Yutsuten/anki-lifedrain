@@ -15,7 +15,7 @@ Copyright:  (c) Unknown author (nest0r/Ja-Dark?) 2017
 License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
 '''
 
-from anki.hooks import addHook, wrap
+from anki.hooks import addHook, runHook, wrap
 from anki.sched import Scheduler
 from anki.collection import _Collection
 from aqt import qt, mw, forms, appVersion
@@ -605,6 +605,7 @@ class DeckProgressBarManager(object):
     _ankiProgressBar = None
     _barInfo = {}
     _currentDeck = None
+    _gameOver = False
 
     def __init__(self, ankiProgressBar):
         self._ankiProgressBar = ankiProgressBar
@@ -662,19 +663,25 @@ class DeckProgressBarManager(object):
         del self._ankiProgressBar
         self._ankiProgressBar = ankiProgressBar
 
-    def recover(self, increment=True):
+    def recover(self, increment=True, value=None):
         '''
         Abstraction for recovering life, increments the bar if increment is True (default).
         '''
         multiplier = 1
         if not increment:
             multiplier = -1
-        self._ankiProgressBar.incCurrentValue(
-            multiplier * self._barInfo[self._currentDeck]['recoverValue']
-        )
+        if value is None:
+            value = self._barInfo[self._currentDeck]['recoverValue']
 
-        self._barInfo[self._currentDeck]['currentValue'] = \
-            self._ankiProgressBar.getCurrentValue()
+        self._ankiProgressBar.incCurrentValue(multiplier * value)
+
+        life = self._ankiProgressBar.getCurrentValue()
+        self._barInfo[self._currentDeck]['currentValue'] = life
+        if life == 0 and not self._gameOver:
+            self._gameOver = True
+            runHook('LifeDrain.gameOver')
+        elif life > 0:
+            self._gameOver = False
 
     def getBar(self):
         '''
@@ -708,7 +715,7 @@ def timerTrigger():
     It decrements the bar by 1 unit.
     '''
     lifeDrain = getLifeDrain()
-    lifeDrain.deckBarManager.getBar().incCurrentValue(-1)
+    lifeDrain.deckBarManager.recover(False, 1)
 
 
 def afterStateChange(state, oldState):
