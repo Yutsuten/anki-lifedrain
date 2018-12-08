@@ -660,16 +660,16 @@ class DeckProgressBarManager(object):
         del self._ankiProgressBar
         self._ankiProgressBar = ankiProgressBar
 
-    def recover(self, increment=True):
+    def recover(self, increment=True, value=None):
         '''
         Abstraction for recovering life, increments the bar if increment is True (default).
         '''
         multiplier = 1
         if not increment:
             multiplier = -1
-        self._ankiProgressBar.incCurrentValue(
-            multiplier * self._barInfo[self._currentDeck]['recoverValue']
-        )
+        if value is None:
+            value = self._barInfo[self._currentDeck]['recoverValue']
+        self._ankiProgressBar.incCurrentValue(multiplier * value)
 
         self._barInfo[self._currentDeck]['currentValue'] = \
             self._ankiProgressBar.getCurrentValue()
@@ -709,7 +709,7 @@ def timerTrigger():
     It decrements the bar by 1 unit.
     '''
     lifeDrain = getLifeDrain()
-    lifeDrain.deckBarManager.getBar().incCurrentValue(-1)
+    lifeDrain.deckBarManager.recover(False, 1)
 
 
 def afterStateChange(state, oldState):
