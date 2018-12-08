@@ -776,11 +776,13 @@ def showQuestion():
     Called when a question is shown.
     '''
     lifeDrain = getLifeDrain()
-    activateTimer()
-    if lifeDrain.status['reviewed']:
-        lifeDrain.deckBarManager.recover()
-    lifeDrain.status['reviewed'] = False
-    lifeDrain.status['newCardState'] = False
+
+    if not lifeDrain.disable:
+        activateTimer()
+        if lifeDrain.status['reviewed']:
+            lifeDrain.deckBarManager.recover()
+        lifeDrain.status['reviewed'] = False
+        lifeDrain.status['newCardState'] = False
 
 
 def showAnswer():
@@ -788,8 +790,10 @@ def showAnswer():
     Called when an answer is shown.
     '''
     lifeDrain = getLifeDrain()
-    activateTimer()
-    lifeDrain.status['reviewed'] = True
+
+    if not lifeDrain.disable:
+        activateTimer()
+        lifeDrain.status['reviewed'] = True
 
 
 def undo():
@@ -797,10 +801,12 @@ def undo():
     Deals with undoing.
     '''
     lifeDrain = getLifeDrain()
-    if lifeDrain.status['screen'] == 'review' and not lifeDrain.status['newCardState']:
-        lifeDrain.status['reviewed'] = False
-        lifeDrain.deckBarManager.recover(False)
-    lifeDrain.status['newCardState'] = False
+
+    if not lifeDrain.disable:
+        if lifeDrain.status['screen'] == 'review' and not lifeDrain.status['newCardState']:
+            lifeDrain.status['reviewed'] = False
+            lifeDrain.deckBarManager.recover(False)
+        lifeDrain.status['newCardState'] = False
 
 
 def leech(card):
@@ -840,7 +846,7 @@ def activateTimer():
     Activates the timer that reduces the bar.
     '''
     lifeDrain = getLifeDrain()
-    if not lifeDrain.timer.isActive():
+    if not lifeDrain.disable and lifeDrain.timer is not None and not lifeDrain.timer.isActive():
         lifeDrain.timer.start()
 
 
@@ -849,7 +855,7 @@ def toggleTimer():
     Toggle the timer to pause/unpause the drain.
     '''
     lifeDrain = getLifeDrain()
-    if lifeDrain.timer:
+    if not lifeDrain.disable and lifeDrain.timer is not None:
         if lifeDrain.timer.isActive():
             lifeDrain.timer.stop()
         else:
