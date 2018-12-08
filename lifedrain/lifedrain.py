@@ -676,7 +676,7 @@ class DeckProgressBarManager(object):
 
     def barVisible(self, visible):
         '''
-        Hides the Progress Bar
+        Sets the visibility of the Progress Bar
         '''
         if visible:
             self._ankiProgressBar.show()
