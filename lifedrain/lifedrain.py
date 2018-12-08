@@ -88,28 +88,28 @@ def getLifeDrain():
     '''
     global lifeDrain  # pylint: disable=invalid-name,global-statement
 
-    # Create deckBarManager, should run only once
-    if lifeDrain.deckBarManager is None:
-        config = {
-            'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
-            'progressBarStyle': {
-                'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
-                'backgroundColor': mw.col.conf.get(
-                    'barBgColor', DEFAULTS['barBgColor']),
-                'foregroundColor': mw.col.conf.get(
-                    'barFgColor', DEFAULTS['barFgColor']),
-                'borderRadius': mw.col.conf.get(
-                    'barBorderRadius', DEFAULTS['barBorderRadius']),
-                'text': mw.col.conf.get('barText', DEFAULTS['barText']),
-                'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
-                'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
-            }
-        }
-        progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
-        progressBar.hide()
-        lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
-
     if mw.col is not None:
+        # Create deckBarManager, should run only once
+        if lifeDrain.deckBarManager is None:
+            config = {
+                'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+                'progressBarStyle': {
+                    'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+                    'backgroundColor': mw.col.conf.get(
+                        'barBgColor', DEFAULTS['barBgColor']),
+                    'foregroundColor': mw.col.conf.get(
+                        'barFgColor', DEFAULTS['barFgColor']),
+                    'borderRadius': mw.col.conf.get(
+                        'barBorderRadius', DEFAULTS['barBorderRadius']),
+                    'text': mw.col.conf.get('barText', DEFAULTS['barText']),
+                    'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+                    'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+                }
+            }
+            progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
+            progressBar.hide()
+            lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
+
         # Keep deck list always updated
         for deckId in mw.col.decks.allIds():
             lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
