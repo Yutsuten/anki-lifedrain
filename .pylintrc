@@ -1,8 +1,8 @@
 [MASTER]
 # Load modules inside anki folder
-init-hook="import sys, os; sys.path.append(os.getcwd() + '/anki-2.0.52')"
+# init-hook='import sys, os; sys.path.append(os.getcwd() + "/anki")'
 # Members inside aqt.qt module are not recognized by pylint
-extension-pkg-whitelist=aqt.qt
+# extension-pkg-whitelist=aqt.qt
 
 [BASIC]
 # Anki and PyQt uses camel case, so change the default to it
@@ -22,4 +22,4 @@ ignored-modules=aqt.qt
 # even if I do not use them all.
 # - Often I have to extend a protected method.
 # - Often the parameters name needed to use are equal an import.
-disable=unused-argument,protected-access,redefined-outer-name
+disable=unused-argument,protected-access,redefined-outer-name,import-error,no-name-in-module
