@@ -314,9 +314,7 @@ def globalSaveConf(self):
             'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
-    progressBar = AnkiProgressBar(
-        config, lifeDrain.deckBarManager.getBar().getCurrentValue()
-    )
+    progressBar = AnkiProgressBar(config, 100)
     lifeDrain.deckBarManager.updateAnkiProgressBar(progressBar)
 
 
@@ -371,7 +369,7 @@ def saveDeckConf(self):
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
     self.conf['currentValue'] = self.form.currentValueInput.value()
-    lifeDrain.deckBarManager.updateDeckConf(self.deck['id'], self.conf)
+    lifeDrain.deckBarManager.setDeckConf(self.deck['id'], self.conf)
 
 
 def customStudyLifeDrainUi(self, Dialog):
@@ -642,7 +640,7 @@ class DeckProgressBarManager(object):
         '''
         return self._barInfo[str(deckId)]
 
-    def updateDeckConf(self, deckId, conf):
+    def setDeckConf(self, deckId, conf):
         '''
         Updates deck's current state.
         '''
@@ -683,11 +681,14 @@ class DeckProgressBarManager(object):
         elif life > 0:
             self._gameOver = False
 
-    def getBar(self):
+    def barVisible(self, visible):
         '''
-        Gets AnkiProgressBar instance.
+        Sets the visibility of the Progress Bar
         '''
-        return self._ankiProgressBar
+        if visible:
+            self._ankiProgressBar.show()
+        else:
+            self._ankiProgressBar.hide()
 
 
 # Remove separator strip
@@ -735,12 +736,12 @@ def afterStateChange(state, oldState):
     lifeDrain.status['screen'] = state
 
     if state == 'deckBrowser':
-        lifeDrain.deckBarManager.getBar().hide()
+        lifeDrain.deckBarManager.barVisible(False)
         lifeDrain.deckBarManager.setDeck(None)
     else:
         if mw.col is not None:
             lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
-        lifeDrain.deckBarManager.getBar().show()
+        lifeDrain.deckBarManager.barVisible(True)
 
     if state == 'review':
         lifeDrain.timer.start()
