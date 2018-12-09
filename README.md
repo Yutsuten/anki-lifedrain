@@ -1,29 +1,25 @@
 # anki-lifedrain [![CodeFactor](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain/badge)](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain)
-
-This addon adds a life bar during your reviews.
+This add-on adds a life bar during your reviews.
 Your life reduces within time, and you must answer the questions in order to recover it.
 
 ## Objective
-
 The objective is to give a visual feedback of how fast the questions are being answered.
 If the life is low, it means that you are distracted or taking too much time to answer.
 
 ## Install
 ### Recommended way
-- [AnkiWeb](https://ankiweb.net/shared/info/715575551)
+- Follow the instructions in [AnkiWeb](https://ankiweb.net/shared/info/715575551).
 
 ### Manual
-- Anki 2.0: Copy the file `lifedrain.py` (inside folder `lifedrain`) into your addons folder.
-- Anki 2.1: Copy the folder `lifedrain` into your addons folder.
+Inside the folder `src/`:
+- Anki 2.0: Copy the file `__init__.py` and the folder `lifedrain` into your add-ons folder.
+- Anki 2.1: Copy the folder `lifedrain` into your add-ons folder.
 
 ## Screenshot
-
 ![Review](screenshots/review_screen.png)
 
 ## Features
-
 ### Bar styling
-
 There are many configurations to style the bar.
 Access `Tools > Preferences`, then select the tab `Life Drain`, and you'll see this screen:
 
@@ -33,12 +29,14 @@ Access `Tools > Preferences`, then select the tab `Life Drain`, and you'll see t
 - **Height**: The height of the bar, to make it bigger or smaller.
 - **Background color**: The background color of the bar.
 - **Foreground color**: The foreground color of the bar.
+- **Text**: The text shown inside the bar.
+- **Text color**: If you chose to show text, you can select its color.
 - **Border radius**: Adds a rounded border to the bar.
 - **Style**: Allow selecting some custom style to the bar.
+- **Disable**: Disable the add-on if you don't want to rush yourself all the time.
 
 ### Bar configuration (per deck)
-
-The bar has 2 configurations: the `Maximum life` and `Recover`.
+The bar has 3 configurations: the `Maximum life`, `Recover` and `Current life`.
 
 Select a deck, then in `Options`, select the tab `Life Drain`:
 
@@ -50,33 +48,49 @@ Filtered deck configurations (Added in 2018-07-01):
 
 - **Maximum life**: Is the time in seconds for the life bar go from full to empty.
 - **Recover**: Is the time in seconds that is recovered after answering a card.
+- **Current life**: Your current life, in case you want to set it for whatever reason.
 
 ### Pause drain during reviews
+If for some reason you want to stop the drain, press **P** (**P**ause) to toggle it!
 
-If for some reason you want to stop the drain, press `P` to toggle it!
+## Integration with other add-ons
+This add-on have some hooks that can be used by other add-ons.
+
+Whenever the life drops to 0, the hook `LifeDrain.gameOver` is triggered.
+You may use it in your add-on to make something interesting happen.
+
+And there is a method you can call using hook to recover (or drain) the user's life.
+It has 2 optional parameters:
+1st is `increment` (boolean), True to recover (default) and False to drain.
+2nd is `value` (integer). Default is the recover value set by the user in the deck preferences.
+
+Examples:
+
+- `runHook('LifeDrain.recover')` recovers the life using the default value in deck preferences
+- `runHook('LifeDrain.recover', False)` drains the life using the default value in deck preferences
+- `runHook('LifeDrain.recover', True, 9999)` recovers all the life
 
 ## Inspiration
+This add-on was inspired on the add-on [Progress Bar](https://ankiweb.net/shared/info/2091361802) and the game [osu!](https://osu.ppy.sh/).
 
-This addon was inspired on the addon [Progress Bar](https://ankiweb.net/shared/info/2091361802) and the game [osu!](https://osu.ppy.sh/).
-
-The [Progress Bar](https://ankiweb.net/shared/info/2091361802) addon showed me that it was possible to add a bar to the review screen, and provide visual feedback through it.
+The [Progress Bar](https://ankiweb.net/shared/info/2091361802) add-on showed me that it was possible to add a bar to the review screen, and provide visual feedback through it.
 
 [Osu!](https://osu.ppy.sh/) is a rhythm game I play, and one of its features is a life bar that reduces while playing, and to recover it you have to click the circles in the correct timing.
 
 And then I just thought: why not to have a life bar with drain in Anki?
 
 ## CHANGELOG
-- **2018-12-08**: Fix autosync failing.
-- **2018-12-01**: Fix sync failing.
+- **2018-12-09**: Added disable option and some hooks to allow integration with other add-ons.
+- **2018-12-08**: Fixed autosync failing.
+- **2018-12-01**: Fixed sync failing.
 - **2018-12-01**: Make the settings more flexible (max life with 4 digits and drain 0) and bugfix.
 - **2018-11-23**: Added option to show remaining life as text.
-- **2018-10-27**: Fixed keyboard shortcut affecting other addons on Anki 2.1.
+- **2018-10-27**: Fixed keyboard shortcut affecting other add-ons on Anki 2.1.
 - **2018-07-01**: Added life drain options to filtered decks.
 - **2018-06-10**: Fixed bugs when suspending cards while reviewing.
 - **2018-05-20**: Initial release.
 
 ## Contribute
-
 If you find any bugs, feel free to open issues. I'll try to answer / fix those as soon as I can!
 
 If you want to help even more, fell free to open a PR too!
