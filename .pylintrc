@@ -15,7 +15,7 @@ inlinevar-rgx=_?[a-z][A-Za-z0-9]{1,30}$
 
 [TYPECHECK]
 # Members inside aqt.qt module are not recognized by pylint
-ignored-modules=aqt.qt
+# ignored-modules=aqt.qt
 
 [MESSAGES CONTROL]
 # - To extend anki methods I have to put exactly the same number of arguments,
