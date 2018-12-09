@@ -54,7 +54,8 @@ DEFAULTS = {
     'barBorderRadius': 0,
     'barText': 0,
     'barTextColor': '#000',
-    'barStyle': STYLE_OPTIONS.index('Default')
+    'barStyle': STYLE_OPTIONS.index('Default'),
+    'disable': False
 }
 
 
@@ -71,6 +72,7 @@ class LifeDrain(object):  # pylint: disable=too-few-public-methods
         'newCardState': False,
         'screen': None
     }
+    disable = None
 
 
 # Variable with the state the life drain
@@ -109,6 +111,7 @@ def getLifeDrain():
             progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
             progressBar.hide()
             lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
+            lifeDrain.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
 
         # Keep deck list always updated
         for deckId in mw.col.decks.allIds():
@@ -130,13 +133,15 @@ def guiSettingsSetupLayout(widget):
     return layout
 
 
-def createLabel(self, row, text):
+def createLabel(self, row, text, color=None):
     '''
     Creates a label that occupies the whole line and wraps if it is too big.
     '''
     label = qt.QLabel(text)
     label.setWordWrap(True)
     self.lifeDrainLayout.addWidget(label, row, 0, 1, 4)
+    if color:
+        label.setStyleSheet('color: {}'.format(color))
 
 
 def createComboBox(self, row, cbName, labelText, options):
@@ -147,6 +152,16 @@ def createComboBox(self, row, cbName, labelText, options):
     setattr(self, cbName, qt.QComboBox(self.lifeDrainWidget))
     for option in options:
         getattr(self, cbName).addItem(option)
+    self.lifeDrainLayout.addWidget(label, row, 0)
+    self.lifeDrainLayout.addWidget(getattr(self, cbName), row, 2, 1, 2)
+
+
+def createCheckBox(self, row, cbName, labelText):
+    '''
+    Creates a checkbox with the specified label.
+    '''
+    label = qt.QLabel(labelText)
+    setattr(self, cbName, qt.QCheckBox(self.lifeDrainWidget))
     self.lifeDrainLayout.addWidget(label, row, 0)
     self.lifeDrainLayout.addWidget(getattr(self, cbName), row, 2, 1, 2)
 
@@ -197,7 +212,7 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
     self.lifeDrainWidget = qt.QWidget()
     self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
     row = 0
-    createLabel(self, row, '<b>Life Drain Bar style</b>')
+    createLabel(self, row, '<b>Bar style</b>')
     row += 1
     createComboBox(self, row, 'positionList', 'Position', POSITION_OPTIONS)
     row += 1
@@ -219,6 +234,10 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
         self, row,
         ' * Please keep in mind that some styles may not work well in some platforms!'
     )
+    row += 1
+    createLabel(self, row, '<b>Danger Zone</b>', '#CC0000')
+    row += 1
+    createCheckBox(self, row, 'disableAddon', 'Disable')
     row += 1
     fillRemainingSpace(self, row)
     self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
@@ -283,6 +302,10 @@ def globalLoadConf(self, mw):
         conf.get('barStyle', DEFAULTS['barStyle'])
     )
 
+    self.form.disableAddon.setChecked(
+        conf.get('disable', DEFAULTS['disable'])
+    )
+
 
 def globalSaveConf(self):
     '''
@@ -299,6 +322,7 @@ def globalSaveConf(self):
     conf['barText'] = self.form.textList.currentIndex()
     conf['barTextColor'] = self.form.textColorDialog.currentColor().name()
     conf['barStyle'] = self.form.styleList.currentIndex()
+    conf['disable'] = self.form.disableAddon.isChecked()
 
     # Create new instance of the bar with new configurations
     config = {
@@ -316,6 +340,7 @@ def globalSaveConf(self):
     }
     progressBar = AnkiProgressBar(config, 100)
     lifeDrain.deckBarManager.updateAnkiProgressBar(progressBar)
+    lifeDrain.disable = conf.get('disable', DEFAULTS['disable'])
 
 
 def deckSettingsLifeDrainTabUi(self, Dialog):
@@ -726,25 +751,31 @@ def afterStateChange(state, oldState):
     '''
     lifeDrain = getLifeDrain()
 
-    if not lifeDrain.timer:
-        lifeDrain.timer = ProgressManager(mw).timer(1000, timerTrigger, True)
-    lifeDrain.timer.stop()
+    if not lifeDrain.disable:  # Enabled
+        if not lifeDrain.timer:
+            lifeDrain.timer = ProgressManager(mw).timer(1000, timerTrigger, True)
+        lifeDrain.timer.stop()
 
-    if lifeDrain.status['reviewed'] and state in ['overview', 'review']:
-        lifeDrain.deckBarManager.recover()
-    lifeDrain.status['reviewed'] = False
-    lifeDrain.status['screen'] = state
+        if lifeDrain.status['reviewed'] and state in ['overview', 'review']:
+            lifeDrain.deckBarManager.recover()
+        lifeDrain.status['reviewed'] = False
+        lifeDrain.status['screen'] = state
 
-    if state == 'deckBrowser':
+        if state == 'deckBrowser':
+            lifeDrain.deckBarManager.barVisible(False)
+            lifeDrain.deckBarManager.setDeck(None)
+        else:
+            if mw.col is not None:
+                lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
+            lifeDrain.deckBarManager.barVisible(True)
+
+        if state == 'review':
+            lifeDrain.timer.start()
+
+    else:  # Disabled
         lifeDrain.deckBarManager.barVisible(False)
-        lifeDrain.deckBarManager.setDeck(None)
-    else:
-        if mw.col is not None:
-            lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
-        lifeDrain.deckBarManager.barVisible(True)
-
-    if state == 'review':
-        lifeDrain.timer.start()
+        if lifeDrain.timer is not None:
+            lifeDrain.timer.stop()
 
 
 def showQuestion():
@@ -752,11 +783,13 @@ def showQuestion():
     Called when a question is shown.
     '''
     lifeDrain = getLifeDrain()
-    activateTimer()
-    if lifeDrain.status['reviewed']:
-        lifeDrain.deckBarManager.recover()
-    lifeDrain.status['reviewed'] = False
-    lifeDrain.status['newCardState'] = False
+
+    if not lifeDrain.disable:
+        activateTimer()
+        if lifeDrain.status['reviewed']:
+            lifeDrain.deckBarManager.recover()
+        lifeDrain.status['reviewed'] = False
+        lifeDrain.status['newCardState'] = False
 
 
 def showAnswer():
@@ -764,8 +797,10 @@ def showAnswer():
     Called when an answer is shown.
     '''
     lifeDrain = getLifeDrain()
-    activateTimer()
-    lifeDrain.status['reviewed'] = True
+
+    if not lifeDrain.disable:
+        activateTimer()
+        lifeDrain.status['reviewed'] = True
 
 
 def undo():
@@ -773,10 +808,12 @@ def undo():
     Deals with undoing.
     '''
     lifeDrain = getLifeDrain()
-    if lifeDrain.status['screen'] == 'review' and not lifeDrain.status['newCardState']:
-        lifeDrain.status['reviewed'] = False
-        lifeDrain.deckBarManager.recover(False)
-    lifeDrain.status['newCardState'] = False
+
+    if not lifeDrain.disable:
+        if lifeDrain.status['screen'] == 'review' and not lifeDrain.status['newCardState']:
+            lifeDrain.status['reviewed'] = False
+            lifeDrain.deckBarManager.recover(False)
+        lifeDrain.status['newCardState'] = False
 
 
 def leech(card):
@@ -816,7 +853,7 @@ def activateTimer():
     Activates the timer that reduces the bar.
     '''
     lifeDrain = getLifeDrain()
-    if not lifeDrain.timer.isActive():
+    if not lifeDrain.disable and lifeDrain.timer is not None and not lifeDrain.timer.isActive():
         lifeDrain.timer.start()
 
 
@@ -825,7 +862,7 @@ def toggleTimer():
     Toggle the timer to pause/unpause the drain.
     '''
     lifeDrain = getLifeDrain()
-    if lifeDrain.timer:
+    if not lifeDrain.disable and lifeDrain.timer is not None:
         if lifeDrain.timer.isActive():
             lifeDrain.timer.stop()
         else:
