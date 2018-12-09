@@ -66,6 +66,7 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) addon showed me t
 And then I just thought: why not to have a life bar with drain in Anki?
 
 ## CHANGELOG
+- **2018-12-08**: Fix autosync failing.
 - **2018-12-01**: Fix sync failing.
 - **2018-12-01**: Make the settings more flexible (max life with 4 digits and drain 0) and bugfix.
 - **2018-11-23**: Added option to show remaining life as text.
