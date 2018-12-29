@@ -338,6 +338,13 @@ def globalSaveConf(self):
             'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
+    try:
+        import Night_Mode
+        if Night_Mode.nm_state_on:
+            config['progressBarStyle']['backgroundColor'] = '#444444'
+    except ImportError:
+        pass
+
     progressBar = AnkiProgressBar(config, 100)
     lifeDrain.deckBarManager.updateAnkiProgressBar(progressBar)
     lifeDrain.disable = conf.get('disable', DEFAULTS['disable'])
@@ -723,6 +730,31 @@ try:
     Night_Mode.nm_css_menu += SEPARATOR_STRIP_CSS
     if not Night_Mode.nm_state_on:
         mw.setStyleSheet(SEPARATOR_STRIP_CSS)
+
+    def nm_refresh(*args, **kwargs):
+        if mw.col is not None:
+            config = {
+                'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+                'progressBarStyle': {
+                    'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+                    'backgroundColor': mw.col.conf.get(
+                        'barBgColor', DEFAULTS['barBgColor']),
+                    'foregroundColor': mw.col.conf.get(
+                        'barFgColor', DEFAULTS['barFgColor']),
+                    'borderRadius': mw.col.conf.get(
+                        'barBorderRadius', DEFAULTS['barBorderRadius']),
+                    'text': mw.col.conf.get('barText', DEFAULTS['barText']),
+                    'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+                    'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+                }
+            }
+            if Night_Mode.nm_state_on:
+                config['progressBarStyle']['backgroundColor'] = '#444444'
+            progressBar = AnkiProgressBar(config, 100)
+            lifeDrain.deckBarManager.updateAnkiProgressBar(progressBar)
+            lifeDrain.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
+
+    Night_Mode.nm_append_to_styles = wrap(Night_Mode.nm_append_to_styles, nm_refresh)
 except ImportError:
     mw.setStyleSheet(SEPARATOR_STRIP_CSS)
 
