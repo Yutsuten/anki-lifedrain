@@ -55,8 +55,16 @@ DEFAULTS = {
     'barText': 0,
     'barTextColor': '#000',
     'barStyle': STYLE_OPTIONS.index('Default'),
+    'nmIntegration': False,
+    'nmBgColor': '#333333',
+    'nmFgColor': '#888888',
+    'nmTextColor': '#ffffff',
     'disable': False
 }
+
+
+# Hide separator strip
+mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
 
 
 # Saving data inside a class to access it as lifeDrain.config
@@ -218,26 +226,31 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
     row += 1
     createSpinBox(self, row, 'heightInput', 'Height', [1, 40])
     row += 1
-    createColorSelect(self, row, 'bgColor', 'Background color')
-    row += 1
-    createColorSelect(self, row, 'fgColor', 'Foreground color')
-    row += 1
     createSpinBox(self, row, 'borderRadiusInput', 'Border radius', [0, 20])
     row += 1
     createComboBox(self, row, 'textList', 'Text', TEXT_OPTIONS)
     row += 1
+    createComboBox(self, row, 'styleList', 'Style', STYLE_OPTIONS)
+    row += 1
+    createColorSelect(self, row, 'bgColor', 'Background color')
+    row += 1
+    createColorSelect(self, row, 'fgColor', 'Foreground color')
+    row += 1
     createColorSelect(self, row, 'textColor', 'Text color')
     row += 1
-    createComboBox(self, row, 'styleList', 'Style*', STYLE_OPTIONS)
+    createLabel(self, row, '<b>Night Mode Integration</b>')
     row += 1
-    createLabel(
-        self, row,
-        ' * Please keep in mind that some styles may not work well in some platforms!'
-    )
+    createCheckBox(self, row, 'nmIntegration', 'Enable')
+    row += 1
+    createColorSelect(self, row, 'nmBgColor', 'Background color')
+    row += 1
+    createColorSelect(self, row, 'nmFgColor', 'Foreground color')
+    row += 1
+    createColorSelect(self, row, 'nmTextColor', 'Text color')
     row += 1
     createLabel(self, row, '<b>Danger Zone</b>', '#CC0000')
     row += 1
-    createCheckBox(self, row, 'disableAddon', 'Disable')
+    createCheckBox(self, row, 'disableAddon', 'Disable Life Drain')
     row += 1
     fillRemainingSpace(self, row)
     self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
@@ -302,6 +315,27 @@ def globalLoadConf(self, mw):
         conf.get('barStyle', DEFAULTS['barStyle'])
     )
 
+    self.form.nmIntegration.setChecked(
+        conf.get('nmIntegration', DEFAULTS['nmIntegration']))
+
+    self.form.nmBgColorDialog.setCurrentColor(
+        qt.QColor(conf.get('nmBgColor', DEFAULTS['nmBgColor'])))
+    self.form.nmBgColorPreview.setStyleSheet(
+        'QLabel { background-color: %s; }'
+        % self.form.nmBgColorDialog.currentColor().name())
+
+    self.form.nmFgColorDialog.setCurrentColor(
+        qt.QColor(conf.get('nmFgColor', DEFAULTS['nmFgColor'])))
+    self.form.nmFgColorPreview.setStyleSheet(
+        'QLabel { background-color: %s; }'
+        % self.form.nmFgColorDialog.currentColor().name())
+
+    self.form.nmTextColorDialog.setCurrentColor(
+        qt.QColor(conf.get('nmTextColor', DEFAULTS['nmTextColor'])))
+    self.form.nmTextColorPreview.setStyleSheet(
+        'QLabel { background-color: %s; }'
+        % self.form.nmTextColorDialog.currentColor().name())
+
     self.form.disableAddon.setChecked(
         conf.get('disable', DEFAULTS['disable'])
     )
@@ -322,6 +356,10 @@ def globalSaveConf(self):
     conf['barText'] = self.form.textList.currentIndex()
     conf['barTextColor'] = self.form.textColorDialog.currentColor().name()
     conf['barStyle'] = self.form.styleList.currentIndex()
+    conf['nmIntegration'] = self.form.nmIntegration.isChecked()
+    conf['nmBgColor'] = self.form.nmBgColorDialog.currentColor().name()
+    conf['nmFgColor'] = self.form.nmFgColorDialog.currentColor().name()
+    conf['nmTextColor'] = self.form.nmTextColorDialog.currentColor().name()
     conf['disable'] = self.form.disableAddon.isChecked()
 
     # Create new instance of the bar with new configurations
@@ -338,8 +376,20 @@ def globalSaveConf(self):
             'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
-    progressBar = AnkiProgressBar(config, 100)
-    lifeDrain.deckBarManager.updateAnkiProgressBar(progressBar)
+    if conf['nmIntegration']:
+        try:
+            import Night_Mode
+            if Night_Mode.nm_state_on:
+                config['progressBarStyle']['backgroundColor'] = conf.get(
+                        'nmBgColor', DEFAULTS['nmBgColor'])
+                config['progressBarStyle']['foregroundColor'] = conf.get(
+                        'nmFgColor', DEFAULTS['nmFgColor'])
+                config['progressBarStyle']['textColor'] = conf.get(
+                        'nmTextColor', DEFAULTS['nmTextColor'])
+        except ImportError:
+            pass
+
+    lifeDrain.deckBarManager.setAnkiProgressBarStyle(config)
     lifeDrain.disable = conf.get('disable', DEFAULTS['disable'])
 
 
@@ -443,13 +493,14 @@ class AnkiProgressBar(object):
     _maxValue = 1
     _currentValue = 1
     _textFormat = ''
+    _dock = None
 
     def __init__(self, config, maxValue):
         self._qProgressBar = qt.QProgressBar()
         self.setMaxValue(maxValue)
         self.resetBar()
         self.setStyle(config['progressBarStyle'])
-        self._dockAt(config['position'])
+        self.dockAt(config['position'])
 
     def show(self):
         '''
@@ -586,10 +637,15 @@ class AnkiProgressBar(object):
         seconds = int(self._currentValue % 60)
         self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
 
-    def _dockAt(self, place):
+    def dockAt(self, place):
         '''
         Docks the bar at the specified place in the Anki window.
         '''
+        barVisible = self._qProgressBar.isVisible()
+
+        if self._dock is not None:
+            self._dock.close()
+
         place = POSITION_OPTIONS[place]
 
         if place not in POSITION_OPTIONS:
@@ -615,6 +671,8 @@ class AnkiProgressBar(object):
             mw.setDockNestingEnabled(True)
             mw.splitDockWidget(existingWidgets[0], self._dock, qt.Qt.Vertical)
         mw.web.setFocus()
+
+        self._qProgressBar.setVisible(barVisible)
 
     def __del__(self):
         self._dock.close()
@@ -679,12 +737,32 @@ class DeckProgressBarManager(object):
         self._barInfo[str(deckId)]['recoverValue'] = recover
         self._barInfo[str(deckId)]['currentValue'] = currentValue
 
-    def updateAnkiProgressBar(self, ankiProgressBar):
+    def setAnkiProgressBarStyle(self, config=None):
         '''
         Updates the AnkiProgressBar instance.
         '''
-        del self._ankiProgressBar
-        self._ankiProgressBar = ankiProgressBar
+        pbStyle = {
+            'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+            'backgroundColor': mw.col.conf.get(
+                'barBgColor', DEFAULTS['barBgColor']),
+            'foregroundColor': mw.col.conf.get(
+                'barFgColor', DEFAULTS['barFgColor']),
+            'borderRadius': mw.col.conf.get(
+                'barBorderRadius', DEFAULTS['barBorderRadius']),
+            'text': mw.col.conf.get('barText', DEFAULTS['barText']),
+            'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+            'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+        }
+
+        if config is not None:
+            if 'position' in config:
+                self._ankiProgressBar.dockAt(config['position'])
+            if 'progressBarStyle' in config:
+                pbStyle.update(config['progressBarStyle'])
+
+        self._ankiProgressBar.setStyle(pbStyle)
+        if self._currentDeck is not None:
+            self.recover(value=0)
 
     def recover(self, increment=True, value=None):
         '''
@@ -716,15 +794,31 @@ class DeckProgressBarManager(object):
             self._ankiProgressBar.hide()
 
 
-# Remove separator strip
-SEPARATOR_STRIP_CSS = 'QMainWindow::separator { width: 0px; height: 0px; }'
+# Night Mode integration begin
+def nmUpdateStyles(*args, **kwargs):
+    '''
+    Function ran when the user enables/disables Night Mode.
+    '''
+    lifeDrain = getLifeDrain()
+    if mw.col is not None and mw.col.conf.get('nmIntegration', DEFAULTS['nmIntegration']):
+        config = {'progressBarStyle': {}}
+        if Night_Mode.nm_state_on:
+            config['progressBarStyle']['backgroundColor'] = mw.col.conf.get(
+                        'nmBgColor', DEFAULTS['nmBgColor'])
+            config['progressBarStyle']['foregroundColor'] = mw.col.conf.get(
+                        'nmFgColor', DEFAULTS['nmFgColor'])
+            config['progressBarStyle']['textColor'] = mw.col.conf.get(
+                        'nmTextColor', DEFAULTS['nmTextColor'])
+        lifeDrain.deckBarManager.setAnkiProgressBarStyle(config)
+
+
 try:
     import Night_Mode
-    Night_Mode.nm_css_menu += SEPARATOR_STRIP_CSS
-    if not Night_Mode.nm_state_on:
-        mw.setStyleSheet(SEPARATOR_STRIP_CSS)
+    Night_Mode.nm_css_menu += 'QMainWindow::separator { width: 0px; height: 0px; }'
+    Night_Mode.nm_append_to_styles = wrap(Night_Mode.nm_append_to_styles, nmUpdateStyles)
 except ImportError:
-    mw.setStyleSheet(SEPARATOR_STRIP_CSS)
+    pass
+# Night Mode integration end
 
 
 def onEdit(*args):
