@@ -55,6 +55,7 @@ DEFAULTS = {
     'barText': 0,
     'barTextColor': '#000',
     'barStyle': STYLE_OPTIONS.index('Default'),
+    'stopOnAnswer': False,
     'nmIntegration': False,
     'nmBgColor': '#333333',
     'nmFgColor': '#888888',
@@ -80,6 +81,7 @@ class LifeDrain(object):  # pylint: disable=too-few-public-methods
         'newCardState': False,
         'screen': None
     }
+    stopOnAnswer = False
     disable = None
 
 
@@ -120,6 +122,7 @@ def getLifeDrain():
             progressBar.hide()
             lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
             lifeDrain.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
+            lifeDrain.stopOnAnswer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
         # Keep deck list always updated
         for deckId in mw.col.decks.allIds():
@@ -220,6 +223,12 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
     self.lifeDrainWidget = qt.QWidget()
     self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
     row = 0
+    createLabel(self, row, '<b>Bar behaviour</b>')
+    row += 1
+    createCheckBox(self, row, 'stopOnAnswer', 'Stop drain on answer shown')
+    row += 1
+    createCheckBox(self, row, 'disableAddon', 'Disable Life Drain (!)')
+    row += 1
     createLabel(self, row, '<b>Bar style</b>')
     row += 1
     createComboBox(self, row, 'positionList', 'Position', POSITION_OPTIONS)
@@ -247,10 +256,6 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
     createColorSelect(self, row, 'nmFgColor', 'Foreground color')
     row += 1
     createColorSelect(self, row, 'nmTextColor', 'Text color')
-    row += 1
-    createLabel(self, row, '<b>Danger Zone</b>', '#CC0000')
-    row += 1
-    createCheckBox(self, row, 'disableAddon', 'Disable Life Drain')
     row += 1
     fillRemainingSpace(self, row)
     self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
@@ -315,6 +320,9 @@ def globalLoadConf(self, mw):
         conf.get('barStyle', DEFAULTS['barStyle'])
     )
 
+    self.form.stopOnAnswer.setChecked(
+        conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer']))
+
     self.form.nmIntegration.setChecked(
         conf.get('nmIntegration', DEFAULTS['nmIntegration']))
 
@@ -356,6 +364,7 @@ def globalSaveConf(self):
     conf['barText'] = self.form.textList.currentIndex()
     conf['barTextColor'] = self.form.textColorDialog.currentColor().name()
     conf['barStyle'] = self.form.styleList.currentIndex()
+    conf['stopOnAnswer'] = self.form.stopOnAnswer.isChecked()
     conf['nmIntegration'] = self.form.nmIntegration.isChecked()
     conf['nmBgColor'] = self.form.nmBgColorDialog.currentColor().name()
     conf['nmFgColor'] = self.form.nmFgColorDialog.currentColor().name()
@@ -391,6 +400,7 @@ def globalSaveConf(self):
 
     lifeDrain.deckBarManager.setAnkiProgressBarStyle(config)
     lifeDrain.disable = conf.get('disable', DEFAULTS['disable'])
+    lifeDrain.stopOnAnswer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
 
 def deckSettingsLifeDrainTabUi(self, Dialog):
@@ -893,7 +903,10 @@ def showAnswer():
     lifeDrain = getLifeDrain()
 
     if not lifeDrain.disable:
-        activateTimer()
+        if lifeDrain.stopOnAnswer:
+            deactivateTimer()
+        else:
+            activateTimer()
         lifeDrain.status['reviewed'] = True
 
 
@@ -949,6 +962,15 @@ def activateTimer():
     lifeDrain = getLifeDrain()
     if not lifeDrain.disable and lifeDrain.timer is not None and not lifeDrain.timer.isActive():
         lifeDrain.timer.start()
+
+
+def deactivateTimer():
+    '''
+    Deactivates the timer that reduces the bar.
+    '''
+    lifeDrain = getLifeDrain()
+    if not lifeDrain.disable and lifeDrain.timer is not None and lifeDrain.timer.isActive():
+        lifeDrain.timer.stop()
 
 
 def toggleTimer():
