@@ -56,10 +56,6 @@ DEFAULTS = {
     'barTextColor': '#000',
     'barStyle': STYLE_OPTIONS.index('Default'),
     'stopOnAnswer': False,
-    'nmIntegration': False,
-    'nmBgColor': '#333333',
-    'nmFgColor': '#888888',
-    'nmTextColor': '#ffffff',
     'disable': False
 }
 
@@ -247,16 +243,6 @@ def globalSettingsLifeDrainTabUi(self, Preferences):
     row += 1
     createColorSelect(self, row, 'textColor', 'Text color')
     row += 1
-    createLabel(self, row, '<b>Night Mode Integration</b>')
-    row += 1
-    createCheckBox(self, row, 'nmIntegration', 'Enable')
-    row += 1
-    createColorSelect(self, row, 'nmBgColor', 'Background color')
-    row += 1
-    createColorSelect(self, row, 'nmFgColor', 'Foreground color')
-    row += 1
-    createColorSelect(self, row, 'nmTextColor', 'Text color')
-    row += 1
     fillRemainingSpace(self, row)
     self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
 
@@ -323,27 +309,6 @@ def globalLoadConf(self, mw):
     self.form.stopOnAnswer.setChecked(
         conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer']))
 
-    self.form.nmIntegration.setChecked(
-        conf.get('nmIntegration', DEFAULTS['nmIntegration']))
-
-    self.form.nmBgColorDialog.setCurrentColor(
-        qt.QColor(conf.get('nmBgColor', DEFAULTS['nmBgColor'])))
-    self.form.nmBgColorPreview.setStyleSheet(
-        'QLabel { background-color: %s; }'
-        % self.form.nmBgColorDialog.currentColor().name())
-
-    self.form.nmFgColorDialog.setCurrentColor(
-        qt.QColor(conf.get('nmFgColor', DEFAULTS['nmFgColor'])))
-    self.form.nmFgColorPreview.setStyleSheet(
-        'QLabel { background-color: %s; }'
-        % self.form.nmFgColorDialog.currentColor().name())
-
-    self.form.nmTextColorDialog.setCurrentColor(
-        qt.QColor(conf.get('nmTextColor', DEFAULTS['nmTextColor'])))
-    self.form.nmTextColorPreview.setStyleSheet(
-        'QLabel { background-color: %s; }'
-        % self.form.nmTextColorDialog.currentColor().name())
-
     self.form.disableAddon.setChecked(
         conf.get('disable', DEFAULTS['disable'])
     )
@@ -365,10 +330,6 @@ def globalSaveConf(self):
     conf['barTextColor'] = self.form.textColorDialog.currentColor().name()
     conf['barStyle'] = self.form.styleList.currentIndex()
     conf['stopOnAnswer'] = self.form.stopOnAnswer.isChecked()
-    conf['nmIntegration'] = self.form.nmIntegration.isChecked()
-    conf['nmBgColor'] = self.form.nmBgColorDialog.currentColor().name()
-    conf['nmFgColor'] = self.form.nmFgColorDialog.currentColor().name()
-    conf['nmTextColor'] = self.form.nmTextColorDialog.currentColor().name()
     conf['disable'] = self.form.disableAddon.isChecked()
 
     # Create new instance of the bar with new configurations
@@ -385,19 +346,6 @@ def globalSaveConf(self):
             'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
-    if conf['nmIntegration']:
-        try:
-            import Night_Mode
-            if Night_Mode.nm_state_on:
-                config['progressBarStyle']['backgroundColor'] = conf.get(
-                        'nmBgColor', DEFAULTS['nmBgColor'])
-                config['progressBarStyle']['foregroundColor'] = conf.get(
-                        'nmFgColor', DEFAULTS['nmFgColor'])
-                config['progressBarStyle']['textColor'] = conf.get(
-                        'nmTextColor', DEFAULTS['nmTextColor'])
-        except ImportError:
-            pass
-
     lifeDrain.deckBarManager.setAnkiProgressBarStyle(config)
     lifeDrain.disable = conf.get('disable', DEFAULTS['disable'])
     lifeDrain.stopOnAnswer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
@@ -805,27 +753,9 @@ class DeckProgressBarManager(object):
 
 
 # Night Mode integration begin
-def nmUpdateStyles(*args, **kwargs):
-    '''
-    Function ran when the user enables/disables Night Mode.
-    '''
-    lifeDrain = getLifeDrain()
-    if mw.col is not None and mw.col.conf.get('nmIntegration', DEFAULTS['nmIntegration']):
-        config = {'progressBarStyle': {}}
-        if Night_Mode.nm_state_on:
-            config['progressBarStyle']['backgroundColor'] = mw.col.conf.get(
-                        'nmBgColor', DEFAULTS['nmBgColor'])
-            config['progressBarStyle']['foregroundColor'] = mw.col.conf.get(
-                        'nmFgColor', DEFAULTS['nmFgColor'])
-            config['progressBarStyle']['textColor'] = mw.col.conf.get(
-                        'nmTextColor', DEFAULTS['nmTextColor'])
-        lifeDrain.deckBarManager.setAnkiProgressBarStyle(config)
-
-
 try:
     import Night_Mode
     Night_Mode.nm_css_menu += 'QMainWindow::separator { width: 0px; height: 0px; }'
-    Night_Mode.nm_append_to_styles = wrap(Night_Mode.nm_append_to_styles, nmUpdateStyles)
 except ImportError:
     pass
 # Night Mode integration end
