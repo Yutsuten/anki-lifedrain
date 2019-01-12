@@ -19,21 +19,22 @@ Inside the folder `src/`:
 ![Review](screenshots/review_screen.png)
 
 ## Features
-### Bar styling
+### Bar behaviour/styling
 There are many configurations to style the bar.
 Access `Tools > Preferences`, then select the tab `Life Drain`, and you'll see this screen:
 
 ![Preferences](screenshots/preferences.png)
 
+- **Stop drain on answer shown**: Automatically stops the drain after answering a card.
+- **Disable Life Drain**: Disable the add-on if you don't want to rush yourself all the time.
 - **Position**: Choose where to show the bar: `Top` or `Bottom`.
 - **Height**: The height of the bar, to make it bigger or smaller.
+- **Border radius**: Adds a rounded border to the bar.
+- **Text**: The text shown inside the bar.
+- **Style**: Allow selecting some custom style to the bar.
 - **Background color**: The background color of the bar.
 - **Foreground color**: The foreground color of the bar.
-- **Text**: The text shown inside the bar.
 - **Text color**: If you chose to show text, you can select its color.
-- **Border radius**: Adds a rounded border to the bar.
-- **Style**: Allow selecting some custom style to the bar.
-- **Disable**: Disable the add-on if you don't want to rush yourself all the time.
 
 ### Bar configuration (per deck)
 The bar has 3 configurations: the `Maximum life`, `Recover` and `Current life`.
@@ -80,6 +81,7 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) add-on showed me 
 And then I just thought: why not to have a life bar with drain in Anki?
 
 ## CHANGELOG
+- **2019-01-12**: Added option to stop drain on answer shown.
 - **2018-12-09**: Added disable option and some hooks to allow integration with other add-ons.
 - **2018-12-08**: Fixed autosync failing.
 - **2018-12-01**: Fixed sync failing.
