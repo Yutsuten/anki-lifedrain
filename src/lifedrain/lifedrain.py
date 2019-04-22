@@ -194,6 +194,7 @@ def createColorSelect(self, row, csName, labelText):
     csDialogName = '%sDialog' % csName
     setattr(self, csPreviewName, qt.QLabel(''))
     setattr(self, csDialogName, qt.QColorDialog(selectButton))
+    getattr(self, csDialogName).setOption(qt.QColorDialog.DontUseNativeDialog)
     selectButton.pressed.connect(
         lambda: selectColorDialog(getattr(self, csDialogName), getattr(self, csPreviewName))
     )
