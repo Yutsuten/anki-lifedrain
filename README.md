@@ -49,6 +49,8 @@ Filtered deck configurations (Added in 2018-07-01):
 
 - **Maximum life**: Is the time in seconds for the life bar go from full to empty.
 - **Recover**: Is the time in seconds that is recovered after answering a card.
+- **Enable damage**: Select this to reduce the time remaining on the life bar each time a card is responded to with 'Again'.
+- **Damage**: Is the time in seconds that is removed when a card is responded to with 'Again'.
 - **Current life**: Your current life, in case you want to set it for whatever reason.
 
 ### Pause drain during reviews
@@ -61,15 +63,17 @@ Whenever the life drops to 0, the hook `LifeDrain.gameOver` is triggered.
 You may use it in your add-on to make something interesting happen.
 
 And there is a method you can call using hook to recover (or drain) the user's life.
-It has 2 optional parameters:
+It has 3 optional parameters:
 1st is `increment` (boolean), True to recover (default) and False to drain.
 2nd is `value` (integer). Default is the recover value set by the user in the deck preferences.
+3rd is `damage` (boolean). If set to true and no `value` is supplied, the damage value set by the user in the deck preferences is subtracted. The value of `increment` is ignored when this parameter is in use.
 
 Examples:
 
 - `runHook('LifeDrain.recover')` recovers the life using the default value in deck preferences
 - `runHook('LifeDrain.recover', False)` drains the life using the default value in deck preferences
 - `runHook('LifeDrain.recover', True, 9999)` recovers all the life
+- `runHook('LifeDrain.recover', True, None, True)` drains the life using the damage value in deck preferences
 
 ## Inspiration
 This add-on was inspired on the add-on [Progress Bar](https://ankiweb.net/shared/info/2091361802) and the game [osu!](https://osu.ppy.sh/).
@@ -81,6 +85,7 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) add-on showed me 
 And then I just thought: why not to have a life bar with drain in Anki?
 
 ## CHANGELOG
+- **2019-05-26**: Add 'damage' feature.
 - **2019-04-28**: Fix bug when selecting bar colors on Mac OS. ([Issue #30](https://github.com/Yutsuten/anki-lifedrain/issues/30))
 - **2019-01-12**: Added option to stop drain on answer shown.
 - **2018-12-09**: Added disable option and some hooks to allow integration with other add-ons.
