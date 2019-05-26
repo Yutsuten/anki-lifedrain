@@ -12,6 +12,7 @@ Copyright:  (c) Unknown author (nest0r/Ja-Dark?) 2017
             (c) SebastienGllmt 2017 <https://github.com/SebastienGllmt/>
             (c) Glutanimate 2017 <https://glutanimate.com/>
             (c) Yutsuten 2018 <https://github.com/Yutsuten>
+            (c) Al Beano 2019 <https://github.com/whiteisthenewblack>
 License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
 '''
 
@@ -47,6 +48,8 @@ for text_format in TEXT_FORMAT:
 DEFAULTS = {
     'maxLife': 120,
     'recover': 5,
+    'enableDamage': False,
+    'damage': 5,
     'barPosition': POSITION_OPTIONS.index('Bottom'),
     'barHeight': 15,
     'barBgColor': '#f3f3f2',
@@ -75,7 +78,8 @@ class LifeDrain(object):  # pylint: disable=too-few-public-methods
     status = {
         'reviewed': False,
         'newCardState': False,
-        'screen': None
+        'screen': None,
+        'reviewResponse': 0
     }
     stopOnAnswer = False
     disable = None
@@ -363,12 +367,17 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
         self, row,
         'The <b>maximum life</b> is the time in seconds for the life bar go '
         'from full to empty.\n<b>Recover</b> is the time in seconds that is '
-        'recovered after answering a card.'
+        'recovered after answering a card. <b>Damage</b> is the life lost '
+        'when a card is answered with \'Again\'.'
     )
     row += 1
     createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
     row += 1
     createSpinBox(self, row, 'recoverInput', 'Recover', [0, 1000])
+    row += 1
+    createCheckBox(self, row, 'enableDamageInput', 'Enable damage')
+    row += 1
+    createSpinBox(self, row, 'damageInput', 'Damage', [-1000, 1000])
     row += 1
     createSpinBox(self, row, 'currentValueInput', 'Current life', [0, 10000])
     row += 1
@@ -389,6 +398,12 @@ def loadDeckConf(self):
     self.form.recoverInput.setValue(
         self.conf.get('recover', DEFAULTS['recover'])
     )
+    self.form.enableDamageInput.setChecked(
+        self.conf.get('enableDamage', DEFAULTS['enableDamage'])
+    )
+    self.form.damageInput.setValue(
+        self.conf.get('damage', DEFAULTS['damage'])
+    )
     self.form.currentValueInput.setValue(
         lifeDrain.deckBarManager.getDeckConf(self.deck['id'])['currentValue']
     )
@@ -403,6 +418,8 @@ def saveDeckConf(self):
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
     self.conf['currentValue'] = self.form.currentValueInput.value()
+    self.conf['enableDamage'] = self.form.enableDamageInput.isChecked()
+    self.conf['damage'] = self.form.damageInput.value()
     lifeDrain.deckBarManager.setDeckConf(self.deck['id'], self.conf)
 
 
@@ -416,6 +433,10 @@ def customStudyLifeDrainUi(self, Dialog):
     createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
     row += 1
     createSpinBox(self, row, 'recoverInput', 'Recover', [0, 1000])
+    row += 1
+    createCheckBox(self, row, 'enableDamageInput', 'Enable damage')
+    row += 1
+    createSpinBox(self, row, 'damageInput', 'Damage', [-1000, 1000])
     row += 1
     createSpinBox(self, row, 'currentValueInput', 'Current life', [0, 10000])
     row += 1
@@ -658,7 +679,9 @@ class DeckProgressBarManager(object):
             self._barInfo[str(deckId)] = {
                 'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
                 'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
-                'recoverValue': conf.get('recover', DEFAULTS['recover'])
+                'recoverValue': conf.get('recover', DEFAULTS['recover']),
+                'enableDamageValue': conf.get('enableDamage', DEFAULTS['enableDamage']),
+                'damageValue': conf.get('damage', DEFAULTS['damage'])
             }
 
     def setDeck(self, deckId):
@@ -688,12 +711,16 @@ class DeckProgressBarManager(object):
         '''
         maxLife = conf.get('maxLife', DEFAULTS['maxLife'])
         recover = conf.get('recover', DEFAULTS['recover'])
+        enableDamage = conf.get('enableDamage', DEFAULTS['enableDamage'])
+        damage = conf.get('damage', DEFAULTS['damage'])
         currentValue = conf.get('currentValue', DEFAULTS['maxLife'])
         if currentValue > maxLife:
             currentValue = maxLife
 
         self._barInfo[str(deckId)]['maxValue'] = maxLife
         self._barInfo[str(deckId)]['recoverValue'] = recover
+        self._barInfo[str(deckId)]['enableDamageValue'] = enableDamage
+        self._barInfo[str(deckId)]['damageValue'] = damage
         self._barInfo[str(deckId)]['currentValue'] = currentValue
 
     def setAnkiProgressBarStyle(self, config=None):
@@ -723,7 +750,7 @@ class DeckProgressBarManager(object):
         if self._currentDeck is not None:
             self.recover(value=0)
 
-    def recover(self, increment=True, value=None):
+    def recover(self, increment=True, value=None, damage=False):
         '''
         Abstraction for recovering life, increments the bar if increment is True (default).
         '''
@@ -731,7 +758,11 @@ class DeckProgressBarManager(object):
         if not increment:
             multiplier = -1
         if value is None:
-            value = self._barInfo[self._currentDeck]['recoverValue']
+            if damage and self._barInfo[self._currentDeck]['enableDamageValue']:
+                multiplier = -1
+                value = self._barInfo[self._currentDeck]['damageValue']
+            else:
+                value = self._barInfo[self._currentDeck]['recoverValue']
 
         self._ankiProgressBar.incCurrentValue(multiplier * value)
 
@@ -822,7 +853,10 @@ def showQuestion():
     if not lifeDrain.disable:
         activateTimer()
         if lifeDrain.status['reviewed']:
-            lifeDrain.deckBarManager.recover()
+            if lifeDrain.status['reviewResponse'] == 1:
+                lifeDrain.deckBarManager.recover(damage=True)
+            else:
+                lifeDrain.deckBarManager.recover()
         lifeDrain.status['reviewed'] = False
         lifeDrain.status['newCardState'] = False
 
@@ -916,13 +950,19 @@ def toggleTimer():
             lifeDrain.timer.start()
 
 
-def recover(increment=True, value=None):
+def recover(increment=True, value=None, damage=False):
     '''
     Method ran when invoking 'LifeDrain.recover' hook.
     '''
     lifeDrain = getLifeDrain()
-    lifeDrain.deckBarManager.recover(increment, value)
+    lifeDrain.deckBarManager.recover(increment, value, damage)
 
+def answerCard(self, resp):
+    '''
+    Called when a card is answered
+    '''
+    lifeDrain = getLifeDrain()
+    lifeDrain.status['reviewResponse'] = resp
 
 # Dealing with key presses is different in Anki 2.0 and 2.1
 # This if/elif block deals with the differences
@@ -961,3 +1001,4 @@ Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
 Scheduler.suspendCards = wrap(Scheduler.suspendCards, suspend)
 _Collection.remCards = wrap(_Collection.remCards, delete)
 EditCurrent.__init__ = wrap(EditCurrent.__init__, onEdit)
+Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, "before")
