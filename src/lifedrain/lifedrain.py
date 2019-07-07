@@ -993,6 +993,7 @@ addHook('afterStateChange', afterStateChange)
 addHook('showQuestion', showQuestion)
 addHook('showAnswer', showAnswer)
 addHook('reset', undo)
+addHook('undoState', lambda on: undo() if not on else None)  # After an undo, the state gets off
 addHook('leech', leech)
 addHook('LifeDrain.recover', recover)
 
