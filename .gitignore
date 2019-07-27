@@ -1,2 +1,5 @@
+# Cache files
+__pycache__
+
 # Dist files
 dist/
