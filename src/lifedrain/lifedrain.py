@@ -788,7 +788,7 @@ class DeckProgressBarManager(object):
 try:
     import Night_Mode
     Night_Mode.nm_css_menu += 'QMainWindow::separator { width: 0px; height: 0px; }'
-except Exception:  # pylint: disable=broad-except  # nosec
+except Exception:  # nosec  # pylint: disable=broad-except
     pass
 # Night Mode integration end
 
