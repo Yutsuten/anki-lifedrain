@@ -993,6 +993,7 @@ addHook('afterStateChange', afterStateChange)
 addHook('showQuestion', showQuestion)
 addHook('showAnswer', showAnswer)
 addHook('reset', undo)
+addHook('revertedCard', lambda cid: undo())
 addHook('leech', leech)
 addHook('LifeDrain.recover', recover)
 
