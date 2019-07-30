@@ -85,6 +85,7 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) add-on showed me 
 And then I just thought: why not to have a life bar with drain in Anki?
 
 ## CHANGELOG
+- **2019-07-30**: Fix undo while reviewing not removing life on Anki 2.1 ([PR #36](https://github.com/Yutsuten/anki-lifedrain/pull/36)); Ignore errors from another add-ons being raised in Life Drain. ([PR #38](https://github.com/Yutsuten/anki-lifedrain/pull/38))
 - **2019-06-11**: Add damage feature (Thanks to [@whiteisthenewblack](https://github.com/whiteisthenewblack) in [PR #35](https://github.com/Yutsuten/anki-lifedrain/pull/35)).
 - **2019-04-28**: Fix bug when selecting bar colors on Mac OS. ([Issue #30](https://github.com/Yutsuten/anki-lifedrain/issues/30))
 - **2019-01-12**: Added option to stop drain on answer shown.
