@@ -477,7 +477,7 @@ class AnkiProgressBar(object):
 
     def __init__(self, config, maxValue):
         self._qProgressBar = qt.QProgressBar()
-        self.setMaxValue(maxValue)
+        self.setMaxValue(maxValue * 10)
         self.resetBar()
         self.setStyle(config['progressBarStyle'])
         self.dockAt(config['position'])
@@ -498,7 +498,7 @@ class AnkiProgressBar(object):
         '''
         Resets bar, setting current value to maximum.
         '''
-        self._currentValue = self._maxValue
+        self._currentValue = self._maxValue * 10
         self._validateUpdateCurrentValue()
         if self._textFormat == 'mm:ss':
             self._updateTimerText()
@@ -507,7 +507,7 @@ class AnkiProgressBar(object):
         '''
         Sets the maximum value for the bar.
         '''
-        self._maxValue = maxValue
+        self._maxValue = maxValue * 10
         if self._maxValue <= 0:
             self._maxValue = 1
         self._qProgressBar.setRange(0, self._maxValue)
@@ -516,7 +516,7 @@ class AnkiProgressBar(object):
         '''
         Sets the current value for the bar.
         '''
-        self._currentValue = currentValue
+        self._currentValue = currentValue * 10
         self._validateUpdateCurrentValue()
         if self._textFormat == 'mm:ss':
             self._updateTimerText()
@@ -611,10 +611,11 @@ class AnkiProgressBar(object):
         elif self._currentValue < 0:
             self._currentValue = 0
         self._qProgressBar.setValue(self._currentValue)
+        self._qProgressBar.update()
 
     def _updateTimerText(self):
-        minutes = int(self._currentValue / 60)
-        seconds = int(self._currentValue % 60)
+        minutes = int(self._currentValue / 600)
+        seconds = int((self._currentValue / 10) % 60)
         self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
 
     def dockAt(self, place):
@@ -819,7 +820,7 @@ def afterStateChange(state, oldState):
 
     if not lifeDrain.disable:  # Enabled
         if not lifeDrain.timer:
-            lifeDrain.timer = ProgressManager(mw).timer(1000, timerTrigger, True)
+            lifeDrain.timer = ProgressManager(mw).timer(100, timerTrigger, True)
         lifeDrain.timer.stop()
 
         if lifeDrain.status['reviewed'] and state in ['overview', 'review']:
