@@ -27,40 +27,8 @@ from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.preferences import Preferences
 from aqt.editcurrent import EditCurrent
 
-
-POSITION_OPTIONS = ['Top', 'Bottom']
-STYLE_OPTIONS = [
-    'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh',
-    'Motif', 'Plastique', 'Windows', 'Windows Vista', 'Windows XP'
-]
-TEXT_FORMAT = [
-    {'text': 'None'},
-    {'text': 'current/total (XX%)', 'format': '%v/%m (%p%)'},
-    {'text': 'current/total', 'format': '%v/%m'},
-    {'text': 'current', 'format': '%v'},
-    {'text': 'XX%', 'format': '%p%'},
-    {'text': 'mm:ss', 'format': 'mm:ss'}
-]
-TEXT_OPTIONS = []
-for text_format in TEXT_FORMAT:
-    TEXT_OPTIONS.append(text_format['text'])
-
-DEFAULTS = {
-    'maxLife': 120,
-    'recover': 5,
-    'enableDamage': False,
-    'damage': 5,
-    'barPosition': POSITION_OPTIONS.index('Bottom'),
-    'barHeight': 15,
-    'barBgColor': '#f3f3f2',
-    'barFgColor': '#489ef6',
-    'barBorderRadius': 0,
-    'barText': 0,
-    'barTextColor': '#000',
-    'barStyle': STYLE_OPTIONS.index('Default'),
-    'stopOnAnswer': False,
-    'disable': False
-}
+from .anki_progress_bar import AnkiProgressBar
+from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_OPTIONS, DEFAULTS
 
 
 # Hide separator strip
@@ -465,200 +433,6 @@ FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, loadDeckConf)
 FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, saveDeckConf, 'before')
 
 
-class AnkiProgressBar(object):
-    '''
-    Creates and manages a Progress Bar in Anki.
-    '''
-    _qProgressBar = None
-    _maxValue = 1
-    _currentValue = 1
-    _textFormat = ''
-    _dock = None
-
-    def __init__(self, config, maxValue):
-        self._qProgressBar = qt.QProgressBar()
-        self.setMaxValue(maxValue * 10)
-        self.resetBar()
-        self.setStyle(config['progressBarStyle'])
-        self.dockAt(config['position'])
-
-    def show(self):
-        '''
-        Shows the progress bar.
-        '''
-        self._qProgressBar.show()
-
-    def hide(self):
-        '''
-        Hides the progress bar.
-        '''
-        self._qProgressBar.hide()
-
-    def resetBar(self):
-        '''
-        Resets bar, setting current value to maximum.
-        '''
-        self._currentValue = self._maxValue * 10
-        self._validateUpdateCurrentValue()
-        if self._textFormat == 'mm:ss':
-            self._updateTimerText()
-
-    def setMaxValue(self, maxValue):
-        '''
-        Sets the maximum value for the bar.
-        '''
-        self._maxValue = maxValue * 10
-        if self._maxValue <= 0:
-            self._maxValue = 1
-        self._qProgressBar.setRange(0, self._maxValue)
-
-    def setCurrentValue(self, currentValue):
-        '''
-        Sets the current value for the bar.
-        '''
-        self._currentValue = currentValue * 10
-        self._validateUpdateCurrentValue()
-        if self._textFormat == 'mm:ss':
-            self._updateTimerText()
-
-    def incCurrentValue(self, increment):
-        '''
-        Increments the current value of the bar.
-        Negative values will decrement.
-        '''
-        self._currentValue += increment
-        self._validateUpdateCurrentValue()
-        if self._textFormat == 'mm:ss':
-            self._updateTimerText()
-
-    def getCurrentValue(self):
-        '''
-        Gets the current value of the bar.
-        '''
-        return self._currentValue
-
-    def setStyle(self, options):
-        '''
-        Sets the style of the bar.
-        '''
-        self._qProgressBar.setTextVisible(options['text'] != 0)  # 0 is the index of None
-        textFormat = TEXT_FORMAT[options['text']]
-        if 'format' in textFormat:
-            self._textFormat = textFormat['format']
-            self._qProgressBar.setFormat(textFormat['format'])
-
-        customStyle = STYLE_OPTIONS[options['customStyle']] \
-            .replace(' ', '').lower()
-        if customStyle != 'default':
-            palette = qt.QPalette()
-            palette.setColor(
-                qt.QPalette.Base, qt.QColor(options['backgroundColor'])
-            )
-            palette.setColor(
-                qt.QPalette.Highlight, qt.QColor(options['foregroundColor'])
-            )
-            palette.setColor(
-                qt.QPalette.Button, qt.QColor(options['backgroundColor'])
-            )
-            palette.setColor(
-                qt.QPalette.Window, qt.QColor(options['backgroundColor'])
-            )
-
-            self._qProgressBar.setStyle(qt.QStyleFactory.create(customStyle))
-            self._qProgressBar.setPalette(palette)
-            self._qProgressBar.setStyleSheet(
-                '''
-                QProgressBar {
-                    max-height: %spx;
-                }
-                '''
-                % (
-                    options['height'],
-                )
-            )
-        else:
-            self._qProgressBar.setStyleSheet(
-                '''
-                QProgressBar {
-                    text-align:center;
-                    background-color: %s;
-                    border-radius: %dpx;
-                    max-height: %spx;
-                    color: %s;
-                }
-                QProgressBar::chunk {
-                    background-color: %s;
-                    margin: 0px;
-                    border-radius: %dpx;
-                }
-                '''
-                % (
-                    options['backgroundColor'],
-                    options['borderRadius'],
-                    options['height'],
-                    options['textColor'],
-                    options['foregroundColor'],
-                    options['borderRadius']
-                )
-            )
-
-    def _validateUpdateCurrentValue(self):
-        '''
-        When updating current value, makes sure that the value is [0; max].
-        '''
-        if self._currentValue > self._maxValue:
-            self._currentValue = self._maxValue
-        elif self._currentValue < 0:
-            self._currentValue = 0
-        self._qProgressBar.setValue(self._currentValue)
-        self._qProgressBar.update()
-
-    def _updateTimerText(self):
-        minutes = int(self._currentValue / 600)
-        seconds = int((self._currentValue / 10) % 60)
-        self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
-
-    def dockAt(self, place):
-        '''
-        Docks the bar at the specified place in the Anki window.
-        '''
-        barVisible = self._qProgressBar.isVisible()
-
-        if self._dock is not None:
-            self._dock.close()
-
-        place = POSITION_OPTIONS[place]
-
-        if place not in POSITION_OPTIONS:
-            place = DEFAULTS['barPosition']
-
-        if place == 'Top':
-            dockArea = qt.Qt.TopDockWidgetArea
-        elif place == 'Bottom':
-            dockArea = qt.Qt.BottomDockWidgetArea
-
-        self._dock = qt.QDockWidget()
-        tWidget = qt.QWidget()
-        self._dock.setWidget(self._qProgressBar)
-        self._dock.setTitleBarWidget(tWidget)
-
-        existingWidgets = [
-            widget for widget in mw.findChildren(qt.QDockWidget)
-            if mw.dockWidgetArea(widget) == dockArea
-        ]
-        if not existingWidgets:
-            mw.addDockWidget(dockArea, self._dock)
-        else:
-            mw.setDockNestingEnabled(True)
-            mw.splitDockWidget(existingWidgets[0], self._dock, qt.Qt.Vertical)
-        mw.web.setFocus()
-
-        self._qProgressBar.setVisible(barVisible)
-
-    def __del__(self):
-        self._dock.close()
-
-
 class DeckProgressBarManager(object):
     '''
     Allow using the same instance of AnkiProgressBar with different
@@ -958,12 +732,14 @@ def recover(increment=True, value=None, damage=False):
     lifeDrain = getLifeDrain()
     lifeDrain.deckBarManager.recover(increment, value, damage)
 
+
 def answerCard(self, resp):
     '''
     Called when a card is answered
     '''
     lifeDrain = getLifeDrain()
     lifeDrain.status['reviewResponse'] = resp
+
 
 # Dealing with key presses is different in Anki 2.0 and 2.1
 # This if/elif block deals with the differences
