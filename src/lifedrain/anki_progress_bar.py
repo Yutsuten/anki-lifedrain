@@ -70,7 +70,8 @@ class AnkiProgressBar(object):
         '''
         self._currentValue += increment * 10
         self._validateUpdateCurrentValue()
-        self._updateText()
+        if self._currentValue % 10 == 0 or abs(increment) >= 1:
+            self._updateText()
 
     def getCurrentValue(self):
         '''
@@ -162,10 +163,14 @@ class AnkiProgressBar(object):
             seconds = int((self._currentValue / 10) % 60)
             self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
         else:
+            currentValue = int(self._currentValue / 10)
+            if self._currentValue % 10 != 0:
+                currentValue += 1
+            maxValue = int(self._maxValue / 10)
             text = self._textFormat \
-                .replace('%v', str(int(self._currentValue / 10))) \
-                .replace('%m', str(int(self._maxValue / 10))) \
-                .replace('%p', str(int(100 * self._currentValue / self._maxValue)))
+                .replace('%v', str(currentValue)) \
+                .replace('%m', str(maxValue)) \
+                .replace('%p', str(int(100 * currentValue / maxValue)))
             self._qProgressBar.setFormat(text)
 
     def dockAt(self, place):
