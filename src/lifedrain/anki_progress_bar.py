@@ -9,6 +9,9 @@ from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
 class AnkiProgressBar(object):
     '''
     Creates and manages a Progress Bar on Anki.
+
+    This class deals with decimal values, and creates an interface with QProgressBar,
+    that only acceps integer values, to make it work as expected.
     '''
     _qProgressBar = None
     _maxValue = 1
@@ -18,7 +21,7 @@ class AnkiProgressBar(object):
 
     def __init__(self, config, maxValue):
         self._qProgressBar = qt.QProgressBar()
-        self.setMaxValue(maxValue * 10)
+        self.setMaxValue(maxValue)
         self.resetBar()
         self.setStyle(config['progressBarStyle'])
         self.dockAt(config['position'])
@@ -39,7 +42,7 @@ class AnkiProgressBar(object):
         '''
         Resets bar, setting current value to maximum.
         '''
-        self._currentValue = self._maxValue * 10
+        self._currentValue = self._maxValue
         self._validateUpdateCurrentValue()
         if self._textFormat == 'mm:ss':
             self._updateTimerText()
@@ -67,7 +70,7 @@ class AnkiProgressBar(object):
         Increments the current value of the bar.
         Negative values will decrement.
         '''
-        self._currentValue += increment
+        self._currentValue += increment * 10
         self._validateUpdateCurrentValue()
         if self._textFormat == 'mm:ss':
             self._updateTimerText()
@@ -76,7 +79,7 @@ class AnkiProgressBar(object):
         '''
         Gets the current value of the bar.
         '''
-        return self._currentValue
+        return float(self._currentValue) / 10
 
     def setStyle(self, options):
         '''

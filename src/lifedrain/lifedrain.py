@@ -578,11 +578,10 @@ def onEdit(*args):
 
 def timerTrigger():
     '''
-    When a second passed, this function is triggered.
-    It decrements the bar by 1 unit.
+    When a decisecond (0.1s) passes, this function is triggered.
     '''
     lifeDrain = getLifeDrain()
-    lifeDrain.deckBarManager.recover(False, 1)
+    lifeDrain.deckBarManager.recover(False, 0.1)
 
 
 def afterStateChange(state, oldState):
