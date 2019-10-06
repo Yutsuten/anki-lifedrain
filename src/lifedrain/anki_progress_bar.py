@@ -44,8 +44,7 @@ class AnkiProgressBar(object):
         '''
         self._currentValue = self._maxValue
         self._validateUpdateCurrentValue()
-        if self._textFormat == 'mm:ss':
-            self._updateTimerText()
+        self._updateText()
 
     def setMaxValue(self, maxValue):
         '''
@@ -62,8 +61,7 @@ class AnkiProgressBar(object):
         '''
         self._currentValue = currentValue * 10
         self._validateUpdateCurrentValue()
-        if self._textFormat == 'mm:ss':
-            self._updateTimerText()
+        self._updateText()
 
     def incCurrentValue(self, increment):
         '''
@@ -72,8 +70,7 @@ class AnkiProgressBar(object):
         '''
         self._currentValue += increment * 10
         self._validateUpdateCurrentValue()
-        if self._textFormat == 'mm:ss':
-            self._updateTimerText()
+        self._updateText()
 
     def getCurrentValue(self):
         '''
@@ -157,10 +154,19 @@ class AnkiProgressBar(object):
         self._qProgressBar.setValue(self._currentValue)
         self._qProgressBar.update()
 
-    def _updateTimerText(self):
-        minutes = int(self._currentValue / 600)
-        seconds = int((self._currentValue / 10) % 60)
-        self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
+    def _updateText(self):
+        if not self._textFormat:
+            return
+        if self._textFormat == 'mm:ss':
+            minutes = int(self._currentValue / 600)
+            seconds = int((self._currentValue / 10) % 60)
+            self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
+        else:
+            text = self._textFormat \
+                .replace('%v', str(int(self._currentValue / 10))) \
+                .replace('%m', str(int(self._maxValue / 10))) \
+                .replace('%p', str(int(100 * self._currentValue / self._maxValue)))
+            self._qProgressBar.setFormat(text)
 
     def dockAt(self, place):
         '''
