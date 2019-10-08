@@ -1,14 +1,19 @@
-all: prepare build
+all: prepare build cleanup
 
 prepare:
-	rm -f dist/*
-	find src -name __pycache__ -type d -exec rm -r {} +
-	mkdir -p dist/
+	rm -rf dist/* tmp/*
+	find lifedrain -name __pycache__ -type d -exec rm -r {} +
+	mkdir -p dist tmp
 
 build: build20 build21
 
 build20:
-	(cd src && zip -r ../dist/lifedrain_20.zip * -x "*.pyc")
+	echo -n "import lifedrain" > tmp/lifedrain_loader.py
+	cp -r lifedrain tmp/lifedrain
+	(cd tmp && zip -r ../dist/lifedrain20.zip * -x "*.pyc")
 
 build21:
-	(cd src/lifedrain && zip -r ../../dist/lifedrain_21.zip * -x "*.pyc")
+	(cd lifedrain && zip -r ../dist/lifedrain21.zip * -x "*.pyc")
+
+cleanup:
+	rm -rf tmp/*

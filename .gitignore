@@ -1,5 +1,6 @@
 # Cache files
 __pycache__
+tmp/
 
 # Dist files
 dist/
