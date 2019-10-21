@@ -35,13 +35,13 @@ from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_OPTIONS, DEFAULTS
 mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
 
 
-# Saving data inside a class to access it as lifeDrain.config
+# Saving data inside a class to access it as lifedrain.config
 class LifeDrain(object):  # pylint: disable=too-few-public-methods
     '''
     Contains the state of the life drain.
     '''
     config = {}
-    deckBarManager = None
+    deck_bar_manager = None
     timer = None
     status = {
         'reviewed': False,
@@ -49,28 +49,28 @@ class LifeDrain(object):  # pylint: disable=too-few-public-methods
         'screen': None,
         'reviewResponse': 0
     }
-    stopOnAnswer = False
+    stop_on_answer = False
     disable = None
 
 
 # Variable with the state the life drain
 # Pylint complains that it is a constant, so I disabled this check
-lifeDrain = LifeDrain()  # pylint: disable=invalid-name
+lifedrain = LifeDrain()  # pylint: disable=invalid-name
 
 
 # Allowed this method to use global statement, as I don't see any other
 # way to access my variables inside the methods extended from Anki.
 # Adding new parameters to those methods is not possible, and cannot use
 # classes because it adds a parameter 'self' to the methods
-def getLifeDrain():
+def get_lifedrain():
     '''
     Gets the state of the life drain.
     '''
-    global lifeDrain  # pylint: disable=invalid-name,global-statement
+    global lifedrain  # pylint: disable=invalid-name,global-statement
 
     if mw.col is not None:
-        # Create deckBarManager, should run only once
-        if lifeDrain.deckBarManager is None:
+        # Create deck_bar_manager, should run only once
+        if lifedrain.deck_bar_manager is None:
             config = {
                 'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
                 'progressBarStyle': {
@@ -86,20 +86,20 @@ def getLifeDrain():
                     'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
                 }
             }
-            progressBar = AnkiProgressBar(config, DEFAULTS['maxLife'])
-            progressBar.hide()
-            lifeDrain.deckBarManager = DeckProgressBarManager(progressBar)
-            lifeDrain.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
-            lifeDrain.stopOnAnswer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+            progress_bar = AnkiProgressBar(config, DEFAULTS['maxLife'])
+            progress_bar.hide()
+            lifedrain.deck_bar_manager = DeckProgressBarManager(progress_bar)
+            lifedrain.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
+            lifedrain.stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
         # Keep deck list always updated
-        for deckId in mw.col.decks.allIds():
-            lifeDrain.deckBarManager.addDeck(deckId, mw.col.decks.confForDid(deckId))
+        for deck_id in mw.col.decks.allIds():
+            lifedrain.deck_bar_manager.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
 
-    return lifeDrain
+    return lifedrain
 
 
-def guiSettingsSetupLayout(widget):
+def gui_settings_setup_layout(widget):
     '''
     Sets up the layout used for the menus used in Life Drain.
     '''
@@ -112,7 +112,7 @@ def guiSettingsSetupLayout(widget):
     return layout
 
 
-def createLabel(self, row, text, color=None):
+def create_label(self, row, text, color=None):
     '''
     Creates a label that occupies the whole line and wraps if it is too big.
     '''
@@ -123,59 +123,59 @@ def createLabel(self, row, text, color=None):
         label.setStyleSheet('color: {}'.format(color))
 
 
-def createComboBox(self, row, cbName, labelText, options):
+def create_combo_box(self, row, cb_name, label_text, options):
     '''
     Creates a combo box with the specified label and options.
     '''
-    label = qt.QLabel(labelText)
-    setattr(self, cbName, qt.QComboBox(self.lifeDrainWidget))
+    label = qt.QLabel(label_text)
+    setattr(self, cb_name, qt.QComboBox(self.lifeDrainWidget))
     for option in options:
-        getattr(self, cbName).addItem(option)
+        getattr(self, cb_name).addItem(option)
     self.lifeDrainLayout.addWidget(label, row, 0)
-    self.lifeDrainLayout.addWidget(getattr(self, cbName), row, 2, 1, 2)
+    self.lifeDrainLayout.addWidget(getattr(self, cb_name), row, 2, 1, 2)
 
 
-def createCheckBox(self, row, cbName, labelText):
+def create_check_box(self, row, cb_name, label_text):
     '''
     Creates a checkbox with the specified label.
     '''
-    label = qt.QLabel(labelText)
-    setattr(self, cbName, qt.QCheckBox(self.lifeDrainWidget))
+    label = qt.QLabel(label_text)
+    setattr(self, cb_name, qt.QCheckBox(self.lifeDrainWidget))
     self.lifeDrainLayout.addWidget(label, row, 0)
-    self.lifeDrainLayout.addWidget(getattr(self, cbName), row, 2, 1, 2)
+    self.lifeDrainLayout.addWidget(getattr(self, cb_name), row, 2, 1, 2)
 
 
-def createSpinBox(self, row, sbName, labelText, valRange):
+def create_spin_box(self, row, sb_name, label_text, val_range):
     '''
     Creates a spin box with the specified label and range.
     '''
-    label = qt.QLabel(labelText)
-    setattr(self, sbName, qt.QSpinBox(self.lifeDrainWidget))
-    getattr(self, sbName).setRange(valRange[0], valRange[1])
+    label = qt.QLabel(label_text)
+    setattr(self, sb_name, qt.QSpinBox(self.lifeDrainWidget))
+    getattr(self, sb_name).setRange(val_range[0], val_range[1])
     self.lifeDrainLayout.addWidget(label, row, 0)
-    self.lifeDrainLayout.addWidget(getattr(self, sbName), row, 2, 1, 2)
+    self.lifeDrainLayout.addWidget(getattr(self, sb_name), row, 2, 1, 2)
 
 
-def createColorSelect(self, row, csName, labelText):
+def create_color_select(self, row, cs_name, label_text):
     '''
     Creates a color select with the specified label.
     '''
-    label = qt.QLabel(labelText)
-    selectButton = qt.QPushButton('Select')
-    csPreviewName = '%sPreview' % csName
-    csDialogName = '%sDialog' % csName
-    setattr(self, csPreviewName, qt.QLabel(''))
-    setattr(self, csDialogName, qt.QColorDialog(selectButton))
-    getattr(self, csDialogName).setOption(qt.QColorDialog.DontUseNativeDialog)
-    selectButton.pressed.connect(
-        lambda: selectColorDialog(getattr(self, csDialogName), getattr(self, csPreviewName))
+    label = qt.QLabel(label_text)
+    select_button = qt.QPushButton('Select')
+    cs_preview_name = '%sPreview' % cs_name
+    cs_dialog_name = '%sDialog' % cs_name
+    setattr(self, cs_preview_name, qt.QLabel(''))
+    setattr(self, cs_dialog_name, qt.QColorDialog(select_button))
+    getattr(self, cs_dialog_name).setOption(qt.QColorDialog.DontUseNativeDialog)
+    select_button.pressed.connect(
+        lambda: select_color_dialog(getattr(self, cs_dialog_name), getattr(self, cs_preview_name))
     )
     self.lifeDrainLayout.addWidget(label, row, 0)
-    self.lifeDrainLayout.addWidget(selectButton, row, 2)
-    self.lifeDrainLayout.addWidget(getattr(self, csPreviewName), row, 3)
+    self.lifeDrainLayout.addWidget(select_button, row, 2)
+    self.lifeDrainLayout.addWidget(getattr(self, cs_preview_name), row, 3)
 
 
-def fillRemainingSpace(self, row):
+def fill_remaining_space(self, row):
     '''
     Fills the remaining space, so what comes after this is in the bottom.
     '''
@@ -185,53 +185,53 @@ def fillRemainingSpace(self, row):
     self.lifeDrainLayout.addItem(spacer, row, 0)
 
 
-def globalSettingsLifeDrainTabUi(self, Preferences):
+def global_settings_lifedrain_tab_ui(self, Preferences):
     '''
     Appends LifeDrain tab to Global Settings dialog.
     '''
     self.lifeDrainWidget = qt.QWidget()
-    self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
+    self.lifeDrainLayout = gui_settings_setup_layout(self.lifeDrainWidget)
     row = 0
-    createLabel(self, row, '<b>Bar behaviour</b>')
+    create_label(self, row, '<b>Bar behaviour</b>')
     row += 1
-    createCheckBox(self, row, 'stopOnAnswer', 'Stop drain on answer shown')
+    create_check_box(self, row, 'stopOnAnswer', 'Stop drain on answer shown')
     row += 1
-    createCheckBox(self, row, 'disableAddon', 'Disable Life Drain (!)')
+    create_check_box(self, row, 'disableAddon', 'Disable Life Drain (!)')
     row += 1
-    createLabel(self, row, '<b>Bar style</b>')
+    create_label(self, row, '<b>Bar style</b>')
     row += 1
-    createComboBox(self, row, 'positionList', 'Position', POSITION_OPTIONS)
+    create_combo_box(self, row, 'positionList', 'Position', POSITION_OPTIONS)
     row += 1
-    createSpinBox(self, row, 'heightInput', 'Height', [1, 40])
+    create_spin_box(self, row, 'heightInput', 'Height', [1, 40])
     row += 1
-    createSpinBox(self, row, 'borderRadiusInput', 'Border radius', [0, 20])
+    create_spin_box(self, row, 'borderRadiusInput', 'Border radius', [0, 20])
     row += 1
-    createComboBox(self, row, 'textList', 'Text', TEXT_OPTIONS)
+    create_combo_box(self, row, 'textList', 'Text', TEXT_OPTIONS)
     row += 1
-    createComboBox(self, row, 'styleList', 'Style', STYLE_OPTIONS)
+    create_combo_box(self, row, 'styleList', 'Style', STYLE_OPTIONS)
     row += 1
-    createColorSelect(self, row, 'bgColor', 'Background color')
+    create_color_select(self, row, 'bgColor', 'Background color')
     row += 1
-    createColorSelect(self, row, 'fgColor', 'Foreground color')
+    create_color_select(self, row, 'fgColor', 'Foreground color')
     row += 1
-    createColorSelect(self, row, 'textColor', 'Text color')
+    create_color_select(self, row, 'textColor', 'Text color')
     row += 1
-    fillRemainingSpace(self, row)
+    fill_remaining_space(self, row)
     self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
 
 
-def selectColorDialog(qColorDialog, previewLabel):
+def select_color_dialog(qcolor_dialog, preview_label):
     '''
     Shows the select color dialog and updates the preview color in settings.
     '''
-    if qColorDialog.exec_():
-        previewLabel.setStyleSheet(
+    if qcolor_dialog.exec_():
+        preview_label.setStyleSheet(
             'QLabel { background-color: %s; }'
-            % qColorDialog.currentColor().name()
+            % qcolor_dialog.currentColor().name()
         )
 
 
-def globalLoadConf(self, mw):
+def global_load_conf(self, mw):
     '''
     Loads LifeDrain global configurations.
     '''
@@ -287,11 +287,11 @@ def globalLoadConf(self, mw):
     )
 
 
-def globalSaveConf(self):
+def global_save_conf(self):
     '''
     Saves LifeDrain global configurations.
     '''
-    lifeDrain = getLifeDrain()
+    lifedrain = get_lifedrain()
 
     conf = self.mw.col.conf
     conf['barPosition'] = self.form.positionList.currentIndex()
@@ -319,19 +319,19 @@ def globalSaveConf(self):
             'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
         }
     }
-    lifeDrain.deckBarManager.setAnkiProgressBarStyle(config)
-    lifeDrain.disable = conf.get('disable', DEFAULTS['disable'])
-    lifeDrain.stopOnAnswer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+    lifedrain.deck_bar_manager.set_anki_progress_bar_style(config)
+    lifedrain.disable = conf.get('disable', DEFAULTS['disable'])
+    lifedrain.stop_on_answer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
 
-def deckSettingsLifeDrainTabUi(self, Dialog):
+def deck_settings_lifedrain_tab_ui(self, Dialog):
     '''
     Appends a new tab to deck settings dialog.
     '''
     self.lifeDrainWidget = qt.QWidget()
-    self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
+    self.lifeDrainLayout = gui_settings_setup_layout(self.lifeDrainWidget)
     row = 0
-    createLabel(
+    create_label(
         self, row,
         'The <b>maximum life</b> is the time in seconds for the life bar go '
         'from full to empty.\n<b>Recover</b> is the time in seconds that is '
@@ -339,25 +339,25 @@ def deckSettingsLifeDrainTabUi(self, Dialog):
         'when a card is answered with \'Again\'.'
     )
     row += 1
-    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
+    create_spin_box(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
     row += 1
-    createSpinBox(self, row, 'recoverInput', 'Recover', [0, 1000])
+    create_spin_box(self, row, 'recoverInput', 'Recover', [0, 1000])
     row += 1
-    createCheckBox(self, row, 'enableDamageInput', 'Enable damage')
+    create_check_box(self, row, 'enableDamageInput', 'Enable damage')
     row += 1
-    createSpinBox(self, row, 'damageInput', 'Damage', [-1000, 1000])
+    create_spin_box(self, row, 'damageInput', 'Damage', [-1000, 1000])
     row += 1
-    createSpinBox(self, row, 'currentValueInput', 'Current life', [0, 10000])
+    create_spin_box(self, row, 'currentValueInput', 'Current life', [0, 10000])
     row += 1
-    fillRemainingSpace(self, row)
+    fill_remaining_space(self, row)
     self.tabWidget.addTab(self.lifeDrainWidget, 'Life Drain')
 
 
-def loadDeckConf(self):
+def load_deck_conf(self):
     '''
     Loads LifeDrain deck configurations.
     '''
-    lifeDrain = getLifeDrain()
+    lifedrain = get_lifedrain()
 
     self.conf = self.mw.col.decks.confForDid(self.deck['id'])
     self.form.maxLifeInput.setValue(
@@ -373,85 +373,85 @@ def loadDeckConf(self):
         self.conf.get('damage', DEFAULTS['damage'])
     )
     self.form.currentValueInput.setValue(
-        lifeDrain.deckBarManager.getDeckConf(self.deck['id'])['currentValue']
+        lifedrain.deck_bar_manager.get_deck_conf(self.deck['id'])['currentValue']
     )
 
 
-def saveDeckConf(self):
+def save_deck_conf(self):
     '''
     Saves LifeDrain deck configurations.
     '''
-    lifeDrain = getLifeDrain()
+    lifedrain = get_lifedrain()
 
     self.conf['maxLife'] = self.form.maxLifeInput.value()
     self.conf['recover'] = self.form.recoverInput.value()
     self.conf['currentValue'] = self.form.currentValueInput.value()
     self.conf['enableDamage'] = self.form.enableDamageInput.isChecked()
     self.conf['damage'] = self.form.damageInput.value()
-    lifeDrain.deckBarManager.setDeckConf(self.deck['id'], self.conf)
+    lifedrain.deck_bar_manager.set_deck_conf(self.deck['id'], self.conf)
 
 
-def customStudyLifeDrainUi(self, Dialog):
+def custom_study_lifedrain_ui(self, Dialog):
     '''
     Adds LifeDrain configurations to custom study dialog.
     '''
     self.lifeDrainWidget = qt.QGroupBox('Life Drain')
-    self.lifeDrainLayout = guiSettingsSetupLayout(self.lifeDrainWidget)
+    self.lifeDrainLayout = gui_settings_setup_layout(self.lifeDrainWidget)
     row = 0
-    createSpinBox(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
+    create_spin_box(self, row, 'maxLifeInput', 'Maximum life', [1, 10000])
     row += 1
-    createSpinBox(self, row, 'recoverInput', 'Recover', [0, 1000])
+    create_spin_box(self, row, 'recoverInput', 'Recover', [0, 1000])
     row += 1
-    createCheckBox(self, row, 'enableDamageInput', 'Enable damage')
+    create_check_box(self, row, 'enableDamageInput', 'Enable damage')
     row += 1
-    createSpinBox(self, row, 'damageInput', 'Damage', [-1000, 1000])
+    create_spin_box(self, row, 'damageInput', 'Damage', [-1000, 1000])
     row += 1
-    createSpinBox(self, row, 'currentValueInput', 'Current life', [0, 10000])
+    create_spin_box(self, row, 'currentValueInput', 'Current life', [0, 10000])
     row += 1
     index = 2 if appVersion.startswith('2.0') else 3
     self.verticalLayout.insertWidget(index, self.lifeDrainWidget)
 
 
 forms.preferences.Ui_Preferences.setupUi = wrap(
-    forms.preferences.Ui_Preferences.setupUi, globalSettingsLifeDrainTabUi
+    forms.preferences.Ui_Preferences.setupUi, global_settings_lifedrain_tab_ui
 )
-Preferences.__init__ = wrap(Preferences.__init__, globalLoadConf)
-Preferences.accept = wrap(Preferences.accept, globalSaveConf, 'before')
+Preferences.__init__ = wrap(Preferences.__init__, global_load_conf)
+Preferences.accept = wrap(Preferences.accept, global_save_conf, 'before')
 
 
 forms.dconf.Ui_Dialog.setupUi = wrap(
-    forms.dconf.Ui_Dialog.setupUi, deckSettingsLifeDrainTabUi
+    forms.dconf.Ui_Dialog.setupUi, deck_settings_lifedrain_tab_ui
 )
-DeckConf.loadConf = wrap(DeckConf.loadConf, loadDeckConf)
-DeckConf.saveConf = wrap(DeckConf.saveConf, saveDeckConf, 'before')
+DeckConf.loadConf = wrap(DeckConf.loadConf, load_deck_conf)
+DeckConf.saveConf = wrap(DeckConf.saveConf, save_deck_conf, 'before')
 
 
 forms.dyndconf.Ui_Dialog.setupUi = wrap(
-    forms.dyndconf.Ui_Dialog.setupUi, customStudyLifeDrainUi
+    forms.dyndconf.Ui_Dialog.setupUi, custom_study_lifedrain_ui
 )
-FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, loadDeckConf)
-FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, saveDeckConf, 'before')
+FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, load_deck_conf)
+FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, save_deck_conf, 'before')
 
 
 class DeckProgressBarManager(object):
     '''
     Allow using the same instance of AnkiProgressBar with different
-    configuration and currentValue for each deck.
+    configuration and current_value for each deck.
     '''
-    _ankiProgressBar = None
+    _anki_progressbar = None
     _barInfo = {}
-    _currentDeck = None
-    _gameOver = False
+    _current_deck = None
+    _game_over = False
 
     def __init__(self, ankiProgressBar):
-        self._ankiProgressBar = ankiProgressBar
+        self._anki_progressbar = ankiProgressBar
 
-    def addDeck(self, deckId, conf):
+    def add_deck(self, deck_id, conf):
         '''
         Adds a deck to the manager.
         '''
-        if str(deckId) not in self._barInfo:
-            self._barInfo[str(deckId)] = {
+        if str(deck_id) not in self._barInfo:
+            self._barInfo[str(deck_id)] = {
                 'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
                 'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
                 'recoverValue': conf.get('recover', DEFAULTS['recover']),
@@ -459,50 +459,50 @@ class DeckProgressBarManager(object):
                 'damageValue': conf.get('damage', DEFAULTS['damage'])
             }
 
-    def setDeck(self, deckId):
+    def set_deck(self, deck_id):
         '''
         Sets the current deck.
         '''
-        if deckId:
-            self._currentDeck = str(deckId)
-            self._ankiProgressBar.setMaxValue(
-                self._barInfo[self._currentDeck]['maxValue']
+        if deck_id:
+            self._current_deck = str(deck_id)
+            self._anki_progressbar.set_max_value(
+                self._barInfo[self._current_deck]['maxValue']
             )
-            self._ankiProgressBar.setCurrentValue(
-                self._barInfo[self._currentDeck]['currentValue']
+            self._anki_progressbar.set_current_value(
+                self._barInfo[self._current_deck]['currentValue']
             )
         else:
-            self._currentDeck = None
+            self._current_deck = None
 
-    def getDeckConf(self, deckId):
+    def get_deck_conf(self, deck_id):
         '''
         Get the settings and state of a deck.
         '''
-        return self._barInfo[str(deckId)]
+        return self._barInfo[str(deck_id)]
 
-    def setDeckConf(self, deckId, conf):
+    def set_deck_conf(self, deck_id, conf):
         '''
         Updates deck's current state.
         '''
-        maxLife = conf.get('maxLife', DEFAULTS['maxLife'])
+        max_life = conf.get('maxLife', DEFAULTS['maxLife'])
         recover = conf.get('recover', DEFAULTS['recover'])
-        enableDamage = conf.get('enableDamage', DEFAULTS['enableDamage'])
+        enable_damage = conf.get('enableDamage', DEFAULTS['enableDamage'])
         damage = conf.get('damage', DEFAULTS['damage'])
-        currentValue = conf.get('currentValue', DEFAULTS['maxLife'])
-        if currentValue > maxLife:
-            currentValue = maxLife
+        current_value = conf.get('currentValue', DEFAULTS['maxLife'])
+        if current_value > max_life:
+            current_value = max_life
 
-        self._barInfo[str(deckId)]['maxValue'] = maxLife
-        self._barInfo[str(deckId)]['recoverValue'] = recover
-        self._barInfo[str(deckId)]['enableDamageValue'] = enableDamage
-        self._barInfo[str(deckId)]['damageValue'] = damage
-        self._barInfo[str(deckId)]['currentValue'] = currentValue
+        self._barInfo[str(deck_id)]['maxValue'] = max_life
+        self._barInfo[str(deck_id)]['recoverValue'] = recover
+        self._barInfo[str(deck_id)]['enableDamageValue'] = enable_damage
+        self._barInfo[str(deck_id)]['damageValue'] = damage
+        self._barInfo[str(deck_id)]['currentValue'] = current_value
 
-    def setAnkiProgressBarStyle(self, config=None):
+    def set_anki_progress_bar_style(self, config=None):
         '''
         Updates the AnkiProgressBar instance.
         '''
-        pbStyle = {
+        pb_style = {
             'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
             'backgroundColor': mw.col.conf.get(
                 'barBgColor', DEFAULTS['barBgColor']),
@@ -517,12 +517,12 @@ class DeckProgressBarManager(object):
 
         if config is not None:
             if 'position' in config:
-                self._ankiProgressBar.dockAt(config['position'])
+                self._anki_progressbar.dock_at(config['position'])
             if 'progressBarStyle' in config:
-                pbStyle.update(config['progressBarStyle'])
+                pb_style.update(config['progressBarStyle'])
 
-        self._ankiProgressBar.setStyle(pbStyle)
-        if self._currentDeck is not None:
+        self._anki_progressbar.set_style(pb_style)
+        if self._current_deck is not None:
             self.recover(value=0)
 
     def recover(self, increment=True, value=None, damage=False):
@@ -533,30 +533,30 @@ class DeckProgressBarManager(object):
         if not increment:
             multiplier = -1
         if value is None:
-            if damage and self._barInfo[self._currentDeck]['enableDamageValue']:
+            if damage and self._barInfo[self._current_deck]['enableDamageValue']:
                 multiplier = -1
-                value = self._barInfo[self._currentDeck]['damageValue']
+                value = self._barInfo[self._current_deck]['damageValue']
             else:
-                value = self._barInfo[self._currentDeck]['recoverValue']
+                value = self._barInfo[self._current_deck]['recoverValue']
 
-        self._ankiProgressBar.incCurrentValue(multiplier * value)
+        self._anki_progressbar.inc_current_value(multiplier * value)
 
-        life = self._ankiProgressBar.getCurrentValue()
-        self._barInfo[self._currentDeck]['currentValue'] = life
-        if life == 0 and not self._gameOver:
-            self._gameOver = True
+        life = self._anki_progressbar.get_current_value()
+        self._barInfo[self._current_deck]['currentValue'] = life
+        if life == 0 and not self._game_over:
+            self._game_over = True
             runHook('LifeDrain.gameOver')
         elif life > 0:
-            self._gameOver = False
+            self._game_over = False
 
-    def barVisible(self, visible):
+    def bar_visible(self, visible):
         '''
         Sets the visibility of the Progress Bar
         '''
         if visible:
-            self._ankiProgressBar.show()
+            self._anki_progressbar.show()
         else:
-            self._ankiProgressBar.hide()
+            self._anki_progressbar.hide()
 
 
 # Night Mode integration begin
@@ -568,206 +568,206 @@ except Exception:  # nosec  # pylint: disable=broad-except
 # Night Mode integration end
 
 
-def onEdit(*args):
+def on_edit(*args):
     '''
     Updates reviewed status to False when user goes to edit mode.
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.status['reviewed'] = False
+    lifedrain = get_lifedrain()
+    lifedrain.status['reviewed'] = False
 
 
-def timerTrigger():
+def timer_trigger():
     '''
     When a decisecond (0.1s) passes, this function is triggered.
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.deckBarManager.recover(False, 0.1)
+    lifedrain = get_lifedrain()
+    lifedrain.deck_bar_manager.recover(False, 0.1)
 
 
-def afterStateChange(state, oldState):
+def after_state_change(state, oldState):
     '''
     Called when user alternates between deckBrowser, overview, review screens.
     It updates some variables and shows/hides the bar.
     '''
-    lifeDrain = getLifeDrain()
+    lifedrain = get_lifedrain()
 
-    if not lifeDrain.disable:  # Enabled
-        if not lifeDrain.timer:
-            lifeDrain.timer = ProgressManager(mw).timer(100, timerTrigger, True)
-        lifeDrain.timer.stop()
+    if not lifedrain.disable:  # Enabled
+        if not lifedrain.timer:
+            lifedrain.timer = ProgressManager(mw).timer(100, timer_trigger, True)
+        lifedrain.timer.stop()
 
-        if lifeDrain.status['reviewed'] and state in ['overview', 'review']:
-            lifeDrain.deckBarManager.recover()
-        lifeDrain.status['reviewed'] = False
-        lifeDrain.status['screen'] = state
+        if lifedrain.status['reviewed'] and state in ['overview', 'review']:
+            lifedrain.deck_bar_manager.recover()
+        lifedrain.status['reviewed'] = False
+        lifedrain.status['screen'] = state
 
         if state == 'deckBrowser':
-            lifeDrain.deckBarManager.barVisible(False)
-            lifeDrain.deckBarManager.setDeck(None)
+            lifedrain.deck_bar_manager.bar_visible(False)
+            lifedrain.deck_bar_manager.set_deck(None)
         else:
             if mw.col is not None:
-                lifeDrain.deckBarManager.setDeck(mw.col.decks.current()['id'])
-            lifeDrain.deckBarManager.barVisible(True)
+                lifedrain.deck_bar_manager.set_deck(mw.col.decks.current()['id'])
+            lifedrain.deck_bar_manager.bar_visible(True)
 
         if state == 'review':
-            lifeDrain.timer.start()
+            lifedrain.timer.start()
 
     else:  # Disabled
-        lifeDrain.deckBarManager.barVisible(False)
-        if lifeDrain.timer is not None:
-            lifeDrain.timer.stop()
+        lifedrain.deck_bar_manager.bar_visible(False)
+        if lifedrain.timer is not None:
+            lifedrain.timer.stop()
 
 
-def showQuestion():
+def show_question():
     '''
     Called when a question is shown.
     '''
-    lifeDrain = getLifeDrain()
+    lifedrain = get_lifedrain()
 
-    if not lifeDrain.disable:
-        activateTimer()
-        if lifeDrain.status['reviewed']:
-            if lifeDrain.status['reviewResponse'] == 1:
-                lifeDrain.deckBarManager.recover(damage=True)
+    if not lifedrain.disable:
+        activate_timer()
+        if lifedrain.status['reviewed']:
+            if lifedrain.status['reviewResponse'] == 1:
+                lifedrain.deck_bar_manager.recover(damage=True)
             else:
-                lifeDrain.deckBarManager.recover()
-        lifeDrain.status['reviewed'] = False
-        lifeDrain.status['newCardState'] = False
+                lifedrain.deck_bar_manager.recover()
+        lifedrain.status['reviewed'] = False
+        lifedrain.status['newCardState'] = False
 
 
-def showAnswer():
+def show_answer():
     '''
     Called when an answer is shown.
     '''
-    lifeDrain = getLifeDrain()
+    lifedrain = get_lifedrain()
 
-    if not lifeDrain.disable:
-        if lifeDrain.stopOnAnswer:
-            deactivateTimer()
+    if not lifedrain.disable:
+        if lifedrain.stop_on_answer:
+            deactivate_timer()
         else:
-            activateTimer()
-        lifeDrain.status['reviewed'] = True
+            activate_timer()
+        lifedrain.status['reviewed'] = True
 
 
 def undo():
     '''
     Deals with undoing.
     '''
-    lifeDrain = getLifeDrain()
+    lifedrain = get_lifedrain()
 
-    if not lifeDrain.disable:
-        if lifeDrain.status['screen'] == 'review' and not lifeDrain.status['newCardState']:
-            lifeDrain.status['reviewed'] = False
-            lifeDrain.deckBarManager.recover(False)
-        lifeDrain.status['newCardState'] = False
+    if not lifedrain.disable:
+        if lifedrain.status['screen'] == 'review' and not lifedrain.status['newCardState']:
+            lifedrain.status['reviewed'] = False
+            lifedrain.deck_bar_manager.recover(False)
+        lifedrain.status['newCardState'] = False
 
 
 def leech(card):
     '''
     Called when the card becomes a leech.
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.status['newCardState'] = True
+    lifedrain = get_lifedrain()
+    lifedrain.status['newCardState'] = True
 
 
 def bury(self, ids):
     '''
     Called when the card is buried.
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.status['newCardState'] = True
+    lifedrain = get_lifedrain()
+    lifedrain.status['newCardState'] = True
 
 
 def suspend(self, ids):
     '''
     Called when the card is suspended.
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.status['newCardState'] = True
+    lifedrain = get_lifedrain()
+    lifedrain.status['newCardState'] = True
 
 
 def delete(self, ids, notes=True):
     '''
     Called when the card is deleted.
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.status['newCardState'] = True
+    lifedrain = get_lifedrain()
+    lifedrain.status['newCardState'] = True
 
 
-def activateTimer():
+def activate_timer():
     '''
     Activates the timer that reduces the bar.
     '''
-    lifeDrain = getLifeDrain()
-    if not lifeDrain.disable and lifeDrain.timer is not None and not lifeDrain.timer.isActive():
-        lifeDrain.timer.start()
+    lifedrain = get_lifedrain()
+    if not lifedrain.disable and lifedrain.timer is not None and not lifedrain.timer.isActive():
+        lifedrain.timer.start()
 
 
-def deactivateTimer():
+def deactivate_timer():
     '''
     Deactivates the timer that reduces the bar.
     '''
-    lifeDrain = getLifeDrain()
-    if not lifeDrain.disable and lifeDrain.timer is not None and lifeDrain.timer.isActive():
-        lifeDrain.timer.stop()
+    lifedrain = get_lifedrain()
+    if not lifedrain.disable and lifedrain.timer is not None and lifedrain.timer.isActive():
+        lifedrain.timer.stop()
 
 
-def toggleTimer():
+def toggle_timer():
     '''
     Toggle the timer to pause/unpause the drain.
     '''
-    lifeDrain = getLifeDrain()
-    if not lifeDrain.disable and lifeDrain.timer is not None:
-        if lifeDrain.timer.isActive():
-            lifeDrain.timer.stop()
+    lifedrain = get_lifedrain()
+    if not lifedrain.disable and lifedrain.timer is not None:
+        if lifedrain.timer.isActive():
+            lifedrain.timer.stop()
         else:
-            lifeDrain.timer.start()
+            lifedrain.timer.start()
 
 
 def recover(increment=True, value=None, damage=False):
     '''
     Method ran when invoking 'LifeDrain.recover' hook.
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.deckBarManager.recover(increment, value, damage)
+    lifedrain = get_lifedrain()
+    lifedrain.deck_bar_manager.recover(increment, value, damage)
 
 
-def answerCard(self, resp):
+def answer_card(self, resp):
     '''
     Called when a card is answered
     '''
-    lifeDrain = getLifeDrain()
-    lifeDrain.status['reviewResponse'] = resp
+    lifedrain = get_lifedrain()
+    lifedrain.status['reviewResponse'] = resp
 
 
 # Dealing with key presses is different in Anki 2.0 and 2.1
 # This if/elif block deals with the differences
 if appVersion.startswith('2.0'):
-    def keyHandler(self, evt, _old):
+    def key_handler(self, evt, _old):
         '''
         Appends 'p' shortcut to pause the drain.
         '''
         key = evt.text()
         if key == 'p':
-            toggleTimer()
+            toggle_timer()
         else:
             _old(self, evt)
 
-    Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
+    Reviewer._keyHandler = wrap(Reviewer._keyHandler, key_handler, 'around')
 
 elif appVersion.startswith('2.1'):
-    def _addShortcut(shortcuts):
+    def _add_shortcut(shortcuts):
         '''
         Appends 'p' shortcut to pause the drain.
         '''
-        shortcuts.append(tuple(['p', toggleTimer]))
+        shortcuts.append(tuple(['p', toggle_timer]))
 
-    addHook('reviewStateShortcuts', _addShortcut)
+    addHook('reviewStateShortcuts', _add_shortcut)
 
 
-addHook('afterStateChange', afterStateChange)
-addHook('showQuestion', showQuestion)
-addHook('showAnswer', showAnswer)
+addHook('afterStateChange', after_state_change)
+addHook('showQuestion', show_question)
+addHook('showAnswer', show_answer)
 addHook('reset', undo)
 addHook('revertedCard', lambda cid: undo())
 addHook('leech', leech)
@@ -777,5 +777,5 @@ Scheduler.buryNote = wrap(Scheduler.buryNote, bury)
 Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
 Scheduler.suspendCards = wrap(Scheduler.suspendCards, suspend)
 _Collection.remCards = wrap(_Collection.remCards, delete)
-EditCurrent.__init__ = wrap(EditCurrent.__init__, onEdit)
-Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, "before")
+EditCurrent.__init__ = wrap(EditCurrent.__init__, on_edit)
+Reviewer._answerCard = wrap(Reviewer._answerCard, answer_card, "before")

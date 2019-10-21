@@ -1,12 +1,3 @@
-[BASIC]
-# Anki and PyQt uses camel case, so change the default to it
-function-rgx=_?_?[a-z][A-Za-z0-9]{1,30}$
-method-rgx=_?_?[a-z][A-Za-z0-9]{1,30}_?_?$
-attr-rgx=_?_?[a-z][A-Za-z0-9]{1,30}$
-argument-rgx=_?[A-Za-z0-9]{1,31}$
-variable-rgx=_?[a-z][A-Za-z0-9]{1,30}$
-inlinevar-rgx=_?[a-z][A-Za-z0-9]{1,30}$
-
 [MESSAGES CONTROL]
 # - To extend anki methods I have to put exactly the same number of arguments,
 # even if I do not use them all.

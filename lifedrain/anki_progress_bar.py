@@ -13,85 +13,85 @@ class AnkiProgressBar(object):
     This class deals with decimal values, and creates an interface with QProgressBar,
     that only acceps integer values, to make it work as expected.
     '''
-    _qProgressBar = None
-    _maxValue = 1
-    _currentValue = 1
-    _textFormat = ''
+    _qprogressbar = None
+    _max_value = 1
+    _current_value = 1
+    _text_format = ''
     _dock = None
 
-    def __init__(self, config, maxValue):
-        self._qProgressBar = qt.QProgressBar()
-        self.setMaxValue(maxValue)
-        self.resetBar()
-        self.setStyle(config['progressBarStyle'])
-        self.dockAt(config['position'])
+    def __init__(self, config, max_value):
+        self._qprogressbar = qt.QProgressBar()
+        self.set_max_value(max_value)
+        self.reset_bar()
+        self.set_style(config['progressBarStyle'])
+        self.dock_at(config['position'])
 
     def show(self):
         '''
         Shows the progress bar.
         '''
-        self._qProgressBar.show()
+        self._qprogressbar.show()
 
     def hide(self):
         '''
         Hides the progress bar.
         '''
-        self._qProgressBar.hide()
+        self._qprogressbar.hide()
 
-    def resetBar(self):
+    def reset_bar(self):
         '''
         Resets bar, setting current value to maximum.
         '''
-        self._currentValue = self._maxValue
-        self._validateUpdateCurrentValue()
-        self._updateText()
+        self._current_value = self._max_value
+        self._validate_update_current_value()
+        self._update_text()
 
-    def setMaxValue(self, maxValue):
+    def set_max_value(self, max_value):
         '''
         Sets the maximum value for the bar.
         '''
-        self._maxValue = maxValue * 10
-        if self._maxValue <= 0:
-            self._maxValue = 1
-        self._qProgressBar.setRange(0, self._maxValue)
+        self._max_value = max_value * 10
+        if self._max_value <= 0:
+            self._max_value = 1
+        self._qprogressbar.setRange(0, self._max_value)
 
-    def setCurrentValue(self, currentValue):
+    def set_current_value(self, current_value):
         '''
         Sets the current value for the bar.
         '''
-        self._currentValue = currentValue * 10
-        self._validateUpdateCurrentValue()
-        self._updateText()
+        self._current_value = current_value * 10
+        self._validate_update_current_value()
+        self._update_text()
 
-    def incCurrentValue(self, increment):
+    def inc_current_value(self, increment):
         '''
         Increments the current value of the bar.
         Negative values will decrement.
         '''
-        self._currentValue += increment * 10
-        self._validateUpdateCurrentValue()
-        if self._currentValue % 10 == 0 or abs(increment) >= 1:
-            self._updateText()
+        self._current_value += increment * 10
+        self._validate_update_current_value()
+        if self._current_value % 10 == 0 or abs(increment) >= 1:
+            self._update_text()
 
-    def getCurrentValue(self):
+    def get_current_value(self):
         '''
         Gets the current value of the bar.
         '''
-        return float(self._currentValue) / 10
+        return float(self._current_value) / 10
 
-    def setStyle(self, options):
+    def set_style(self, options):
         '''
         Sets the style of the bar.
         '''
-        self._qProgressBar.setTextVisible(options['text'] != 0)  # 0 is the index of None
-        textFormat = TEXT_FORMAT[options['text']]
-        if 'format' in textFormat:
-            self._textFormat = textFormat['format']
-            self._qProgressBar.setFormat(textFormat['format'])
+        self._qprogressbar.setTextVisible(options['text'] != 0)  # 0 is the index of None
+        text_format = TEXT_FORMAT[options['text']]
+        if 'format' in text_format:
+            self._text_format = text_format['format']
+            self._qprogressbar.setFormat(text_format['format'])
 
-        customStyle = STYLE_OPTIONS[options['customStyle']] \
+        custom_style = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
-        if customStyle != 'default':
+        if custom_style != 'default':
             palette = qt.QPalette()
             palette.setColor(
                 qt.QPalette.Base, qt.QColor(options['backgroundColor'])
@@ -106,9 +106,9 @@ class AnkiProgressBar(object):
                 qt.QPalette.Window, qt.QColor(options['backgroundColor'])
             )
 
-            self._qProgressBar.setStyle(qt.QStyleFactory.create(customStyle))
-            self._qProgressBar.setPalette(palette)
-            self._qProgressBar.setStyleSheet(
+            self._qprogressbar.setStyle(qt.QStyleFactory.create(custom_style))
+            self._qprogressbar.setPalette(palette)
+            self._qprogressbar.setStyleSheet(
                 '''
                 QProgressBar {
                     max-height: %spx;
@@ -119,7 +119,7 @@ class AnkiProgressBar(object):
                 )
             )
         else:
-            self._qProgressBar.setStyleSheet(
+            self._qprogressbar.setStyleSheet(
                 '''
                 QProgressBar {
                     text-align:center;
@@ -144,40 +144,40 @@ class AnkiProgressBar(object):
                 )
             )
 
-    def _validateUpdateCurrentValue(self):
+    def _validate_update_current_value(self):
         '''
         When updating current value, makes sure that the value is [0; max].
         '''
-        if self._currentValue > self._maxValue:
-            self._currentValue = self._maxValue
-        elif self._currentValue < 0:
-            self._currentValue = 0
-        self._qProgressBar.setValue(self._currentValue)
-        self._qProgressBar.update()
+        if self._current_value > self._max_value:
+            self._current_value = self._max_value
+        elif self._current_value < 0:
+            self._current_value = 0
+        self._qprogressbar.setValue(self._current_value)
+        self._qprogressbar.update()
 
-    def _updateText(self):
-        if not self._textFormat:
+    def _update_text(self):
+        if not self._text_format:
             return
-        if self._textFormat == 'mm:ss':
-            minutes = int(self._currentValue / 600)
-            seconds = int((self._currentValue / 10) % 60)
-            self._qProgressBar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
+        if self._text_format == 'mm:ss':
+            minutes = int(self._current_value / 600)
+            seconds = int((self._current_value / 10) % 60)
+            self._qprogressbar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
         else:
-            currentValue = int(self._currentValue / 10)
-            if self._currentValue % 10 != 0:
-                currentValue += 1
-            maxValue = int(self._maxValue / 10)
-            text = self._textFormat \
-                .replace('%v', str(currentValue)) \
-                .replace('%m', str(maxValue)) \
-                .replace('%p', str(int(100 * currentValue / maxValue)))
-            self._qProgressBar.setFormat(text)
+            current_value = int(self._current_value / 10)
+            if self._current_value % 10 != 0:
+                current_value += 1
+            max_value = int(self._max_value / 10)
+            text = self._text_format \
+                .replace('%v', str(current_value)) \
+                .replace('%m', str(max_value)) \
+                .replace('%p', str(int(100 * current_value / max_value)))
+            self._qprogressbar.setFormat(text)
 
-    def dockAt(self, place):
+    def dock_at(self, place):
         '''
         Docks the bar at the specified place in the Anki window.
         '''
-        barVisible = self._qProgressBar.isVisible()
+        bar_visible = self._qprogressbar.isVisible()
 
         if self._dock is not None:
             self._dock.close()
@@ -188,27 +188,27 @@ class AnkiProgressBar(object):
             place = DEFAULTS['barPosition']
 
         if place == 'Top':
-            dockArea = qt.Qt.TopDockWidgetArea
+            dock_area = qt.Qt.TopDockWidgetArea
         elif place == 'Bottom':
-            dockArea = qt.Qt.BottomDockWidgetArea
+            dock_area = qt.Qt.BottomDockWidgetArea
 
         self._dock = qt.QDockWidget()
-        tWidget = qt.QWidget()
-        self._dock.setWidget(self._qProgressBar)
-        self._dock.setTitleBarWidget(tWidget)
+        twidget = qt.QWidget()
+        self._dock.setWidget(self._qprogressbar)
+        self._dock.setTitleBarWidget(twidget)
 
-        existingWidgets = [
+        existing_widgets = [
             widget for widget in mw.findChildren(qt.QDockWidget)
-            if mw.dockWidgetArea(widget) == dockArea
+            if mw.dockWidgetArea(widget) == dock_area
         ]
-        if not existingWidgets:
-            mw.addDockWidget(dockArea, self._dock)
+        if not existing_widgets:
+            mw.addDockWidget(dock_area, self._dock)
         else:
             mw.setDockNestingEnabled(True)
-            mw.splitDockWidget(existingWidgets[0], self._dock, qt.Qt.Vertical)
+            mw.splitDockWidget(existing_widgets[0], self._dock, qt.Qt.Vertical)
         mw.web.setFocus()
 
-        self._qProgressBar.setVisible(barVisible)
+        self._qprogressbar.setVisible(bar_visible)
 
     def __del__(self):
         self._dock.close()
