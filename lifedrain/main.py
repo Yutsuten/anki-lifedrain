@@ -1,19 +1,6 @@
 '''
-Anki Add-on: Life Drain
-Add a bar that is reduced as time passes. Completing reviews recovers life.
-
-**
-Some of the code (progress bar) used here was originally done by Glutanimate,
-from the Addon Progress Bar. So I copied the copyright from that Addon and
-appended my name.
-**
-
-Copyright:  (c) Unknown author (nest0r/Ja-Dark?) 2017
-            (c) SebastienGllmt 2017 <https://github.com/SebastienGllmt/>
-            (c) Glutanimate 2017 <https://glutanimate.com/>
-            (c) Yutsuten 2018 <https://github.com/Yutsuten>
-            (c) Al Beano 2019 <https://github.com/whiteisthenewblack>
-License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html>
+Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
+See the LICENCE file in the repository root for full licence text.
 '''
 
 from anki.hooks import addHook, runHook, wrap
@@ -31,12 +18,80 @@ from .anki_progress_bar import AnkiProgressBar
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_OPTIONS, DEFAULTS
 
 
-# Hide separator strip
-mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
+def main():
+    '''
+    Lifedrain's main function.
+    '''
+    # Hide separator strip
+    mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
+
+    # Setup UI
+    forms.preferences.Ui_Preferences.setupUi = wrap(
+        forms.preferences.Ui_Preferences.setupUi, global_settings_lifedrain_tab_ui
+    )
+    Preferences.__init__ = wrap(Preferences.__init__, global_load_conf)
+    Preferences.accept = wrap(Preferences.accept, global_save_conf, 'before')
+
+    forms.dconf.Ui_Dialog.setupUi = wrap(
+        forms.dconf.Ui_Dialog.setupUi, deck_settings_lifedrain_tab_ui
+    )
+    DeckConf.loadConf = wrap(DeckConf.loadConf, load_deck_conf)
+    DeckConf.saveConf = wrap(DeckConf.saveConf, save_deck_conf, 'before')
+
+    forms.dyndconf.Ui_Dialog.setupUi = wrap(
+        forms.dyndconf.Ui_Dialog.setupUi, custom_study_lifedrain_ui
+    )
+    FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, load_deck_conf)
+    FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, save_deck_conf, 'before')
+
+    # Night Mode integration
+    try:
+        import Night_Mode
+        Night_Mode.nm_css_menu += 'QMainWindow::separator { width: 0px; height: 0px; }'
+    except Exception:  # nosec  # pylint: disable=broad-except
+        pass
+
+    # Dealing with key presses in Anki 2.0 and 2.1
+    if appVersion.startswith('2.0'):
+        def key_handler(self, evt, _old):
+            '''
+            Appends 'p' shortcut to pause the drain.
+            '''
+            key = evt.text()
+            if key == 'p':
+                toggle_timer()
+            else:
+                _old(self, evt)
+
+        Reviewer._keyHandler = wrap(Reviewer._keyHandler, key_handler, 'around')
+
+    elif appVersion.startswith('2.1'):
+        def _add_shortcut(shortcuts):
+            '''
+            Appends 'p' shortcut to pause the drain.
+            '''
+            shortcuts.append(tuple(['p', toggle_timer]))
+
+        addHook('reviewStateShortcuts', _add_shortcut)
+
+    addHook('afterStateChange', after_state_change)
+    addHook('showQuestion', show_question)
+    addHook('showAnswer', show_answer)
+    addHook('reset', undo)
+    addHook('revertedCard', lambda cid: undo())
+    addHook('leech', lambda *args: leech())
+    addHook('LifeDrain.recover', recover)
+
+    Scheduler.buryNote = wrap(Scheduler.buryNote, lambda *args: bury())
+    Scheduler.buryCards = wrap(Scheduler.buryCards, lambda *args: bury())
+    Scheduler.suspendCards = wrap(Scheduler.suspendCards, lambda *args: suspend())
+    _Collection.remCards = wrap(_Collection.remCards, lambda *args: delete())
+    EditCurrent.__init__ = wrap(EditCurrent.__init__, lambda *args: on_edit())
+    Reviewer._answerCard = wrap(Reviewer._answerCard, lambda *args: answer_card(args[1]), 'before')
 
 
 # Saving data inside a class to access it as lifedrain.config
-class LifeDrain(object):  # pylint: disable=too-few-public-methods
+class LifeDrain(object):  # pylint: disable=too-few-public-methods,useless-object-inheritance
     '''
     Contains the state of the life drain.
     '''
@@ -54,8 +109,7 @@ class LifeDrain(object):  # pylint: disable=too-few-public-methods
 
 
 # Variable with the state the life drain
-# Pylint complains that it is a constant, so I disabled this check
-lifedrain = LifeDrain()  # pylint: disable=invalid-name
+LIFEDRAIN = LifeDrain()
 
 
 # Allowed this method to use global statement, as I don't see any other
@@ -66,11 +120,11 @@ def get_lifedrain():
     '''
     Gets the state of the life drain.
     '''
-    global lifedrain  # pylint: disable=invalid-name,global-statement
+    global LIFEDRAIN  # pylint: disable=global-statement
 
     if mw.col is not None:
         # Create deck_bar_manager, should run only once
-        if lifedrain.deck_bar_manager is None:
+        if LIFEDRAIN.deck_bar_manager is None:
             config = {
                 'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
                 'progressBarStyle': {
@@ -88,15 +142,15 @@ def get_lifedrain():
             }
             progress_bar = AnkiProgressBar(config, DEFAULTS['maxLife'])
             progress_bar.hide()
-            lifedrain.deck_bar_manager = DeckProgressBarManager(progress_bar)
-            lifedrain.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
-            lifedrain.stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+            LIFEDRAIN.deck_bar_manager = DeckProgressBarManager(progress_bar)
+            LIFEDRAIN.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
+            LIFEDRAIN.stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
         # Keep deck list always updated
         for deck_id in mw.col.decks.allIds():
-            lifedrain.deck_bar_manager.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
+            LIFEDRAIN.deck_bar_manager.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
 
-    return lifedrain
+    return LIFEDRAIN
 
 
 def gui_settings_setup_layout(widget):
@@ -185,10 +239,11 @@ def fill_remaining_space(self, row):
     self.lifeDrainLayout.addItem(spacer, row, 0)
 
 
-def global_settings_lifedrain_tab_ui(self, Preferences):
+def global_settings_lifedrain_tab_ui(*args):
     '''
     Appends LifeDrain tab to Global Settings dialog.
     '''
+    self = args[0]
     self.lifeDrainWidget = qt.QWidget()
     self.lifeDrainLayout = gui_settings_setup_layout(self.lifeDrainWidget)
     row = 0
@@ -231,10 +286,11 @@ def select_color_dialog(qcolor_dialog, preview_label):
         )
 
 
-def global_load_conf(self, mw):
+def global_load_conf(*args):
     '''
     Loads LifeDrain global configurations.
     '''
+    self = args[0]
     conf = self.mw.col.conf
     self.form.positionList.setCurrentIndex(
         conf.get('barPosition', DEFAULTS['barPosition'])
@@ -324,10 +380,11 @@ def global_save_conf(self):
     lifedrain.stop_on_answer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
 
-def deck_settings_lifedrain_tab_ui(self, Dialog):
+def deck_settings_lifedrain_tab_ui(*args):
     '''
     Appends a new tab to deck settings dialog.
     '''
+    self = args[0]
     self.lifeDrainWidget = qt.QWidget()
     self.lifeDrainLayout = gui_settings_setup_layout(self.lifeDrainWidget)
     row = 0
@@ -391,10 +448,11 @@ def save_deck_conf(self):
     lifedrain.deck_bar_manager.set_deck_conf(self.deck['id'], self.conf)
 
 
-def custom_study_lifedrain_ui(self, Dialog):
+def custom_study_lifedrain_ui(*args):
     '''
     Adds LifeDrain configurations to custom study dialog.
     '''
+    self = args[0]
     self.lifeDrainWidget = qt.QGroupBox('Life Drain')
     self.lifeDrainLayout = gui_settings_setup_layout(self.lifeDrainWidget)
     row = 0
@@ -412,28 +470,7 @@ def custom_study_lifedrain_ui(self, Dialog):
     self.verticalLayout.insertWidget(index, self.lifeDrainWidget)
 
 
-forms.preferences.Ui_Preferences.setupUi = wrap(
-    forms.preferences.Ui_Preferences.setupUi, global_settings_lifedrain_tab_ui
-)
-Preferences.__init__ = wrap(Preferences.__init__, global_load_conf)
-Preferences.accept = wrap(Preferences.accept, global_save_conf, 'before')
-
-
-forms.dconf.Ui_Dialog.setupUi = wrap(
-    forms.dconf.Ui_Dialog.setupUi, deck_settings_lifedrain_tab_ui
-)
-DeckConf.loadConf = wrap(DeckConf.loadConf, load_deck_conf)
-DeckConf.saveConf = wrap(DeckConf.saveConf, save_deck_conf, 'before')
-
-
-forms.dyndconf.Ui_Dialog.setupUi = wrap(
-    forms.dyndconf.Ui_Dialog.setupUi, custom_study_lifedrain_ui
-)
-FiltDeckConf.loadConf = wrap(FiltDeckConf.loadConf, load_deck_conf)
-FiltDeckConf.saveConf = wrap(FiltDeckConf.saveConf, save_deck_conf, 'before')
-
-
-class DeckProgressBarManager(object):
+class DeckProgressBarManager(object):  # pylint: disable=useless-object-inheritance
     '''
     Allow using the same instance of AnkiProgressBar with different
     configuration and current_value for each deck.
@@ -485,7 +522,7 @@ class DeckProgressBarManager(object):
         Updates deck's current state.
         '''
         max_life = conf.get('maxLife', DEFAULTS['maxLife'])
-        recover = conf.get('recover', DEFAULTS['recover'])
+        recover_value = conf.get('recover', DEFAULTS['recover'])
         enable_damage = conf.get('enableDamage', DEFAULTS['enableDamage'])
         damage = conf.get('damage', DEFAULTS['damage'])
         current_value = conf.get('currentValue', DEFAULTS['maxLife'])
@@ -493,7 +530,7 @@ class DeckProgressBarManager(object):
             current_value = max_life
 
         self._barInfo[str(deck_id)]['maxValue'] = max_life
-        self._barInfo[str(deck_id)]['recoverValue'] = recover
+        self._barInfo[str(deck_id)]['recoverValue'] = recover_value
         self._barInfo[str(deck_id)]['enableDamageValue'] = enable_damage
         self._barInfo[str(deck_id)]['damageValue'] = damage
         self._barInfo[str(deck_id)]['currentValue'] = current_value
@@ -559,16 +596,7 @@ class DeckProgressBarManager(object):
             self._anki_progressbar.hide()
 
 
-# Night Mode integration begin
-try:
-    import Night_Mode
-    Night_Mode.nm_css_menu += 'QMainWindow::separator { width: 0px; height: 0px; }'
-except Exception:  # nosec  # pylint: disable=broad-except
-    pass
-# Night Mode integration end
-
-
-def on_edit(*args):
+def on_edit():
     '''
     Updates reviewed status to False when user goes to edit mode.
     '''
@@ -584,11 +612,12 @@ def timer_trigger():
     lifedrain.deck_bar_manager.recover(False, 0.1)
 
 
-def after_state_change(state, oldState):
+def after_state_change(*args):
     '''
     Called when user alternates between deckBrowser, overview, review screens.
     It updates some variables and shows/hides the bar.
     '''
+    state = args[0]
     lifedrain = get_lifedrain()
 
     if not lifedrain.disable:  # Enabled
@@ -662,7 +691,7 @@ def undo():
         lifedrain.status['newCardState'] = False
 
 
-def leech(card):
+def leech():
     '''
     Called when the card becomes a leech.
     '''
@@ -670,7 +699,7 @@ def leech(card):
     lifedrain.status['newCardState'] = True
 
 
-def bury(self, ids):
+def bury():
     '''
     Called when the card is buried.
     '''
@@ -678,7 +707,7 @@ def bury(self, ids):
     lifedrain.status['newCardState'] = True
 
 
-def suspend(self, ids):
+def suspend():
     '''
     Called when the card is suspended.
     '''
@@ -686,7 +715,7 @@ def suspend(self, ids):
     lifedrain.status['newCardState'] = True
 
 
-def delete(self, ids, notes=True):
+def delete():
     '''
     Called when the card is deleted.
     '''
@@ -732,50 +761,9 @@ def recover(increment=True, value=None, damage=False):
     lifedrain.deck_bar_manager.recover(increment, value, damage)
 
 
-def answer_card(self, resp):
+def answer_card(resp):
     '''
     Called when a card is answered
     '''
     lifedrain = get_lifedrain()
     lifedrain.status['reviewResponse'] = resp
-
-
-# Dealing with key presses is different in Anki 2.0 and 2.1
-# This if/elif block deals with the differences
-if appVersion.startswith('2.0'):
-    def key_handler(self, evt, _old):
-        '''
-        Appends 'p' shortcut to pause the drain.
-        '''
-        key = evt.text()
-        if key == 'p':
-            toggle_timer()
-        else:
-            _old(self, evt)
-
-    Reviewer._keyHandler = wrap(Reviewer._keyHandler, key_handler, 'around')
-
-elif appVersion.startswith('2.1'):
-    def _add_shortcut(shortcuts):
-        '''
-        Appends 'p' shortcut to pause the drain.
-        '''
-        shortcuts.append(tuple(['p', toggle_timer]))
-
-    addHook('reviewStateShortcuts', _add_shortcut)
-
-
-addHook('afterStateChange', after_state_change)
-addHook('showQuestion', show_question)
-addHook('showAnswer', show_answer)
-addHook('reset', undo)
-addHook('revertedCard', lambda cid: undo())
-addHook('leech', leech)
-addHook('LifeDrain.recover', recover)
-
-Scheduler.buryNote = wrap(Scheduler.buryNote, bury)
-Scheduler.buryCards = wrap(Scheduler.buryCards, bury)
-Scheduler.suspendCards = wrap(Scheduler.suspendCards, suspend)
-_Collection.remCards = wrap(_Collection.remCards, delete)
-EditCurrent.__init__ = wrap(EditCurrent.__init__, on_edit)
-Reviewer._answerCard = wrap(Reviewer._answerCard, answer_card, "before")

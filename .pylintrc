@@ -1,6 +1,2 @@
 [MESSAGES CONTROL]
-# - To extend anki methods I have to put exactly the same number of arguments,
-# even if I do not use them all.
-# - Often I have to extend a protected method.
-# - Often the parameters name needed to use are equal an import.
-disable=unused-argument,protected-access,redefined-outer-name,import-error,no-name-in-module
+disable=protected-access,import-error,no-name-in-module

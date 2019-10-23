@@ -1,12 +1,14 @@
 '''
-Script with the implementation of AnkiProgressBar.
+Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
+See the LICENCE file in the repository root for full licence text.
 '''
+
 from aqt import qt, mw
 
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
 
 
-class AnkiProgressBar(object):
+class AnkiProgressBar(object):  # pylint: disable=useless-object-inheritance
     '''
     Creates and manages a Progress Bar on Anki.
 
