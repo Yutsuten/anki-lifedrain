@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=protected-access,import-error,no-name-in-module
+disable=protected-access,import-error

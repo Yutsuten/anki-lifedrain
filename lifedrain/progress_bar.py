@@ -8,7 +8,7 @@ from aqt import qt, mw
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
 
 
-class AnkiProgressBar(object):  # pylint: disable=useless-object-inheritance
+class ProgressBar(object):  # pylint: disable=useless-object-inheritance
     '''
     Creates and manages a Progress Bar on Anki.
 
