@@ -105,7 +105,7 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
                 'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
             }
         }
-        self.deck_bar_manager.set_anki_progress_bar_style(config)
+        self._deck.set_anki_progress_bar_style(config)
         self.disable = conf.get('disable', DEFAULTS['disable'])
         self.stop_on_answer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
@@ -127,7 +127,7 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
             settings.conf.get('damage', DEFAULTS['damage'])
         )
         settings.form.currentValueInput.setValue(
-            self.deck_bar_manager.get_deck_conf(settings.deck['id'])['currentValue']
+            self._deck.get_deck_conf(settings.deck['id'])['currentValue']
         )
 
     def deck_settings_save(self, settings):
@@ -139,7 +139,7 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
         settings.conf['currentValue'] = settings.form.currentValueInput.value()
         settings.conf['enableDamage'] = settings.form.enableDamageInput.isChecked()
         settings.conf['damage'] = settings.form.damageInput.value()
-        self.deck_bar_manager.set_deck_conf(settings.deck['id'], settings.conf)
+        self._deck.set_deck_conf(settings.deck['id'], settings.conf)
 
     def visible(self, flag):
         pass
@@ -154,17 +154,17 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
         '''
         Toggle the timer to pause/unpause the drain.
         '''
-        if not self.disable and self.timer is not None:
-            if self.timer.isActive():
-                self.timer.stop()
+        if not self.disable and self._timer is not None:
+            if self._timer.isActive():
+                self._timer.stop()
             else:
-                self.timer.start()
+                self._timer.start()
 
     def recover(self, *args, **kwargs):
         '''
         When a decisecond (0.1s) passes, this function is triggered.
         '''
-        self.deck_bar_manager.recover(*args, **kwargs)
+        self._deck.recover(*args, **kwargs)
 
     def screen_change(self, state):
         '''

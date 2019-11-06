@@ -39,7 +39,7 @@ def main():
             '''
             Appends 'p' shortcut to pause the drain.
             '''
-            shortcuts.append(tuple(['p', lifedrain.toggle_drain()]))
+            shortcuts.append(tuple(['p', lifedrain.toggle_drain]))
 
         addHook('reviewStateShortcuts', _add_shortcut)
 
