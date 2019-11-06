@@ -43,40 +43,6 @@ def main():
 
         addHook('reviewStateShortcuts', _add_shortcut)
 
-    def after_state_change(*args):
-        '''
-        Called when user alternates between deckBrowser, overview, review screens.
-        It updates some variables and shows/hides the bar.
-        '''
-        state = args[0]
-        if not lifedrain.disable:  # Enabled
-            if not lifedrain.timer:
-                lifedrain.timer = ProgressManager(mw).timer(
-                    100, lambda: lifedrain.recover(False, 0.1), True
-                )
-            lifedrain.timer.stop()
-
-            if lifedrain.status['reviewed'] and state in ['overview', 'review']:
-                lifedrain.deck_bar_manager.recover()
-            lifedrain.status['reviewed'] = False
-            lifedrain.status['screen'] = state
-
-            if state == 'deckBrowser':
-                lifedrain.deck_bar_manager.bar_visible(False)
-                lifedrain.deck_bar_manager.set_deck(None)
-            else:
-                if mw.col is not None:
-                    lifedrain.deck_bar_manager.set_deck(mw.col.decks.current()['id'])
-                lifedrain.deck_bar_manager.bar_visible(True)
-
-            if state == 'review':
-                lifedrain.timer.start()
-
-        else:  # Disabled
-            lifedrain.deck_bar_manager.bar_visible(False)
-            if lifedrain.timer is not None:
-                lifedrain.timer.stop()
-
     def show_question():
         '''
         Called when a question is shown.
@@ -85,9 +51,9 @@ def main():
             activate_timer()
             if lifedrain.status['reviewed']:
                 if lifedrain.status['reviewResponse'] == 1:
-                    lifedrain.deck_bar_manager.recover(damage=True)
+                    lifedrain._deck.recover(damage=True)
                 else:
-                    lifedrain.deck_bar_manager.recover()
+                    lifedrain._deck.recover()
             lifedrain.status['reviewed'] = False
             lifedrain.status['newCardState'] = False
 
@@ -109,7 +75,7 @@ def main():
         if not lifedrain.disable:
             if lifedrain.status['screen'] == 'review' and not lifedrain.status['newCardState']:
                 lifedrain.status['reviewed'] = False
-                lifedrain.deck_bar_manager.recover(False)
+                lifedrain._deck.recover(False)
             lifedrain.status['newCardState'] = False
 
     def leech():
@@ -140,21 +106,21 @@ def main():
         '''
         Activates the timer that reduces the bar.
         '''
-        if not lifedrain.disable and lifedrain.timer is not None and not lifedrain.timer.isActive():
-            lifedrain.timer.start()
+        if not lifedrain.disable and lifedrain._timer is not None and not lifedrain._timer.isActive():
+            lifedrain._timer.start()
 
     def deactivate_timer():
         '''
         Deactivates the timer that reduces the bar.
         '''
-        if not lifedrain.disable and lifedrain.timer is not None and lifedrain.timer.isActive():
-            lifedrain.timer.stop()
+        if not lifedrain.disable and lifedrain._timer is not None and lifedrain._timer.isActive():
+            lifedrain._timer.stop()
 
     def recover(increment=True, value=None, damage=False):
         '''
         Method ran when invoking 'LifeDrain.recover' hook.
         '''
-        lifedrain.deck_bar_manager.recover(increment, value, damage)
+        lifedrain._deck.recover(increment, value, damage)
 
     def answer_card(resp):
         '''
@@ -162,7 +128,7 @@ def main():
         '''
         lifedrain.status['reviewResponse'] = resp
 
-    addHook('afterStateChange', after_state_change)
+    addHook('afterStateChange', lambda *args: lifedrain.screen_change(args[0]))
     addHook('showQuestion', show_question)
     addHook('showAnswer', show_answer)
     addHook('reset', undo)
@@ -175,5 +141,5 @@ def main():
     Scheduler.suspendCards = wrap(Scheduler.suspendCards, lambda *args: suspend())
     _Collection.remCards = wrap(_Collection.remCards, lambda *args: delete())
     EditCurrent.__init__ = wrap(EditCurrent.__init__,
-                                lambda *args: lifedrain.update_status(reviewed=False))
+                                lambda *args: lifedrain.status.update({'reviewed': False}))
     Reviewer._answerCard = wrap(Reviewer._answerCard, lambda *args: answer_card(args[1]), 'before')

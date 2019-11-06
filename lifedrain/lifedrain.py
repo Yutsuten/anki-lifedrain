@@ -8,6 +8,7 @@ from aqt import mw, forms
 from aqt.deckconf import DeckConf
 from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.preferences import Preferences
+from aqt.progress import ProgressManager
 
 from .settings_ui import (
     preferences, preferences_load, deck_settings,
@@ -18,48 +19,10 @@ from .defaults import DEFAULTS
 from .progress_bar import ProgressBar
 
 
-def get_lifedrain():
-    '''
-    Gets the state of the life drain.
-    '''
-    if mw.col is not None:
-        # Create deck_bar_manager, should run only once
-        if LIFEDRAIN.deck_bar_manager is None:
-            config = {
-                'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
-                'progressBarStyle': {
-                    'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
-                    'backgroundColor': mw.col.conf.get(
-                        'barBgColor', DEFAULTS['barBgColor']),
-                    'foregroundColor': mw.col.conf.get(
-                        'barFgColor', DEFAULTS['barFgColor']),
-                    'borderRadius': mw.col.conf.get(
-                        'barBorderRadius', DEFAULTS['barBorderRadius']),
-                    'text': mw.col.conf.get('barText', DEFAULTS['barText']),
-                    'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
-                    'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
-                }
-            }
-            progress_bar = ProgressBar(config, DEFAULTS['maxLife'])
-            progress_bar.hide()
-            LIFEDRAIN.deck_bar_manager = Deck(progress_bar)
-            LIFEDRAIN.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
-            LIFEDRAIN.stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
-
-        # Keep deck list always updated
-        for deck_id in mw.col.decks.allIds():
-            LIFEDRAIN.deck_bar_manager.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
-
-    return LIFEDRAIN
-
-
 class LifeDrain(object):  # pylint: disable=useless-object-inheritance
     '''
     Contains the state of the life drain.
     '''
-    config = {}
-    deck_bar_manager = None
-    timer = None
     status = {
         'reviewed': False,
         'newCardState': False,
@@ -68,6 +31,9 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
     }
     stop_on_answer = False
     disable = None
+
+    _deck = None
+    _timer = None
 
     def __init__(self):
         # Separator strip
@@ -200,5 +166,65 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
         '''
         self.deck_bar_manager.recover(*args, **kwargs)
 
-    def update_status(self, **kwargs):
-        self.status.update(kwargs)
+    def screen_change(self, state):
+        '''
+        When screen changes, update state of the lifedrain.
+        '''
+        self._update()
+
+        if not self.disable:  # Enabled
+            if not self._timer:
+                self._timer = ProgressManager(mw).timer(
+                    100, lambda: self.recover(False, 0.1), True
+                )
+            self._timer.stop()
+
+            if self.status['reviewed'] and state in ['overview', 'review']:
+                self._deck.recover()
+            self.status['reviewed'] = False
+            self.status['screen'] = state
+
+            if state == 'deckBrowser':
+                self._deck.bar_visible(False)
+                self._deck.set_deck(None)
+            else:
+                if mw.col is not None:
+                    self._deck.set_deck(mw.col.decks.current()['id'])
+                self._deck.bar_visible(True)
+
+            if state == 'review':
+                self._timer.start()
+
+        else:  # Disabled
+            self._deck.bar_visible(False)
+            if self._timer is not None:
+                self._timer.stop()
+
+    def _update(self):
+        if mw.col is not None:
+            # Create deck_bar_manager, should run only once
+            if self._deck is None:
+                config = {
+                    'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+                    'progressBarStyle': {
+                        'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+                        'backgroundColor': mw.col.conf.get(
+                            'barBgColor', DEFAULTS['barBgColor']),
+                        'foregroundColor': mw.col.conf.get(
+                            'barFgColor', DEFAULTS['barFgColor']),
+                        'borderRadius': mw.col.conf.get(
+                            'barBorderRadius', DEFAULTS['barBorderRadius']),
+                        'text': mw.col.conf.get('barText', DEFAULTS['barText']),
+                        'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+                        'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+                    }
+                }
+                progress_bar = ProgressBar(config, DEFAULTS['maxLife'])
+                progress_bar.hide()
+                self._deck = Deck(progress_bar)
+                self.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
+                self.stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+
+            # Keep deck list always updated
+            for deck_id in mw.col.decks.allIds():
+                self._deck.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
