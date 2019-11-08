@@ -5,5 +5,6 @@ tmp/
 # Dist files
 dist/
 
-# Virtual environment
+# Virtual environment / lint
 venv/
+anki/
