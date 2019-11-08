@@ -141,28 +141,22 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
         settings.conf['damage'] = settings.form.damageInput.value()
         self._deck.set_deck_conf(settings.deck['id'], settings.conf)
 
-    def visible(self, flag):
-        pass
-
     def toggle_visible(self):
         pass
 
-    def drain(self, flag):
-        pass
-
-    def toggle_drain(self):
+    def toggle_drain(self, enable=None):
         '''
         Toggle the timer to pause/unpause the drain.
         '''
-        if not self.disable and self._timer is not None:
-            if self._timer.isActive():
+        if not self.disable:
+            if self._timer.isActive() and enable is not True:
                 self._timer.stop()
-            else:
+            elif not self._timer.isActive() and enable is not False:
                 self._timer.start()
 
     def recover(self, *args, **kwargs):
         '''
-        When a decisecond (0.1s) passes, this function is triggered.
+        Recover life.
         '''
         self._deck.recover(*args, **kwargs)
 

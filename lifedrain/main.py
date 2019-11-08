@@ -6,8 +6,7 @@ See the LICENCE file in the repository root for full licence text.
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
 from anki.collection import _Collection
-from aqt import mw, appVersion
-from aqt.progress import ProgressManager
+from aqt import appVersion
 from aqt.reviewer import Reviewer
 from aqt.editcurrent import EditCurrent
 
@@ -48,12 +47,12 @@ def main():
         Called when a question is shown.
         '''
         if not lifedrain.disable:
-            activate_timer()
+            lifedrain.toggle_drain(True)
             if lifedrain.status['reviewed']:
                 if lifedrain.status['reviewResponse'] == 1:
-                    lifedrain._deck.recover(damage=True)
+                    lifedrain.recover(damage=True)
                 else:
-                    lifedrain._deck.recover()
+                    lifedrain.recover()
             lifedrain.status['reviewed'] = False
             lifedrain.status['newCardState'] = False
 
@@ -63,9 +62,9 @@ def main():
         '''
         if not lifedrain.disable:
             if lifedrain.stop_on_answer:
-                deactivate_timer()
+                lifedrain.toggle_drain(False)
             else:
-                activate_timer()
+                lifedrain.toggle_drain(True)
             lifedrain.status['reviewed'] = True
 
     def undo():
@@ -75,7 +74,7 @@ def main():
         if not lifedrain.disable:
             if lifedrain.status['screen'] == 'review' and not lifedrain.status['newCardState']:
                 lifedrain.status['reviewed'] = False
-                lifedrain._deck.recover(False)
+                lifedrain.recover(False)
             lifedrain.status['newCardState'] = False
 
     def leech():
@@ -102,26 +101,6 @@ def main():
         '''
         lifedrain.status['newCardState'] = True
 
-    def activate_timer():
-        '''
-        Activates the timer that reduces the bar.
-        '''
-        if not lifedrain.disable and lifedrain._timer is not None and not lifedrain._timer.isActive():
-            lifedrain._timer.start()
-
-    def deactivate_timer():
-        '''
-        Deactivates the timer that reduces the bar.
-        '''
-        if not lifedrain.disable and lifedrain._timer is not None and lifedrain._timer.isActive():
-            lifedrain._timer.stop()
-
-    def recover(increment=True, value=None, damage=False):
-        '''
-        Method ran when invoking 'LifeDrain.recover' hook.
-        '''
-        lifedrain._deck.recover(increment, value, damage)
-
     def answer_card(resp):
         '''
         Called when a card is answered
@@ -134,7 +113,7 @@ def main():
     addHook('reset', undo)
     addHook('revertedCard', lambda cid: undo())
     addHook('leech', lambda *args: leech())
-    addHook('LifeDrain.recover', recover)
+    addHook('LifeDrain.recover', lifedrain.recover)
 
     Scheduler.buryNote = wrap(Scheduler.buryNote, lambda *args: bury())
     Scheduler.buryCards = wrap(Scheduler.buryCards, lambda *args: bury())
