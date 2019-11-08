@@ -77,48 +77,36 @@ def main():
                 lifedrain.recover(False)
             lifedrain.status['newCardState'] = False
 
-    def leech():
-        '''
-        Called when the card becomes a leech.
-        '''
-        lifedrain.status['newCardState'] = True
-
-    def bury():
-        '''
-        Called when the card is buried.
-        '''
-        lifedrain.status['newCardState'] = True
-
-    def suspend():
-        '''
-        Called when the card is suspended.
-        '''
-        lifedrain.status['newCardState'] = True
-
-    def delete():
-        '''
-        Called when the card is deleted.
-        '''
-        lifedrain.status['newCardState'] = True
-
-    def answer_card(resp):
-        '''
-        Called when a card is answered
-        '''
-        lifedrain.status['reviewResponse'] = resp
-
     addHook('afterStateChange', lambda *args: lifedrain.screen_change(args[0]))
     addHook('showQuestion', show_question)
     addHook('showAnswer', show_answer)
     addHook('reset', undo)
     addHook('revertedCard', lambda cid: undo())
-    addHook('leech', lambda *args: leech())
+    addHook('leech', lambda *args: lifedrain.status.update({'newCardState': True}))
     addHook('LifeDrain.recover', lifedrain.recover)
 
-    Scheduler.buryNote = wrap(Scheduler.buryNote, lambda *args: bury())
-    Scheduler.buryCards = wrap(Scheduler.buryCards, lambda *args: bury())
-    Scheduler.suspendCards = wrap(Scheduler.suspendCards, lambda *args: suspend())
-    _Collection.remCards = wrap(_Collection.remCards, lambda *args: delete())
-    EditCurrent.__init__ = wrap(EditCurrent.__init__,
-                                lambda *args: lifedrain.status.update({'reviewed': False}))
-    Reviewer._answerCard = wrap(Reviewer._answerCard, lambda *args: answer_card(args[1]), 'before')
+    Scheduler.buryNote = wrap(
+        Scheduler.buryNote,
+        lambda *args: lifedrain.status.update({'newCardState': True})
+    )
+    Scheduler.buryCards = wrap(
+        Scheduler.buryCards,
+        lambda *args: lifedrain.status.update({'newCardState': True})
+    )
+    Scheduler.suspendCards = wrap(
+        Scheduler.suspendCards,
+        lambda *args: lifedrain.status.update({'newCardState': True})
+    )
+    _Collection.remCards = wrap(
+        _Collection.remCards,
+        lambda *args: lifedrain.status.update({'newCardState': True})
+    )
+    EditCurrent.__init__ = wrap(
+        EditCurrent.__init__,
+        lambda *args: lifedrain.status.update({'reviewed': False})
+    )
+    Reviewer._answerCard = wrap(
+        Reviewer._answerCard,
+        lambda *args: lifedrain.status.update({'reviewResponse': args[1]}),
+        'before'
+    )
