@@ -19,7 +19,7 @@ from .defaults import DEFAULTS
 from .progress_bar import ProgressBar
 
 
-class LifeDrain(object):  # pylint: disable=useless-object-inheritance
+class LifeDrain(object):
     '''
     Contains the state of the life drain.
     '''
@@ -194,6 +194,42 @@ class LifeDrain(object):  # pylint: disable=useless-object-inheritance
             if self._timer is not None:
                 self._timer.stop()
 
+    def show_question(self):
+        '''
+        Called when a question is shown.
+        '''
+        if not self.disable:
+            self.toggle_drain(True)
+            if self.status['reviewed']:
+                if self.status['reviewResponse'] == 1:
+                    self.recover(damage=True)
+                else:
+                    self.recover()
+            self.status['reviewed'] = False
+            self.status['newCardState'] = False
+
+    def show_answer(self):
+        '''
+        Called when an answer is shown.
+        '''
+        if not self.disable:
+            if self.stop_on_answer:
+                self.toggle_drain(False)
+            else:
+                self.toggle_drain(True)
+            self.status['reviewed'] = True
+
+    def undo(self):
+        '''
+        Deals with undoing.
+        '''
+        if not self.disable:
+            if self.status['screen'] == 'review' and not self.status['newCardState']:
+                self.status['reviewed'] = False
+                self.recover(False)
+            self.status['newCardState'] = False
+
+    # Private methods
     def _update(self):
         if mw.col is not None:
             # Create deck_bar_manager, should run only once

@@ -8,7 +8,7 @@ from aqt import mw
 from .defaults import DEFAULTS
 
 
-class Deck(object):  # pylint: disable=useless-object-inheritance
+class Deck(object):
     '''
     Allow using the same instance of AnkiProgressBar with different
     configuration and current_value for each deck.
