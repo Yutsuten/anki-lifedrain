@@ -6,11 +6,17 @@ See the LICENCE file in the repository root for full licence text.
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
 from anki.collection import _Collection
-from aqt import appVersion
-from aqt.reviewer import Reviewer
+from aqt import appVersion, forms
+from aqt.deckconf import DeckConf
+from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.editcurrent import EditCurrent
+from aqt.preferences import Preferences
+from aqt.reviewer import Reviewer
 
 from .lifedrain import LifeDrain
+from .settings_ui import (
+    preferences, preferences_load, deck_settings, custom_deck_settings
+)
 
 
 def main():
@@ -18,8 +24,64 @@ def main():
     Lifedrain's main function.
     '''
     lifedrain = LifeDrain()
+    setup_user_interface(lifedrain)
+    setup_shortcuts(lifedrain)
+    setup_hooks(lifedrain)
 
-    # Dealing with key presses in Anki 2.0 and 2.1
+
+def setup_user_interface(lifedrain):
+    '''
+    Setup some windows for configurating the add-on.
+    These are the Preferences, Deck configuration and Custom deck configuration.
+    '''
+    # Preferences
+    forms.preferences.Ui_Preferences.setupUi = wrap(
+        forms.preferences.Ui_Preferences.setupUi,
+        preferences
+    )
+    Preferences.__init__ = wrap(Preferences.__init__, preferences_load)
+    Preferences.accept = wrap(
+        Preferences.accept,
+        lambda *args: lifedrain.preferences_save(args[0]),
+        'before'
+    )
+
+    # Deck configuration
+    forms.dconf.Ui_Dialog.setupUi = wrap(
+        forms.dconf.Ui_Dialog.setupUi,
+        deck_settings
+    )
+    DeckConf.loadConf = wrap(
+        DeckConf.loadConf,
+        lambda *args: lifedrain.deck_settings_load(args[0])
+    )
+    DeckConf.saveConf = wrap(
+        DeckConf.saveConf,
+        lambda *args: lifedrain.deck_settings_save(args[0]),
+        'before'
+    )
+
+    # Custom deck configuration
+    forms.dyndconf.Ui_Dialog.setupUi = wrap(
+        forms.dyndconf.Ui_Dialog.setupUi,
+        custom_deck_settings
+    )
+    FiltDeckConf.loadConf = wrap(
+        FiltDeckConf.loadConf,
+        lambda *args: lifedrain.deck_settings_load(args[0])
+    )
+    FiltDeckConf.saveConf = wrap(
+        FiltDeckConf.saveConf,
+        lambda *args: lifedrain.deck_settings_save(args[0]),
+        'before'
+    )
+
+
+def setup_shortcuts(lifedrain):
+    '''
+    Setup the shortcuts provided by the add-on.
+    It deals with key presses for both Anki 2.0 and 2.1
+    '''
     if appVersion.startswith('2.0'):
         Reviewer._keyHandler = wrap(  # pylint: disable=protected-access
             Reviewer._keyHandler,  # pylint: disable=protected-access
@@ -33,6 +95,12 @@ def main():
             lambda shortcuts: shortcuts.append(tuple(['p', lifedrain.toggle_drain]))
         )
 
+
+def setup_hooks(lifedrain):
+    '''
+    Setup the hooks that will make the magic happen.
+    Here we configure all triggers that will invoke a lifedrain method.
+    '''
     addHook('afterStateChange', lambda *args: lifedrain.screen_change(args[0]))
     addHook('showQuestion', lifedrain.show_question)
     addHook('showAnswer', lifedrain.show_answer)

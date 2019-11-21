@@ -3,17 +3,9 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 '''
 
-from anki.hooks import wrap
-from aqt import mw, forms
-from aqt.deckconf import DeckConf
-from aqt.dyndeckconf import DeckConf as FiltDeckConf
-from aqt.preferences import Preferences
+from aqt import mw
 from aqt.progress import ProgressManager
 
-from .settings_ui import (
-    preferences, preferences_load, deck_settings,
-    custom_deck_settings
-)
 from .deck import Deck
 from .defaults import DEFAULTS
 from .progress_bar import ProgressBar
@@ -36,44 +28,13 @@ class LifeDrain(object):
     _timer = None
 
     def __init__(self):
-        # Separator strip
+        # Configure separator strip
         mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
         try:
             import Night_Mode
             Night_Mode.nm_css_menu += 'QMainWindow::separator { width: 0px; height: 0px; }'
         except Exception:  # nosec  # pylint: disable=broad-except
             pass
-
-        # Preferences
-        forms.preferences.Ui_Preferences.setupUi = wrap(
-            forms.preferences.Ui_Preferences.setupUi, preferences
-        )
-        Preferences.__init__ = wrap(Preferences.__init__, preferences_load)
-        Preferences.accept = wrap(
-            Preferences.accept, lambda *args: self.preferences_save(args[0]), 'before'
-        )
-
-        # Deck configuration
-        forms.dconf.Ui_Dialog.setupUi = wrap(
-            forms.dconf.Ui_Dialog.setupUi, deck_settings
-        )
-        DeckConf.loadConf = wrap(
-            DeckConf.loadConf, lambda *args: self.deck_settings_load(args[0])
-        )
-        DeckConf.saveConf = wrap(
-            DeckConf.saveConf, lambda *args: self.deck_settings_save(args[0]), 'before'
-        )
-
-        # Custom deck configuration
-        forms.dyndconf.Ui_Dialog.setupUi = wrap(
-            forms.dyndconf.Ui_Dialog.setupUi, custom_deck_settings
-        )
-        FiltDeckConf.loadConf = wrap(
-            FiltDeckConf.loadConf, lambda *args: self.deck_settings_load(args[0])
-        )
-        FiltDeckConf.saveConf = wrap(
-            FiltDeckConf.saveConf, lambda *args: self.deck_settings_save(args[0]), 'before'
-        )
 
     def preferences_save(self, settings):
         '''
