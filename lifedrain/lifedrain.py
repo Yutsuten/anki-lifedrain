@@ -21,11 +21,11 @@ class LifeDrain(object):
         'screen': None,
         'reviewResponse': 0
     }
-    stop_on_answer = False
-    disable = None
 
     _deck = None
     _timer = None
+    _stop_on_answer = False
+    _disable = None
 
     def __init__(self):
         # Configure separator strip
@@ -67,8 +67,8 @@ class LifeDrain(object):
             }
         }
         self._deck.set_anki_progress_bar_style(config)
-        self.disable = conf.get('disable', DEFAULTS['disable'])
-        self.stop_on_answer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+        self._disable = conf.get('disable', DEFAULTS['disable'])
+        self._stop_on_answer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
     def deck_settings_load(self, settings):
         '''
@@ -102,14 +102,11 @@ class LifeDrain(object):
         settings.conf['damage'] = settings.form.damageInput.value()
         self._deck.set_deck_conf(settings.deck['id'], settings.conf)
 
-    def toggle_visible(self):
-        pass
-
     def toggle_drain(self, enable=None):
         '''
         Toggle the timer to pause/unpause the drain.
         '''
-        if not self.disable:
+        if not self._disable:
             if self._timer.isActive() and enable is not True:
                 self._timer.stop()
             elif not self._timer.isActive() and enable is not False:
@@ -127,7 +124,7 @@ class LifeDrain(object):
         '''
         self._update()
 
-        if not self.disable:  # Enabled
+        if not self._disable:
             if not self._timer:
                 self._timer = ProgressManager(mw).timer(
                     100, lambda: self.recover(False, 0.1), True
@@ -150,7 +147,7 @@ class LifeDrain(object):
             if state == 'review':
                 self._timer.start()
 
-        else:  # Disabled
+        else:
             self._deck.bar_visible(False)
             if self._timer is not None:
                 self._timer.stop()
@@ -159,7 +156,7 @@ class LifeDrain(object):
         '''
         Called when a question is shown.
         '''
-        if not self.disable:
+        if not self._disable:
             self.toggle_drain(True)
             if self.status['reviewed']:
                 if self.status['reviewResponse'] == 1:
@@ -173,8 +170,8 @@ class LifeDrain(object):
         '''
         Called when an answer is shown.
         '''
-        if not self.disable:
-            if self.stop_on_answer:
+        if not self._disable:
+            if self._stop_on_answer:
                 self.toggle_drain(False)
             else:
                 self.toggle_drain(True)
@@ -184,38 +181,39 @@ class LifeDrain(object):
         '''
         Deals with undoing.
         '''
-        if not self.disable:
+        if not self._disable:
             if self.status['screen'] == 'review' and not self.status['newCardState']:
                 self.status['reviewed'] = False
                 self.recover(False)
             self.status['newCardState'] = False
 
-    # Private methods
     def _update(self):
-        if mw.col is not None:
-            # Create deck_bar_manager, should run only once
-            if self._deck is None:
-                config = {
-                    'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
-                    'progressBarStyle': {
-                        'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
-                        'backgroundColor': mw.col.conf.get(
-                            'barBgColor', DEFAULTS['barBgColor']),
-                        'foregroundColor': mw.col.conf.get(
-                            'barFgColor', DEFAULTS['barFgColor']),
-                        'borderRadius': mw.col.conf.get(
-                            'barBorderRadius', DEFAULTS['barBorderRadius']),
-                        'text': mw.col.conf.get('barText', DEFAULTS['barText']),
-                        'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
-                        'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
-                    }
-                }
-                progress_bar = ProgressBar(config, DEFAULTS['maxLife'])
-                progress_bar.hide()
-                self._deck = Deck(progress_bar)
-                self.disable = mw.col.conf.get('disable', DEFAULTS['disable'])
-                self.stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+        if mw.col is None:
+            return
 
-            # Keep deck list always updated
-            for deck_id in mw.col.decks.allIds():
-                self._deck.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
+        # Create deck manager, should run only once
+        if self._deck is None:
+            config = {
+                'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+                'progressBarStyle': {
+                    'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+                    'backgroundColor': mw.col.conf.get(
+                        'barBgColor', DEFAULTS['barBgColor']),
+                    'foregroundColor': mw.col.conf.get(
+                        'barFgColor', DEFAULTS['barFgColor']),
+                    'borderRadius': mw.col.conf.get(
+                        'barBorderRadius', DEFAULTS['barBorderRadius']),
+                    'text': mw.col.conf.get('barText', DEFAULTS['barText']),
+                    'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+                    'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+                }
+            }
+            progress_bar = ProgressBar(config, DEFAULTS['maxLife'])
+            progress_bar.hide()
+            self._deck = Deck(progress_bar)
+            self._disable = mw.col.conf.get('disable', DEFAULTS['disable'])
+            self._stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+
+        # Keep deck list always updated
+        for deck_id in mw.col.decks.allIds():
+            self._deck.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
