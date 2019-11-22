@@ -6,7 +6,7 @@ See the LICENCE file in the repository root for full licence text.
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
 from anki.collection import _Collection
-from aqt import appVersion, forms, mw
+from aqt import appVersion, forms, mw, qt
 from aqt.deckconf import DeckConf
 from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.editcurrent import EditCurrent
@@ -15,9 +15,7 @@ from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 
 from .lifedrain import LifeDrain
-from .settings_ui import (
-    preferences, preferences_load, deck_settings, custom_deck_settings
-)
+from .settings_ui import SettingsUi
 
 
 def main():
@@ -37,12 +35,17 @@ def setup_user_interface(lifedrain):
     Setup some windows for configurating the add-on.
     These are the Preferences, Deck configuration and Custom deck configuration.
     '''
+    settings_ui = SettingsUi(qt)
+
     # Preferences
     forms.preferences.Ui_Preferences.setupUi = wrap(
         forms.preferences.Ui_Preferences.setupUi,
-        preferences
+        lambda *args: settings_ui.preferences(args[0])
     )
-    Preferences.__init__ = wrap(Preferences.__init__, preferences_load)
+    Preferences.__init__ = wrap(
+        Preferences.__init__,
+        lambda *args: settings_ui.preferences_load(args[0])
+    )
     Preferences.accept = wrap(
         Preferences.accept,
         lambda *args: lifedrain.preferences_save(args[0]),
@@ -52,7 +55,7 @@ def setup_user_interface(lifedrain):
     # Deck configuration
     forms.dconf.Ui_Dialog.setupUi = wrap(
         forms.dconf.Ui_Dialog.setupUi,
-        deck_settings
+        lambda *args: settings_ui.deck_settings(args[0])
     )
     DeckConf.loadConf = wrap(
         DeckConf.loadConf,
@@ -67,7 +70,7 @@ def setup_user_interface(lifedrain):
     # Custom deck configuration
     forms.dyndconf.Ui_Dialog.setupUi = wrap(
         forms.dyndconf.Ui_Dialog.setupUi,
-        custom_deck_settings
+        lambda *args: settings_ui.custom_deck_settings(args[0], appVersion.startswith('2.1'))
     )
     FiltDeckConf.loadConf = wrap(
         FiltDeckConf.loadConf,

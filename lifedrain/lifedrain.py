@@ -10,7 +10,7 @@ from .progress_bar import ProgressBar
 
 class LifeDrain(object):
     '''
-    Contains the state of the life drain.
+    Contains the state and functions of the life drain.
     '''
     status = {
         'reviewed': False,
