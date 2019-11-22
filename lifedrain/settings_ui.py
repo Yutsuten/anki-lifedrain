@@ -80,7 +80,10 @@ class SettingsUi(object):
         setattr(form, cs_dialog_name, self._qt.QColorDialog(select_button))
         getattr(form, cs_dialog_name).setOption(self._qt.QColorDialog.DontUseNativeDialog)
         select_button.pressed.connect(
-            lambda: select_color_dialog(getattr(form, cs_dialog_name), getattr(form, cs_preview_name))
+            lambda: self.select_color_dialog(
+                getattr(form, cs_dialog_name),
+                getattr(form, cs_preview_name)
+            )
         )
         form.lifedrain_layout.addWidget(label, row, 0)
         form.lifedrain_layout.addWidget(select_button, row, 2)
