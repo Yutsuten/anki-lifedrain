@@ -6,11 +6,12 @@ See the LICENCE file in the repository root for full licence text.
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
 from anki.collection import _Collection
-from aqt import appVersion, forms
+from aqt import appVersion, forms, mw
 from aqt.deckconf import DeckConf
 from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.editcurrent import EditCurrent
 from aqt.preferences import Preferences
+from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 
 from .lifedrain import LifeDrain
@@ -23,7 +24,9 @@ def main():
     '''
     Lifedrain's main function.
     '''
-    lifedrain = LifeDrain()
+    make_timer = ProgressManager(mw).timer
+    lifedrain = LifeDrain(make_timer, mw)
+
     setup_user_interface(lifedrain)
     setup_shortcuts(lifedrain)
     setup_hooks(lifedrain)

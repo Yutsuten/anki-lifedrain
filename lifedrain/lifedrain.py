@@ -3,9 +3,6 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 '''
 
-from aqt import mw
-from aqt.progress import ProgressManager
-
 from .deck import Deck
 from .defaults import DEFAULTS
 from .progress_bar import ProgressBar
@@ -23,11 +20,15 @@ class LifeDrain(object):
     }
 
     _deck = None
-    _timer = None
-    _stop_on_answer = False
     _disable = None
+    _mw = None
+    _stop_on_answer = False
+    _timer = None
 
-    def __init__(self):
+    def __init__(self, make_timer, mw):
+        self._timer = make_timer(100, lambda: self.recover(False, 0.1), True)
+        self._mw = mw
+
         # Configure separator strip
         mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
         try:
@@ -125,10 +126,6 @@ class LifeDrain(object):
         self._update()
 
         if not self._disable:
-            if not self._timer:
-                self._timer = ProgressManager(mw).timer(
-                    100, lambda: self.recover(False, 0.1), True
-                )
             self._timer.stop()
 
             if self.status['reviewed'] and state in ['overview', 'review']:
@@ -140,8 +137,8 @@ class LifeDrain(object):
                 self._deck.bar_visible(False)
                 self._deck.set_deck(None)
             else:
-                if mw.col is not None:
-                    self._deck.set_deck(mw.col.decks.current()['id'])
+                if self._mw.col is not None:
+                    self._deck.set_deck(self._mw.col.decks.current()['id'])
                 self._deck.bar_visible(True)
 
             if state == 'review':
@@ -149,8 +146,7 @@ class LifeDrain(object):
 
         else:
             self._deck.bar_visible(False)
-            if self._timer is not None:
-                self._timer.stop()
+            self._timer.stop()
 
     def show_question(self):
         '''
@@ -188,32 +184,32 @@ class LifeDrain(object):
             self.status['newCardState'] = False
 
     def _update(self):
-        if mw.col is None:
+        if self._mw.col is None:
             return
 
         # Create deck manager, should run only once
         if self._deck is None:
             config = {
-                'position': mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+                'position': self._mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
                 'progressBarStyle': {
-                    'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
-                    'backgroundColor': mw.col.conf.get(
+                    'height': self._mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+                    'backgroundColor': self._mw.col.conf.get(
                         'barBgColor', DEFAULTS['barBgColor']),
-                    'foregroundColor': mw.col.conf.get(
+                    'foregroundColor': self._mw.col.conf.get(
                         'barFgColor', DEFAULTS['barFgColor']),
-                    'borderRadius': mw.col.conf.get(
+                    'borderRadius': self._mw.col.conf.get(
                         'barBorderRadius', DEFAULTS['barBorderRadius']),
-                    'text': mw.col.conf.get('barText', DEFAULTS['barText']),
-                    'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
-                    'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
+                    'text': self._mw.col.conf.get('barText', DEFAULTS['barText']),
+                    'textColor': self._mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+                    'customStyle': self._mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
                 }
             }
             progress_bar = ProgressBar(config, DEFAULTS['maxLife'])
             progress_bar.hide()
             self._deck = Deck(progress_bar)
-            self._disable = mw.col.conf.get('disable', DEFAULTS['disable'])
-            self._stop_on_answer = mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+            self._disable = self._mw.col.conf.get('disable', DEFAULTS['disable'])
+            self._stop_on_answer = self._mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
         # Keep deck list always updated
-        for deck_id in mw.col.decks.allIds():
-            self._deck.add_deck(deck_id, mw.col.decks.confForDid(deck_id))
+        for deck_id in self._mw.col.decks.allIds():
+            self._deck.add_deck(deck_id, self._mw.col.decks.confForDid(deck_id))
