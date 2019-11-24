@@ -6,6 +6,7 @@ See the LICENCE file in the repository root for full licence text.
 from .deck import Deck
 from .defaults import DEFAULTS
 from .progress_bar import ProgressBar
+from .settings import Settings
 
 
 class LifeDrain(object):
@@ -22,12 +23,16 @@ class LifeDrain(object):
     _deck = None
     _disable = None
     _mw = None
+    _qt = None
+    _settings = None
     _stop_on_answer = False
     _timer = None
 
-    def __init__(self, make_timer, mw):
+    def __init__(self, make_timer, mw, qt):
         self._timer = make_timer(100, lambda: self.recover(False, 0.1), True)
+        self._settings = Settings(qt)
         self._mw = mw
+        self._qt = qt
 
         # Configure separator strip
         mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
@@ -37,39 +42,51 @@ class LifeDrain(object):
         except Exception:  # nosec  # pylint: disable=broad-except
             pass
 
-    def preferences_save(self, settings):
+    def preferences_ui(self, form):
         '''
-        Saves LifeDrain global configurations.
+        Loads the User Interface for the Life Drain tab in the preferences.
         '''
-        conf = settings.mw.col.conf
-        conf['barPosition'] = settings.form.positionList.currentIndex()
-        conf['barHeight'] = settings.form.heightInput.value()
-        conf['barBgColor'] = settings.form.bgColorDialog.currentColor().name()
-        conf['barFgColor'] = settings.form.fgColorDialog.currentColor().name()
-        conf['barBorderRadius'] = settings.form.borderRadiusInput.value()
-        conf['barText'] = settings.form.textList.currentIndex()
-        conf['barTextColor'] = settings.form.textColorDialog.currentColor().name()
-        conf['barStyle'] = settings.form.styleList.currentIndex()
-        conf['stopOnAnswer'] = settings.form.stopOnAnswer.isChecked()
-        conf['disable'] = settings.form.disableAddon.isChecked()
+        self._settings.preferences_ui(form)
 
-        # Create new instance of the bar with new configurations
-        config = {
-            'position': conf.get('barPosition', DEFAULTS['barPosition']),
+    def deck_settings_ui(self, form):
+        '''
+        Loads the User Interface for the Life Drain tab in the Deck Settings (options).
+        '''
+        self._settings.deck_settings_ui(form)
+
+    def custom_deck_settings_ui(self, form, is_anki21):
+        '''
+        Lods the User Interface for the Life Drain form in the Custom Deck Settings
+        (aka Filtered Deck Settings)
+        '''
+        self._settings.custom_deck_settings_ui(form, is_anki21)
+
+    def preferences_load(self, pref):
+        '''
+        Loads Life Drain global configurations into the Preferences UI.
+        '''
+        self._settings.preferences_load(pref)
+
+    def preferences_save(self, pref):
+        '''
+        Saves Life Drain global configurations.
+        '''
+        conf = self._settings.preferences_save(pref)
+
+        self._deck.set_anki_progress_bar_style({
+            'position': conf['barPosition'],
             'progressBarStyle': {
-                'height': conf.get('barHeight', DEFAULTS['barHeight']),
-                'backgroundColor': conf.get('barBgColor', DEFAULTS['barBgColor']),
-                'foregroundColor': conf.get('barFgColor', DEFAULTS['barFgColor']),
-                'borderRadius': conf.get(
-                    'barBorderRadius', DEFAULTS['barBorderRadius']),
-                'text': conf.get('barText', DEFAULTS['barText']),
-                'textColor': conf.get('barTextColor', DEFAULTS['barTextColor']),
-                'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
+                'height': conf['barHeight'],
+                'backgroundColor': conf['barBgColor'],
+                'foregroundColor': conf['barFgColor'],
+                'borderRadius': conf['barBorderRadius'],
+                'text': conf['barText'],
+                'textColor': conf['barTextColor'],
+                'customStyle': conf['barStyle']
             }
-        }
-        self._deck.set_anki_progress_bar_style(config)
-        self._disable = conf.get('disable', DEFAULTS['disable'])
-        self._stop_on_answer = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+        })
+        self._disable = conf['disable']
+        self._stop_on_answer = conf['stopOnAnswer']
 
     def deck_settings_load(self, settings):
         '''

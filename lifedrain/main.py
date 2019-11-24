@@ -15,7 +15,6 @@ from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 
 from .lifedrain import LifeDrain
-from .settings_ui import SettingsUi
 
 
 def main():
@@ -23,7 +22,7 @@ def main():
     Lifedrain's main function.
     '''
     make_timer = ProgressManager(mw).timer
-    lifedrain = LifeDrain(make_timer, mw)
+    lifedrain = LifeDrain(make_timer, mw, qt)
 
     setup_user_interface(lifedrain)
     setup_shortcuts(lifedrain)
@@ -35,16 +34,14 @@ def setup_user_interface(lifedrain):
     Setup some windows for configurating the add-on.
     These are the Preferences, Deck configuration and Custom deck configuration.
     '''
-    settings_ui = SettingsUi(qt)
-
     # Preferences
     forms.preferences.Ui_Preferences.setupUi = wrap(
         forms.preferences.Ui_Preferences.setupUi,
-        lambda *args: settings_ui.preferences(args[0])
+        lambda *args: lifedrain.preferences_ui(args[0])
     )
     Preferences.__init__ = wrap(
         Preferences.__init__,
-        lambda *args: settings_ui.preferences_load(args[0])
+        lambda *args: lifedrain.preferences_load(args[0])
     )
     Preferences.accept = wrap(
         Preferences.accept,
@@ -55,7 +52,7 @@ def setup_user_interface(lifedrain):
     # Deck configuration
     forms.dconf.Ui_Dialog.setupUi = wrap(
         forms.dconf.Ui_Dialog.setupUi,
-        lambda *args: settings_ui.deck_settings(args[0])
+        lambda *args: lifedrain.deck_settings_ui(args[0])
     )
     DeckConf.loadConf = wrap(
         DeckConf.loadConf,
@@ -70,7 +67,10 @@ def setup_user_interface(lifedrain):
     # Custom deck configuration
     forms.dyndconf.Ui_Dialog.setupUi = wrap(
         forms.dyndconf.Ui_Dialog.setupUi,
-        lambda *args: settings_ui.custom_deck_settings(args[0], appVersion.startswith('2.1'))
+        lambda *args: lifedrain.custom_deck_settings_ui(
+            args[0],
+            appVersion.startswith('2.1')
+        )
     )
     FiltDeckConf.loadConf = wrap(
         FiltDeckConf.loadConf,
