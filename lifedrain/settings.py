@@ -42,6 +42,46 @@ class Settings(object):
         self._fill_remaining_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
+    def deck_settings_ui(self, form):
+        '''
+        Appends a new tab to deck settings dialog.
+        '''
+        self._form = form
+        self._row = 0
+
+        form.lifedrain_widget = self._qt.QWidget()
+        form.lifedrain_layout = self._gui_settings_setup_layout(form.lifedrain_widget)
+        self._create_label(
+            'The <b>maximum life</b> is the time in seconds for the life bar go '
+            'from full to empty.\n<b>Recover</b> is the time in seconds that is '
+            'recovered after answering a card. <b>Damage</b> is the life lost '
+            'when a card is answered with \'Again\'.'
+        )
+        self._create_spin_box('maxLifeInput', 'Maximum life', [1, 10000])
+        self._create_spin_box('recoverInput', 'Recover', [0, 1000])
+        self._create_check_box('enableDamageInput', 'Enable damage')
+        self._create_spin_box('damageInput', 'Damage', [-1000, 1000])
+        self._create_spin_box('currentValueInput', 'Current life', [0, 10000])
+        self._fill_remaining_space()
+        form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
+
+    def custom_deck_settings_ui(self, form, is_anki21):
+        '''
+        Adds LifeDrain configurations to custom study dialog.
+        '''
+        self._form = form
+        self._row = 0
+
+        form.lifedrain_widget = self._qt.QGroupBox('Life Drain')
+        form.lifedrain_layout = self._gui_settings_setup_layout(form.lifedrain_widget)
+        self._create_spin_box('maxLifeInput', 'Maximum life', [1, 10000])
+        self._create_spin_box('recoverInput', 'Recover', [0, 1000])
+        self._create_check_box('enableDamageInput', 'Enable damage')
+        self._create_spin_box('damageInput', 'Damage', [-1000, 1000])
+        self._create_spin_box('currentValueInput', 'Current life', [0, 10000])
+        index = 3 if is_anki21 else 2
+        form.verticalLayout.insertWidget(index, form.lifedrain_widget)
+
     def preferences_load(self, pref):
         '''
         Loads LifeDrain global configurations into the Preferences UI.
@@ -115,45 +155,37 @@ class Settings(object):
         conf['disable'] = pref.form.disableAddon.isChecked()
         return conf
 
-    def deck_settings_ui(self, form):
+    @staticmethod
+    def deck_settings_load(settings, current_life):
         '''
-        Appends a new tab to deck settings dialog.
+        Loads LifeDrain deck configurations into the Settings UI.
         '''
-        self._form = form
-        self._row = 0
-
-        form.lifedrain_widget = self._qt.QWidget()
-        form.lifedrain_layout = self._gui_settings_setup_layout(form.lifedrain_widget)
-        self._create_label(
-            'The <b>maximum life</b> is the time in seconds for the life bar go '
-            'from full to empty.\n<b>Recover</b> is the time in seconds that is '
-            'recovered after answering a card. <b>Damage</b> is the life lost '
-            'when a card is answered with \'Again\'.'
+        settings.conf = settings.mw.col.decks.confForDid(settings.deck['id'])
+        settings.form.maxLifeInput.setValue(
+            settings.conf.get('maxLife', DEFAULTS['maxLife'])
         )
-        self._create_spin_box('maxLifeInput', 'Maximum life', [1, 10000])
-        self._create_spin_box('recoverInput', 'Recover', [0, 1000])
-        self._create_check_box('enableDamageInput', 'Enable damage')
-        self._create_spin_box('damageInput', 'Damage', [-1000, 1000])
-        self._create_spin_box('currentValueInput', 'Current life', [0, 10000])
-        self._fill_remaining_space()
-        form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
+        settings.form.recoverInput.setValue(
+            settings.conf.get('recover', DEFAULTS['recover'])
+        )
+        settings.form.enableDamageInput.setChecked(
+            settings.conf.get('enableDamage', DEFAULTS['enableDamage'])
+        )
+        settings.form.damageInput.setValue(
+            settings.conf.get('damage', DEFAULTS['damage'])
+        )
+        settings.form.currentValueInput.setValue(current_life)
 
-    def custom_deck_settings_ui(self, form, is_anki21):
+    @staticmethod
+    def deck_settings_save(settings):
         '''
-        Adds LifeDrain configurations to custom study dialog.
+        Saves LifeDrain deck configurations.
         '''
-        self._form = form
-        self._row = 0
-
-        form.lifedrain_widget = self._qt.QGroupBox('Life Drain')
-        form.lifedrain_layout = self._gui_settings_setup_layout(form.lifedrain_widget)
-        self._create_spin_box('maxLifeInput', 'Maximum life', [1, 10000])
-        self._create_spin_box('recoverInput', 'Recover', [0, 1000])
-        self._create_check_box('enableDamageInput', 'Enable damage')
-        self._create_spin_box('damageInput', 'Damage', [-1000, 1000])
-        self._create_spin_box('currentValueInput', 'Current life', [0, 10000])
-        index = 3 if is_anki21 else 2
-        form.verticalLayout.insertWidget(index, form.lifedrain_widget)
+        settings.conf['maxLife'] = settings.form.maxLifeInput.value()
+        settings.conf['recover'] = settings.form.recoverInput.value()
+        settings.conf['currentValue'] = settings.form.currentValueInput.value()
+        settings.conf['enableDamage'] = settings.form.enableDamageInput.isChecked()
+        settings.conf['damage'] = settings.form.damageInput.value()
+        return settings.conf
 
     def _gui_settings_setup_layout(self, widget):
         '''

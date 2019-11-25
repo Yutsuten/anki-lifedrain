@@ -90,22 +90,10 @@ class LifeDrain(object):
 
     def deck_settings_load(self, settings):
         '''
-        Loads LifeDrain deck configurations.
+        Loads LifeDrain deck configurations into the Settings UI.
         '''
-        settings.conf = settings.mw.col.decks.confForDid(settings.deck['id'])
-        settings.form.maxLifeInput.setValue(
-            settings.conf.get('maxLife', DEFAULTS['maxLife'])
-        )
-        settings.form.recoverInput.setValue(
-            settings.conf.get('recover', DEFAULTS['recover'])
-        )
-        settings.form.enableDamageInput.setChecked(
-            settings.conf.get('enableDamage', DEFAULTS['enableDamage'])
-        )
-        settings.form.damageInput.setValue(
-            settings.conf.get('damage', DEFAULTS['damage'])
-        )
-        settings.form.currentValueInput.setValue(
+        self._settings.deck_settings_load(
+            settings,
             self._deck.get_deck_conf(settings.deck['id'])['currentValue']
         )
 
@@ -113,12 +101,8 @@ class LifeDrain(object):
         '''
         Saves LifeDrain deck configurations.
         '''
-        settings.conf['maxLife'] = settings.form.maxLifeInput.value()
-        settings.conf['recover'] = settings.form.recoverInput.value()
-        settings.conf['currentValue'] = settings.form.currentValueInput.value()
-        settings.conf['enableDamage'] = settings.form.enableDamageInput.isChecked()
-        settings.conf['damage'] = settings.form.damageInput.value()
-        self._deck.set_deck_conf(settings.deck['id'], settings.conf)
+        deck_conf = self._settings.deck_settings_save(settings)
+        self._deck.set_deck_conf(settings.deck['id'], deck_conf)
 
     def toggle_drain(self, enable=None):
         '''
