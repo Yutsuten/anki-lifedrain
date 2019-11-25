@@ -31,6 +31,7 @@ class Lifedrain(object):
     def __init__(self, make_timer, mw, qt):
         self._timer = make_timer(100, lambda: self.recover(False, 0.1), True)
         self._settings = Settings(qt)
+        self._deck_manager = DeckManager(qt, mw)
         self._mw = mw
         self._qt = qt
 
@@ -73,7 +74,7 @@ class Lifedrain(object):
         '''
         conf = self._settings.preferences_save(pref)
 
-        self._deck_manager.set_anki_progress_bar_style({
+        self._deck_manager.set_progress_bar_style({
             'position': conf['barPosition'],
             'progressBarStyle': {
                 'height': conf['barHeight'],
@@ -108,11 +109,13 @@ class Lifedrain(object):
         '''
         Toggle the timer to pause/unpause the drain.
         '''
-        if not self._disable:
-            if self._timer.isActive() and enable is not True:
-                self._timer.stop()
-            elif not self._timer.isActive() and enable is not False:
-                self._timer.start()
+        if self._disable:
+            return
+
+        if self._timer.isActive() and enable is not True:
+            self._timer.stop()
+        elif not self._timer.isActive() and enable is not False:
+            self._timer.start()
 
     def recover(self, *args, **kwargs):
         '''
@@ -125,14 +128,16 @@ class Lifedrain(object):
         When screen changes, update state of the lifedrain.
         '''
         self._update()
+        self._timer.stop()
 
-        if not self._disable:
-            self._timer.stop()
+        if self._disable:
+            self._deck_manager.bar_visible(False)
+        else:
+            self.status['reviewed'] = False
+            self.status['screen'] = state
 
             if self.status['reviewed'] and state in ['overview', 'review']:
                 self._deck_manager.recover()
-            self.status['reviewed'] = False
-            self.status['screen'] = state
 
             if state == 'deckBrowser':
                 self._deck_manager.bar_visible(False)
@@ -145,71 +150,68 @@ class Lifedrain(object):
             if state == 'review':
                 self._timer.start()
 
-        else:
-            self._deck_manager.bar_visible(False)
-            self._timer.stop()
-
     def show_question(self):
         '''
         Called when a question is shown.
         '''
-        if not self._disable:
-            self.toggle_drain(True)
-            if self.status['reviewed']:
-                if self.status['reviewResponse'] == 1:
-                    self.recover(damage=True)
-                else:
-                    self.recover()
-            self.status['reviewed'] = False
-            self.status['newCardState'] = False
+        if self._disable:
+            return
+
+        self.toggle_drain(True)
+        if self.status['reviewed']:
+            if self.status['reviewResponse'] == 1:
+                self.recover(damage=True)
+            else:
+                self.recover()
+        self.status['reviewed'] = False
+        self.status['newCardState'] = False
 
     def show_answer(self):
         '''
         Called when an answer is shown.
         '''
-        if not self._disable:
-            if self._stop_on_answer:
-                self.toggle_drain(False)
-            else:
-                self.toggle_drain(True)
-            self.status['reviewed'] = True
+        if self._disable:
+            return
+
+        if self._stop_on_answer:
+            self.toggle_drain(False)
+        else:
+            self.toggle_drain(True)
+        self.status['reviewed'] = True
 
     def undo(self):
         '''
         Deals with undoing.
         '''
-        if not self._disable:
-            if self.status['screen'] == 'review' and not self.status['newCardState']:
-                self.status['reviewed'] = False
-                self.recover(False)
-            self.status['newCardState'] = False
+        if self._disable:
+            return
+
+        if self.status['screen'] == 'review' and not self.status['newCardState']:
+            self.status['reviewed'] = False
+            self.recover(False)
+        self.status['newCardState'] = False
 
     def _update(self):
         if self._mw.col is None:
             return
 
-        # Create deck manager, should run only once
-        if self._deck_manager is None:
-            config = {
-                'position': self._mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
-                'progressBarStyle': {
-                    'height': self._mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
-                    'backgroundColor': self._mw.col.conf.get(
-                        'barBgColor', DEFAULTS['barBgColor']),
-                    'foregroundColor': self._mw.col.conf.get(
-                        'barFgColor', DEFAULTS['barFgColor']),
-                    'borderRadius': self._mw.col.conf.get(
-                        'barBorderRadius', DEFAULTS['barBorderRadius']),
-                    'text': self._mw.col.conf.get('barText', DEFAULTS['barText']),
-                    'textColor': self._mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
-                    'customStyle': self._mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
-                }
+        self._deck_manager.set_progress_bar_style({
+            'position': self._mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
+            'progressBarStyle': {
+                'height': self._mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
+                'backgroundColor': self._mw.col.conf.get(
+                    'barBgColor', DEFAULTS['barBgColor']),
+                'foregroundColor': self._mw.col.conf.get(
+                    'barFgColor', DEFAULTS['barFgColor']),
+                'borderRadius': self._mw.col.conf.get(
+                    'barBorderRadius', DEFAULTS['barBorderRadius']),
+                'text': self._mw.col.conf.get('barText', DEFAULTS['barText']),
+                'textColor': self._mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
+                'customStyle': self._mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
             }
-            progress_bar = ProgressBar(config, DEFAULTS['maxLife'])
-            progress_bar.hide()
-            self._deck_manager = DeckManager(progress_bar)
-            self._disable = self._mw.col.conf.get('disable', DEFAULTS['disable'])
-            self._stop_on_answer = self._mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
+        })
+        self._disable = self._mw.col.conf.get('disable', DEFAULTS['disable'])
+        self._stop_on_answer = self._mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
         # Keep deck list always updated
         for deck_id in self._mw.col.decks.allIds():

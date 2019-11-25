@@ -3,30 +3,25 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 '''
 
-from aqt import qt, mw
-
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
 
 
 class ProgressBar(object):
     '''
-    Creates and manages a Progress Bar on Anki.
-
-    This class deals with decimal values, and creates an interface with QProgressBar,
-    that only acceps integer values, to make it work as expected.
+    A Progress Bar on Anki.
+    This class creates an interface with QProgressBar to make it accept decimal values.
     '''
-    _qprogressbar = None
-    _max_value = 1
     _current_value = 1
-    _text_format = ''
     _dock = None
+    _max_value = 1
+    _qprogressbar = None
+    _qt = None
+    _text_format = ''
 
-    def __init__(self, config, max_value):
+    def __init__(self, qt, mw):
+        self._mw = mw
+        self._qt = qt
         self._qprogressbar = qt.QProgressBar()
-        self.set_max_value(max_value)
-        self.reset_bar()
-        self.set_style(config['progressBarStyle'])
-        self.dock_at(config['position'])
 
     def show(self):
         '''
@@ -94,21 +89,21 @@ class ProgressBar(object):
         custom_style = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
         if custom_style != 'default':
-            palette = qt.QPalette()
+            palette = self._qt.QPalette()
             palette.setColor(
-                qt.QPalette.Base, qt.QColor(options['backgroundColor'])
+                self._qt.QPalette.Base, self._qt.QColor(options['backgroundColor'])
             )
             palette.setColor(
-                qt.QPalette.Highlight, qt.QColor(options['foregroundColor'])
+                self._qt.QPalette.Highlight, self._qt.QColor(options['foregroundColor'])
             )
             palette.setColor(
-                qt.QPalette.Button, qt.QColor(options['backgroundColor'])
+                self._qt.QPalette.Button, self._qt.QColor(options['backgroundColor'])
             )
             palette.setColor(
-                qt.QPalette.Window, qt.QColor(options['backgroundColor'])
+                self._qt.QPalette.Window, self._qt.QColor(options['backgroundColor'])
             )
 
-            self._qprogressbar.setStyle(qt.QStyleFactory.create(custom_style))
+            self._qprogressbar.setStyle(self._qt.QStyleFactory.create(custom_style))
             self._qprogressbar.setPalette(palette)
             self._qprogressbar.setStyleSheet(
                 '''
@@ -190,25 +185,25 @@ class ProgressBar(object):
             place = DEFAULTS['barPosition']
 
         if place == 'Top':
-            dock_area = qt.Qt.TopDockWidgetArea
+            dock_area = self._qt.Qt.TopDockWidgetArea
         elif place == 'Bottom':
-            dock_area = qt.Qt.BottomDockWidgetArea
+            dock_area = self._qt.Qt.BottomDockWidgetArea
 
-        self._dock = qt.QDockWidget()
-        twidget = qt.QWidget()
+        self._dock = self._qt.QDockWidget()
+        twidget = self._qt.QWidget()
         self._dock.setWidget(self._qprogressbar)
         self._dock.setTitleBarWidget(twidget)
 
         existing_widgets = [
-            widget for widget in mw.findChildren(qt.QDockWidget)
-            if mw.dockWidgetArea(widget) == dock_area
+            widget for widget in self._mw.findChildren(self._qt.QDockWidget)
+            if self._mw.dockWidgetArea(widget) == dock_area
         ]
         if not existing_widgets:
-            mw.addDockWidget(dock_area, self._dock)
+            self._mw.addDockWidget(dock_area, self._dock)
         else:
-            mw.setDockNestingEnabled(True)
-            mw.splitDockWidget(existing_widgets[0], self._dock, qt.Qt.Vertical)
-        mw.web.setFocus()
+            self._mw.setDockNestingEnabled(True)
+            self._mw.splitDockWidget(existing_widgets[0], self._dock, self._qt.Qt.Vertical)
+        self._mw.web.setFocus()
 
         self._qprogressbar.setVisible(bar_visible)
 

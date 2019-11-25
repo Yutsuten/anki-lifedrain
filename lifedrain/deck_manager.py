@@ -4,22 +4,22 @@ See the LICENCE file in the repository root for full licence text.
 '''
 
 from anki.hooks import runHook
-from aqt import mw
 
 from .defaults import DEFAULTS
+from .progress_bar import ProgressBar
 
 
 class DeckManager(object):
     '''
     Manages different Life Drain configuration for each deck.
     '''
-    _anki_progressbar = None
+    _progress_bar = None
     _barInfo = {}
     _current_deck = None
     _game_over = False
 
-    def __init__(self, ankiProgressBar):
-        self._anki_progressbar = ankiProgressBar
+    def __init__(self, qt, mw):
+        self._progress_bar = ProgressBar(qt, mw)
 
     def add_deck(self, deck_id, conf):
         '''
@@ -40,10 +40,10 @@ class DeckManager(object):
         '''
         if deck_id:
             self._current_deck = str(deck_id)
-            self._anki_progressbar.set_max_value(
+            self._progress_bar.set_max_value(
                 self._barInfo[self._current_deck]['maxValue']
             )
-            self._anki_progressbar.set_current_value(
+            self._progress_bar.set_current_value(
                 self._barInfo[self._current_deck]['currentValue']
             )
         else:
@@ -73,30 +73,13 @@ class DeckManager(object):
         self._barInfo[str(deck_id)]['damageValue'] = damage
         self._barInfo[str(deck_id)]['currentValue'] = current_value
 
-    def set_anki_progress_bar_style(self, config=None):
+    def set_progress_bar_style(self, config):
         '''
         Updates the AnkiProgressBar instance.
         '''
-        pb_style = {
-            'height': mw.col.conf.get('barHeight', DEFAULTS['barHeight']),
-            'backgroundColor': mw.col.conf.get(
-                'barBgColor', DEFAULTS['barBgColor']),
-            'foregroundColor': mw.col.conf.get(
-                'barFgColor', DEFAULTS['barFgColor']),
-            'borderRadius': mw.col.conf.get(
-                'barBorderRadius', DEFAULTS['barBorderRadius']),
-            'text': mw.col.conf.get('barText', DEFAULTS['barText']),
-            'textColor': mw.col.conf.get('barTextColor', DEFAULTS['barTextColor']),
-            'customStyle': mw.col.conf.get('barStyle', DEFAULTS['barStyle'])
-        }
+        self._progress_bar.dock_at(config['position'])
+        self._progress_bar.set_style(config['progressBarStyle'])
 
-        if config is not None:
-            if 'position' in config:
-                self._anki_progressbar.dock_at(config['position'])
-            if 'progressBarStyle' in config:
-                pb_style.update(config['progressBarStyle'])
-
-        self._anki_progressbar.set_style(pb_style)
         if self._current_deck is not None:
             self.recover(value=0)
 
@@ -114,9 +97,9 @@ class DeckManager(object):
             else:
                 value = self._barInfo[self._current_deck]['recoverValue']
 
-        self._anki_progressbar.inc_current_value(multiplier * value)
+        self._progress_bar.inc_current_value(multiplier * value)
 
-        life = self._anki_progressbar.get_current_value()
+        life = self._progress_bar.get_current_value()
         self._barInfo[self._current_deck]['currentValue'] = life
         if life == 0 and not self._game_over:
             self._game_over = True
@@ -129,6 +112,6 @@ class DeckManager(object):
         Sets the visibility of the Progress Bar
         '''
         if visible:
-            self._anki_progressbar.show()
+            self._progress_bar.show()
         else:
-            self._anki_progressbar.hide()
+            self._progress_bar.hide()
