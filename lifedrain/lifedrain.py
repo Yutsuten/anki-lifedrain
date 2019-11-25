@@ -5,7 +5,6 @@ See the LICENCE file in the repository root for full licence text.
 
 from .deck_manager import DeckManager
 from .defaults import DEFAULTS
-from .progress_bar import ProgressBar
 from .settings import Settings
 
 
@@ -74,18 +73,6 @@ class Lifedrain(object):
         '''
         conf = self._settings.preferences_save(pref)
 
-        self._deck_manager.set_progress_bar_style({
-            'position': conf['barPosition'],
-            'progressBarStyle': {
-                'height': conf['barHeight'],
-                'backgroundColor': conf['barBgColor'],
-                'foregroundColor': conf['barFgColor'],
-                'borderRadius': conf['barBorderRadius'],
-                'text': conf['barText'],
-                'textColor': conf['barTextColor'],
-                'customStyle': conf['barStyle']
-            }
-        })
         self._disable = conf['disable']
         self._stop_on_answer = conf['stopOnAnswer']
 
