@@ -128,10 +128,8 @@ class Lifedrain(object):
 
             if state == 'deckBrowser':
                 self._deck_manager.bar_visible(False)
-                self._deck_manager.set_deck(None)
-            else:
-                if self._mw.col is not None:
-                    self._deck_manager.set_deck(self._mw.col.decks.current()['id'])
+            elif self._mw.col is not None:
+                self._deck_manager.set_deck(self._mw.col.decks.current()['id'])
                 self._deck_manager.bar_visible(True)
 
             if state == 'review':
@@ -199,7 +197,3 @@ class Lifedrain(object):
         })
         self._disable = self._mw.col.conf.get('disable', DEFAULTS['disable'])
         self._stop_on_answer = self._mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
-
-        # Keep deck list always updated
-        for deck_id in self._mw.col.decks.allIds():
-            self._deck_manager.add_deck(deck_id, self._mw.col.decks.confForDid(deck_id))

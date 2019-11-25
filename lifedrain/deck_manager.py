@@ -13,65 +13,48 @@ class DeckManager(object):
     '''
     Manages different Life Drain configuration for each deck.
     '''
-    _progress_bar = None
-    _barInfo = {}
-    _current_deck = None
+    _bar_info = {}
     _game_over = False
+    _mw = None
+    _progress_bar = None
 
     def __init__(self, qt, mw):
         self._progress_bar = ProgressBar(qt, mw)
-
-    def add_deck(self, deck_id, conf):
-        '''
-        Adds a deck to the manager.
-        '''
-        if str(deck_id) not in self._barInfo:
-            self._barInfo[str(deck_id)] = {
-                'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
-                'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
-                'recoverValue': conf.get('recover', DEFAULTS['recover']),
-                'enableDamageValue': conf.get('enableDamage', DEFAULTS['enableDamage']),
-                'damageValue': conf.get('damage', DEFAULTS['damage'])
-            }
+        self._mw = mw
 
     def set_deck(self, deck_id):
         '''
         Sets the current deck.
         '''
-        if deck_id:
-            self._current_deck = str(deck_id)
-            self._progress_bar.set_max_value(
-                self._barInfo[self._current_deck]['maxValue']
-            )
-            self._progress_bar.set_current_value(
-                self._barInfo[self._current_deck]['currentValue']
-            )
-        else:
-            self._current_deck = None
+        if deck_id not in self._bar_info:
+            self._add_deck(deck_id)
+
+        self._progress_bar.set_max_value(
+            self._bar_info[deck_id]['maxValue']
+        )
+        self._progress_bar.set_current_value(
+            self._bar_info[deck_id]['currentValue']
+        )
 
     def get_deck_conf(self, deck_id):
         '''
         Get the settings and state of a deck.
         '''
-        return self._barInfo[str(deck_id)]
+        return self._bar_info[deck_id]
 
     def set_deck_conf(self, deck_id, conf):
         '''
         Updates deck's current state.
         '''
-        max_life = conf.get('maxLife', DEFAULTS['maxLife'])
-        recover_value = conf.get('recover', DEFAULTS['recover'])
-        enable_damage = conf.get('enableDamage', DEFAULTS['enableDamage'])
-        damage = conf.get('damage', DEFAULTS['damage'])
-        current_value = conf.get('currentValue', DEFAULTS['maxLife'])
-        if current_value > max_life:
-            current_value = max_life
+        current_value = conf['currentValue']
+        if current_value > conf['maxLife']:
+            current_value = conf['maxLife']
 
-        self._barInfo[str(deck_id)]['maxValue'] = max_life
-        self._barInfo[str(deck_id)]['recoverValue'] = recover_value
-        self._barInfo[str(deck_id)]['enableDamageValue'] = enable_damage
-        self._barInfo[str(deck_id)]['damageValue'] = damage
-        self._barInfo[str(deck_id)]['currentValue'] = current_value
+        self._bar_info[deck_id]['maxValue'] = conf['maxLife']
+        self._bar_info[deck_id]['recoverValue'] = conf['recover']
+        self._bar_info[deck_id]['enableDamageValue'] = conf['enableDamage']
+        self._bar_info[deck_id]['damageValue'] = conf['damage']
+        self._bar_info[deck_id]['currentValue'] = current_value
 
     def set_progress_bar_style(self, config):
         '''
@@ -80,27 +63,26 @@ class DeckManager(object):
         self._progress_bar.dock_at(config['position'])
         self._progress_bar.set_style(config['progressBarStyle'])
 
-        if self._current_deck is not None:
-            self.recover(value=0)
-
     def recover(self, increment=True, value=None, damage=False):
         '''
         Abstraction for recovering life, increments the bar if increment is True (default).
         '''
+        deck_id = self._mw.col.decks.current()['id']
+
         multiplier = 1
         if not increment:
             multiplier = -1
         if value is None:
-            if damage and self._barInfo[self._current_deck]['enableDamageValue']:
+            if damage and self._bar_info[deck_id]['enableDamageValue']:
                 multiplier = -1
-                value = self._barInfo[self._current_deck]['damageValue']
+                value = self._bar_info[deck_id]['damageValue']
             else:
-                value = self._barInfo[self._current_deck]['recoverValue']
+                value = self._bar_info[deck_id]['recoverValue']
 
         self._progress_bar.inc_current_value(multiplier * value)
 
         life = self._progress_bar.get_current_value()
-        self._barInfo[self._current_deck]['currentValue'] = life
+        self._bar_info[deck_id]['currentValue'] = life
         if life == 0 and not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
@@ -115,3 +97,16 @@ class DeckManager(object):
             self._progress_bar.show()
         else:
             self._progress_bar.hide()
+
+    def _add_deck(self, deck_id):
+        '''
+        Adds a deck to the manager.
+        '''
+        conf = self._mw.col.decks.confForDid(deck_id)
+        self._bar_info[deck_id] = {
+            'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
+            'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
+            'recoverValue': conf.get('recover', DEFAULTS['recover']),
+            'enableDamageValue': conf.get('enableDamage', DEFAULTS['enableDamage']),
+            'damageValue': conf.get('damage', DEFAULTS['damage'])
+        }
