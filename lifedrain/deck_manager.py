@@ -9,10 +9,9 @@ from aqt import mw
 from .defaults import DEFAULTS
 
 
-class Deck(object):
+class DeckManager(object):
     '''
-    Allow using the same instance of AnkiProgressBar with different
-    configuration and current_value for each deck.
+    Manages different Life Drain configuration for each deck.
     '''
     _anki_progressbar = None
     _barInfo = {}

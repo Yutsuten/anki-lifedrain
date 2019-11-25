@@ -3,7 +3,7 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 '''
 
-from .deck import Deck
+from .deck_manager import DeckManager
 from .defaults import DEFAULTS
 from .progress_bar import ProgressBar
 from .settings import Settings
@@ -20,7 +20,7 @@ class Lifedrain(object):
         'reviewResponse': 0
     }
 
-    _deck = None
+    _deck_manager = None
     _disable = None
     _mw = None
     _qt = None
@@ -73,7 +73,7 @@ class Lifedrain(object):
         '''
         conf = self._settings.preferences_save(pref)
 
-        self._deck.set_anki_progress_bar_style({
+        self._deck_manager.set_anki_progress_bar_style({
             'position': conf['barPosition'],
             'progressBarStyle': {
                 'height': conf['barHeight'],
@@ -94,7 +94,7 @@ class Lifedrain(object):
         '''
         self._settings.deck_settings_load(
             settings,
-            self._deck.get_deck_conf(settings.deck['id'])['currentValue']
+            self._deck_manager.get_deck_conf(settings.deck['id'])['currentValue']
         )
 
     def deck_settings_save(self, settings):
@@ -102,7 +102,7 @@ class Lifedrain(object):
         Saves LifeDrain deck configurations.
         '''
         deck_conf = self._settings.deck_settings_save(settings)
-        self._deck.set_deck_conf(settings.deck['id'], deck_conf)
+        self._deck_manager.set_deck_conf(settings.deck['id'], deck_conf)
 
     def toggle_drain(self, enable=None):
         '''
@@ -118,7 +118,7 @@ class Lifedrain(object):
         '''
         Recover life.
         '''
-        self._deck.recover(*args, **kwargs)
+        self._deck_manager.recover(*args, **kwargs)
 
     def screen_change(self, state):
         '''
@@ -130,23 +130,23 @@ class Lifedrain(object):
             self._timer.stop()
 
             if self.status['reviewed'] and state in ['overview', 'review']:
-                self._deck.recover()
+                self._deck_manager.recover()
             self.status['reviewed'] = False
             self.status['screen'] = state
 
             if state == 'deckBrowser':
-                self._deck.bar_visible(False)
-                self._deck.set_deck(None)
+                self._deck_manager.bar_visible(False)
+                self._deck_manager.set_deck(None)
             else:
                 if self._mw.col is not None:
-                    self._deck.set_deck(self._mw.col.decks.current()['id'])
-                self._deck.bar_visible(True)
+                    self._deck_manager.set_deck(self._mw.col.decks.current()['id'])
+                self._deck_manager.bar_visible(True)
 
             if state == 'review':
                 self._timer.start()
 
         else:
-            self._deck.bar_visible(False)
+            self._deck_manager.bar_visible(False)
             self._timer.stop()
 
     def show_question(self):
@@ -189,7 +189,7 @@ class Lifedrain(object):
             return
 
         # Create deck manager, should run only once
-        if self._deck is None:
+        if self._deck_manager is None:
             config = {
                 'position': self._mw.col.conf.get('barPosition', DEFAULTS['barPosition']),
                 'progressBarStyle': {
@@ -207,10 +207,10 @@ class Lifedrain(object):
             }
             progress_bar = ProgressBar(config, DEFAULTS['maxLife'])
             progress_bar.hide()
-            self._deck = Deck(progress_bar)
+            self._deck_manager = DeckManager(progress_bar)
             self._disable = self._mw.col.conf.get('disable', DEFAULTS['disable'])
             self._stop_on_answer = self._mw.col.conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
 
         # Keep deck list always updated
         for deck_id in self._mw.col.decks.allIds():
-            self._deck.add_deck(deck_id, self._mw.col.decks.confForDid(deck_id))
+            self._deck_manager.add_deck(deck_id, self._mw.col.decks.confForDid(deck_id))
