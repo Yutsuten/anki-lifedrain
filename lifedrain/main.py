@@ -14,7 +14,7 @@ from aqt.preferences import Preferences
 from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 
-from .lifedrain import LifeDrain
+from .lifedrain import Lifedrain
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     Lifedrain's main function.
     '''
     make_timer = ProgressManager(mw).timer
-    lifedrain = LifeDrain(make_timer, mw, qt)
+    lifedrain = Lifedrain(make_timer, mw, qt)
 
     setup_user_interface(lifedrain)
     setup_shortcuts(lifedrain)

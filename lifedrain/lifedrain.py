@@ -9,7 +9,7 @@ from .progress_bar import ProgressBar
 from .settings import Settings
 
 
-class LifeDrain(object):
+class Lifedrain(object):
     '''
     Contains the state and functions of the life drain.
     '''
