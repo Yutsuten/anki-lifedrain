@@ -34,6 +34,8 @@ class Lifedrain(object):
         self._mw = mw
         self._qt = qt
 
+        self._timer.stop()
+
         # Configure separator strip
         mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
         try:
@@ -121,14 +123,14 @@ class Lifedrain(object):
         if self._disable:
             return
 
-        self.status['reviewed'] = False
-        self.status['screen'] = state
-
         if state != 'review':
             self.toggle_drain(False)
 
         if self.status['reviewed'] and state in ['overview', 'review']:
             self._deck_manager.recover()
+
+        self.status['reviewed'] = False
+        self.status['screen'] = state
 
         if state == 'deckBrowser':
             self._deck_manager.bar_visible(False)

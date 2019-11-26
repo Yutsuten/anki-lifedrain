@@ -107,7 +107,7 @@ def setup_hooks(lifedrain):
     Setup the hooks that will make the magic happen.
     Here we configure all triggers that will invoke a lifedrain method.
     '''
-    addHook('afterStateChange', lambda *args: lifedrain.screen_change(args[0]))
+    addHook('beforeStateChange', lambda *args: lifedrain.screen_change(args[0]))
     addHook('showQuestion', lifedrain.show_question)
     addHook('showAnswer', lifedrain.show_answer)
     addHook('reset', lifedrain.undo)
