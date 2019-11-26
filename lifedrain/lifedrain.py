@@ -77,6 +77,7 @@ class Lifedrain(object):
 
         self._disable = conf['disable']
         self._stop_on_answer = conf['stopOnAnswer']
+        self.status['newCardState'] = True
 
         if self._disable:
             self._deck_manager.bar_visible(False)
@@ -96,6 +97,7 @@ class Lifedrain(object):
         '''
         deck_conf = self._settings.deck_settings_save(settings)
         self._deck_manager.set_deck_conf(settings.deck['id'], deck_conf)
+        self.status['newCardState'] = True
 
     def toggle_drain(self, enable=None):
         '''
