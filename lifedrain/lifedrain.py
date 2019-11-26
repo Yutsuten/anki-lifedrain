@@ -76,6 +76,9 @@ class Lifedrain(object):
         self._disable = conf['disable']
         self._stop_on_answer = conf['stopOnAnswer']
 
+        if self._disable:
+            self._deck_manager.bar_visible(False)
+
     def deck_settings_load(self, settings):
         '''
         Loads LifeDrain deck configurations into the Settings UI.
@@ -115,24 +118,23 @@ class Lifedrain(object):
         When screen changes, update state of the lifedrain.
         '''
         self._update()
-
         if self._disable:
+            return
+
+        self.status['reviewed'] = False
+        self.status['screen'] = state
+
+        if state != 'review':
+            self.toggle_drain(False)
+
+        if self.status['reviewed'] and state in ['overview', 'review']:
+            self._deck_manager.recover()
+
+        if state == 'deckBrowser':
             self._deck_manager.bar_visible(False)
-        else:
-            self.status['reviewed'] = False
-            self.status['screen'] = state
-
-            if state != 'review':
-                self.toggle_drain(False)
-
-            if self.status['reviewed'] and state in ['overview', 'review']:
-                self._deck_manager.recover()
-
-            if state == 'deckBrowser':
-                self._deck_manager.bar_visible(False)
-            elif self._mw.col is not None:
-                self._deck_manager.set_deck(self._mw.col.decks.current()['id'])
-                self._deck_manager.bar_visible(True)
+        elif self._mw.col is not None:
+            self._deck_manager.set_deck(self._mw.col.decks.current()['id'])
+            self._deck_manager.bar_visible(True)
 
     def show_question(self):
         '''
