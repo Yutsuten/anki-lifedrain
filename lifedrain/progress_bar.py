@@ -157,10 +157,6 @@ class ProgressBar(object):
             self._dock['widget'].deleteLater()
 
         position = POSITION_OPTIONS[position]
-
-        if position not in POSITION_OPTIONS:
-            position = DEFAULTS['barPosition']
-
         if position == 'Top':
             dock_area = self._qt.Qt.TopDockWidgetArea
         elif position == 'Bottom':
