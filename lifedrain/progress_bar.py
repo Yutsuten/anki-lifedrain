@@ -142,35 +142,6 @@ class ProgressBar(object):
                 )
             )
 
-    def _validate_update_current_value(self):
-        '''
-        When updating current value, makes sure that the value is [0; max].
-        '''
-        if self._current_value > self._max_value:
-            self._current_value = self._max_value
-        elif self._current_value < 0:
-            self._current_value = 0
-        self._qprogressbar.setValue(self._current_value)
-        self._qprogressbar.update()
-
-    def _update_text(self):
-        if not self._text_format:
-            return
-        if self._text_format == 'mm:ss':
-            minutes = int(self._current_value / 600)
-            seconds = int((self._current_value / 10) % 60)
-            self._qprogressbar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
-        else:
-            current_value = int(self._current_value / 10)
-            if self._current_value % 10 != 0:
-                current_value += 1
-            max_value = int(self._max_value / 10)
-            text = self._text_format \
-                .replace('%v', str(current_value)) \
-                .replace('%m', str(max_value)) \
-                .replace('%p', str(int(100 * current_value / max_value)))
-            self._qprogressbar.setFormat(text)
-
     def dock_at(self, position):
         '''
         Docks the bar at the specified position in the Anki window.
@@ -216,3 +187,32 @@ class ProgressBar(object):
         self._mw.web.setFocus()
 
         self._qprogressbar.setVisible(bar_visible)
+
+    def _validate_update_current_value(self):
+        '''
+        When updating current value, makes sure that the value is [0; max].
+        '''
+        if self._current_value > self._max_value:
+            self._current_value = self._max_value
+        elif self._current_value < 0:
+            self._current_value = 0
+        self._qprogressbar.setValue(self._current_value)
+        self._qprogressbar.update()
+
+    def _update_text(self):
+        if not self._text_format:
+            return
+        if self._text_format == 'mm:ss':
+            minutes = int(self._current_value / 600)
+            seconds = int((self._current_value / 10) % 60)
+            self._qprogressbar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
+        else:
+            current_value = int(self._current_value / 10)
+            if self._current_value % 10 != 0:
+                current_value += 1
+            max_value = int(self._max_value / 10)
+            text = self._text_format \
+                .replace('%v', str(current_value)) \
+                .replace('%m', str(max_value)) \
+                .replace('%p', str(int(100 * current_value / max_value)))
+            self._qprogressbar.setFormat(text)
