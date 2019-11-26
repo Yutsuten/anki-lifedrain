@@ -115,13 +115,15 @@ class Lifedrain(object):
         When screen changes, update state of the lifedrain.
         '''
         self._update()
-        self._timer.stop()
 
         if self._disable:
             self._deck_manager.bar_visible(False)
         else:
             self.status['reviewed'] = False
             self.status['screen'] = state
+
+            if state != 'review':
+                self.toggle_drain(False)
 
             if self.status['reviewed'] and state in ['overview', 'review']:
                 self._deck_manager.recover()
@@ -131,9 +133,6 @@ class Lifedrain(object):
             elif self._mw.col is not None:
                 self._deck_manager.set_deck(self._mw.col.decks.current()['id'])
                 self._deck_manager.bar_visible(True)
-
-            if state == 'review':
-                self._timer.start()
 
     def show_question(self):
         '''
