@@ -163,10 +163,7 @@ class Lifedrain(object):
         if self._disable:
             return
 
-        if self._stop_on_answer:
-            self.toggle_drain(False)
-        else:
-            self.toggle_drain(True)
+        self.toggle_drain(not self._stop_on_answer)
         self.status['reviewed'] = True
 
     def undo(self):
