@@ -12,8 +12,9 @@ class ProgressBar(object):
     This class creates an interface with QProgressBar to make it accept decimal values.
     '''
     _current_value = 1
-    _dock = None
+    _dock = {}
     _max_value = 1
+    _mw = None
     _qprogressbar = None
     _qt = None
     _text_format = ''
@@ -170,42 +171,48 @@ class ProgressBar(object):
                 .replace('%p', str(int(100 * current_value / max_value)))
             self._qprogressbar.setFormat(text)
 
-    def dock_at(self, place):
+    def dock_at(self, position):
         '''
-        Docks the bar at the specified place in the Anki window.
+        Docks the bar at the specified position in the Anki window.
         '''
+        if 'position' in self._dock and self._dock['position'] == position:
+            return
+
+        self._dock['position'] = position
         bar_visible = self._qprogressbar.isVisible()
 
-        if self._dock is not None:
-            self._dock.close()
+        if 'widget' in self._dock:
+            self._dock['widget'].close()
+            self._dock['widget'].deleteLater()
 
-        place = POSITION_OPTIONS[place]
+        position = POSITION_OPTIONS[position]
 
-        if place not in POSITION_OPTIONS:
-            place = DEFAULTS['barPosition']
+        if position not in POSITION_OPTIONS:
+            position = DEFAULTS['barPosition']
 
-        if place == 'Top':
+        if position == 'Top':
             dock_area = self._qt.Qt.TopDockWidgetArea
-        elif place == 'Bottom':
+        elif position == 'Bottom':
             dock_area = self._qt.Qt.BottomDockWidgetArea
 
-        self._dock = self._qt.QDockWidget()
+        self._dock['widget'] = self._qt.QDockWidget()
         twidget = self._qt.QWidget()
-        self._dock.setWidget(self._qprogressbar)
-        self._dock.setTitleBarWidget(twidget)
+        self._dock['widget'].setWidget(self._qprogressbar)
+        self._dock['widget'].setTitleBarWidget(twidget)
 
         existing_widgets = [
             widget for widget in self._mw.findChildren(self._qt.QDockWidget)
             if self._mw.dockWidgetArea(widget) == dock_area
         ]
         if not existing_widgets:
-            self._mw.addDockWidget(dock_area, self._dock)
+            self._mw.addDockWidget(dock_area, self._dock['widget'])
         else:
             self._mw.setDockNestingEnabled(True)
-            self._mw.splitDockWidget(existing_widgets[0], self._dock, self._qt.Qt.Vertical)
+            self._mw.splitDockWidget(
+                existing_widgets[0],
+                self._dock['widget'],
+                self._qt.Qt.Vertical
+            )
         self._mw.web.setFocus()
 
         self._qprogressbar.setVisible(bar_visible)
-
-    def __del__(self):
-        self._dock.close()
