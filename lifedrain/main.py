@@ -112,24 +112,24 @@ def setup_hooks(lifedrain):
     addHook('showAnswer', lifedrain.show_answer)
     addHook('reset', lifedrain.undo)
     addHook('revertedCard', lambda cid: lifedrain.undo())
-    addHook('leech', lambda *args: lifedrain.status.update({'newCardState': True}))
+    addHook('leech', lambda *args: lifedrain.status.update({'card_new_state': True}))
     addHook('LifeDrain.recover', lifedrain.recover)
 
     Scheduler.buryNote = wrap(
         Scheduler.buryNote,
-        lambda *args: lifedrain.status.update({'newCardState': True})
+        lambda *args: lifedrain.status.update({'card_new_state': True})
     )
     Scheduler.buryCards = wrap(
         Scheduler.buryCards,
-        lambda *args: lifedrain.status.update({'newCardState': True})
+        lambda *args: lifedrain.status.update({'card_new_state': True})
     )
     Scheduler.suspendCards = wrap(
         Scheduler.suspendCards,
-        lambda *args: lifedrain.status.update({'newCardState': True})
+        lambda *args: lifedrain.status.update({'card_new_state': True})
     )
     _Collection.remCards = wrap(
         _Collection.remCards,
-        lambda *args: lifedrain.status.update({'newCardState': True})
+        lambda *args: lifedrain.status.update({'card_new_state': True})
     )
     EditCurrent.__init__ = wrap(
         EditCurrent.__init__,
@@ -137,6 +137,6 @@ def setup_hooks(lifedrain):
     )
     Reviewer._answerCard = wrap(  # pylint: disable=protected-access
         Reviewer._answerCard,  # pylint: disable=protected-access
-        lambda *args: lifedrain.status.update({'reviewResponse': args[1]}),
+        lambda *args: lifedrain.status.update({'review_response': args[1]}),
         'before'
     )

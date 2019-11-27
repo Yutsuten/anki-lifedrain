@@ -65,7 +65,7 @@ class DeckManager(object):
 
     def recover(self, increment=True, value=None, damage=False):
         '''
-        Abstraction for recovering life, increments the bar if increment is True (default).
+        Recover life.
         '''
         deck_id = self._mw.col.decks.current()['id']
 

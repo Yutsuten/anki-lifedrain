@@ -22,7 +22,7 @@ class Settings(object):
 
     def preferences_ui(self, form):
         '''
-        Appends LifeDrain tab to Global Settings dialog.
+        Appends a Life Drain tab to Global Settings dialog.
         '''
         self._form = form
         self._row = 0
@@ -46,7 +46,7 @@ class Settings(object):
 
     def deck_settings_ui(self, form):
         '''
-        Appends a new tab to deck settings dialog.
+        Appends a Life Drain tab to Deck Settings dialog.
         '''
         self._form = form
         self._row = 0
@@ -69,7 +69,7 @@ class Settings(object):
 
     def custom_deck_settings_ui(self, form, is_anki21):
         '''
-        Adds LifeDrain configurations to custom study dialog.
+        Adds Life Drain settings to Custom Deck Settings (Filtered Deck Settings) dialog.
         '''
         self._form = form
         self._row = 0
