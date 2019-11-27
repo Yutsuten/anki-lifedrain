@@ -66,9 +66,9 @@ class DeckManager(object):
         self._progress_bar.dock_at(config['position'])
         self._progress_bar.set_style(config['progressBarStyle'])
 
-    def recover(self, increment=True, value=None, damage=False):
+    def recover_life(self, increment=True, value=None, damage=False):
         '''
-        Recover life.
+        Recover life of the currently active deck.
         '''
         deck_id = self._mw.col.decks.current()['id']
 

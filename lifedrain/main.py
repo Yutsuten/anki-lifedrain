@@ -113,7 +113,7 @@ def setup_hooks(lifedrain):
     addHook('reset', lifedrain.undo)
     addHook('revertedCard', lambda cid: lifedrain.undo())
     addHook('leech', lambda *args: lifedrain.status.update({'card_new_state': True}))
-    addHook('LifeDrain.recover', lifedrain.recover)
+    addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
 
     Scheduler.buryNote = wrap(
         Scheduler.buryNote,

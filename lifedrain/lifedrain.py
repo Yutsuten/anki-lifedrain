@@ -12,6 +12,7 @@ class Lifedrain(object):
     '''
     Contains the state and functions of the life drain.
     '''
+    deck_manager = None
     status = {
         'disable': None,
         'card_new_state': False,
@@ -24,18 +25,17 @@ class Lifedrain(object):
     deck_settings_ui = None
     custom_deck_settings_ui = None
 
-    _deck_manager = None
     _mw = None
     _settings = None
     _timer = None
 
     def __init__(self, make_timer, mw, qt):
-        self._timer = make_timer(100, lambda: self.recover(False, 0.1), True)
+        self.deck_manager = DeckManager(qt, mw)
         self._settings = Settings(qt)
-        self._deck_manager = DeckManager(qt, mw)
         self._mw = mw
-
+        self._timer = make_timer(100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
+
         self.preferences_ui = self._settings.preferences_ui
         self.deck_settings_ui = self._settings.deck_settings_ui
         self.custom_deck_settings_ui = self._settings.custom_deck_settings_ui
@@ -72,7 +72,7 @@ class Lifedrain(object):
         '''
         self._settings.deck_settings_load(
             settings,
-            self._deck_manager.get_deck_conf(settings.deck['id'])['currentValue']
+            self.deck_manager.get_deck_conf(settings.deck['id'])['currentValue']
         )
         self.toggle_drain(False)
 
@@ -81,7 +81,7 @@ class Lifedrain(object):
         Saves LifeDrain deck configurations.
         '''
         deck_conf = self._settings.deck_settings_save(settings)
-        self._deck_manager.set_deck_conf(settings.deck['id'], deck_conf)
+        self.deck_manager.set_deck_conf(settings.deck['id'], deck_conf)
         self.status['card_new_state'] = True
         self.status['reviewed'] = False
 
@@ -97,35 +97,29 @@ class Lifedrain(object):
         elif not self._timer.isActive() and enable is not False:
             self._timer.start()
 
-    def recover(self, *args, **kwargs):
-        '''
-        Recover life.
-        '''
-        self._deck_manager.recover(*args, **kwargs)
-
     def screen_change(self, state):
         '''
         When screen changes, update state of the lifedrain.
         '''
         self._update()
         if self.status['disable']:
-            self._deck_manager.bar_visible(False)
+            self.deck_manager.bar_visible(False)
             return
 
         if state != 'review':
             self.toggle_drain(False)
 
         if self.status['reviewed'] and state in ['overview', 'review']:
-            self._deck_manager.recover()
+            self.deck_manager.recover_life()
 
         self.status['reviewed'] = False
         self.status['screen'] = state
 
         if state == 'deckBrowser':
-            self._deck_manager.bar_visible(False)
+            self.deck_manager.bar_visible(False)
         elif self._mw.col is not None:
-            self._deck_manager.set_deck(self._mw.col.decks.current()['id'])
-            self._deck_manager.bar_visible(True)
+            self.deck_manager.set_deck(self._mw.col.decks.current()['id'])
+            self.deck_manager.bar_visible(True)
 
     def show_question(self):
         '''
@@ -137,9 +131,9 @@ class Lifedrain(object):
         self.toggle_drain(True)
         if self.status['reviewed']:
             if self.status['review_response'] == 1:
-                self.recover(damage=True)
+                self.deck_manager.recover_life(damage=True)
             else:
-                self.recover()
+                self.deck_manager.recover_life()
         self.status['reviewed'] = False
         self.status['card_new_state'] = False
 
@@ -162,7 +156,7 @@ class Lifedrain(object):
 
         if self.status['screen'] == 'review' and not self.status['card_new_state']:
             self.status['reviewed'] = False
-            self.recover(False)
+            self.deck_manager.recover_life(False)
         self.status['card_new_state'] = False
 
     def _update(self):
@@ -170,7 +164,7 @@ class Lifedrain(object):
             return
 
         conf = self._mw.col.conf
-        self._deck_manager.set_progress_bar_style({
+        self.deck_manager.set_progress_bar_style({
             'position': conf.get('barPosition', DEFAULTS['barPosition']),
             'progressBarStyle': {
                 'height': conf.get('barHeight', DEFAULTS['barHeight']),
