@@ -40,6 +40,9 @@ class DeckManager(object):
         '''
         Get the settings and state of a deck.
         '''
+        if deck_id not in self._bar_info:
+            self._add_deck(deck_id)
+
         return self._bar_info[deck_id]
 
     def set_deck_conf(self, deck_id, conf):
