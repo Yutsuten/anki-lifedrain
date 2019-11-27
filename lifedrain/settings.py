@@ -3,7 +3,9 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 '''
 
-from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_OPTIONS, DEFAULTS
+from operator import itemgetter
+
+from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
 
 
 class Settings(object):
@@ -34,7 +36,7 @@ class Settings(object):
         self._create_combo_box('positionList', 'Position', POSITION_OPTIONS)
         self._create_spin_box('heightInput', 'Height', [1, 40])
         self._create_spin_box('borderRadiusInput', 'Border radius', [0, 20])
-        self._create_combo_box('textList', 'Text', TEXT_OPTIONS)
+        self._create_combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT))
         self._create_combo_box('styleList', 'Style', STYLE_OPTIONS)
         self._create_color_select('bgColor', 'Background color')
         self._create_color_select('fgColor', 'Foreground color')

@@ -16,9 +16,6 @@ TEXT_FORMAT = [
     {'text': 'XX%', 'format': '%p%'},
     {'text': 'mm:ss', 'format': 'mm:ss'}
 ]
-TEXT_OPTIONS = []
-for text_format in TEXT_FORMAT:
-    TEXT_OPTIONS.append(text_format['text'])
 
 DEFAULTS = {
     'maxLife': 120,
