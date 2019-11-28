@@ -33,12 +33,8 @@ class DeckManager(object):
         if deck_id not in self._bar_info:
             self._add_deck(deck_id)
 
-        self._progress_bar.set_max_value(
-            self._bar_info[deck_id]['maxValue']
-        )
-        self._progress_bar.set_current_value(
-            self._bar_info[deck_id]['currentValue']
-        )
+        self._progress_bar.set_max_value(self._bar_info[deck_id]['maxValue'])
+        self._progress_bar.set_current_value(self._bar_info[deck_id]['currentValue'])
 
     def get_deck_conf(self, deck_id):
         '''

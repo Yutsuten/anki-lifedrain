@@ -35,7 +35,7 @@ class ProgressBar(object):
         Resets bar, setting current value to maximum.
         '''
         self._current_value = self._max_value
-        self._validate_update_current_value()
+        self._validate_current_value()
         self._update_text()
 
     def set_max_value(self, max_value):
@@ -52,7 +52,7 @@ class ProgressBar(object):
         Sets the current value for the bar.
         '''
         self._current_value = current_value * 10
-        self._validate_update_current_value()
+        self._validate_current_value()
         self._update_text()
 
     def inc_current_value(self, increment):
@@ -61,7 +61,7 @@ class ProgressBar(object):
         Negative values will decrement.
         '''
         self._current_value += increment * 10
-        self._validate_update_current_value()
+        self._validate_current_value()
         if self._current_value % 10 == 0 or abs(increment) >= 1:
             self._update_text()
 
@@ -173,7 +173,7 @@ class ProgressBar(object):
         self._mw.web.setFocus()
         self._qprogressbar.setVisible(bar_visible)
 
-    def _validate_update_current_value(self):
+    def _validate_current_value(self):
         '''
         When updating current value, makes sure that the value is [0; max].
         '''
