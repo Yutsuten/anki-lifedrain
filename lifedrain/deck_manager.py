@@ -15,12 +15,12 @@ class DeckManager(object):
     '''
     _bar_info = {}
     _game_over = False
-    _mw = None
+    _main_window = None
     _progress_bar = None
 
     def __init__(self, qt, mw):
         self._progress_bar = ProgressBar(qt, mw)
-        self._mw = mw
+        self._main_window = mw
 
     def set_deck(self, deck_id):
         '''
@@ -70,7 +70,7 @@ class DeckManager(object):
         '''
         Recover life of the currently active deck.
         '''
-        deck_id = self._mw.col.decks.current()['id']
+        deck_id = self._main_window.col.decks.current()['id']
 
         multiplier = 1
         if not increment:
@@ -105,7 +105,7 @@ class DeckManager(object):
         '''
         Adds a deck to the manager.
         '''
-        conf = self._mw.col.decks.confForDid(deck_id)
+        conf = self._main_window.col.decks.confForDid(deck_id)
         self._bar_info[deck_id] = {
             'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
             'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),

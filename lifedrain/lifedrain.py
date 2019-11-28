@@ -4,6 +4,7 @@ See the LICENCE file in the repository root for full licence text.
 '''
 
 from .deck_manager import DeckManager
+from .decorators import must_be_enabled
 from .defaults import DEFAULTS
 from .settings import Settings
 
@@ -13,8 +14,8 @@ class Lifedrain(object):
     Contains the state and functions of the life drain.
     '''
     deck_manager = None
+    mw = None
     status = {
-        'disable': None,
         'card_new_state': False,
         'reviewed': False,
         'review_response': 0,
@@ -25,14 +26,13 @@ class Lifedrain(object):
     deck_settings_ui = None
     custom_deck_settings_ui = None
 
-    _mw = None
     _settings = None
     _timer = None
 
     def __init__(self, make_timer, mw, qt):
         self.deck_manager = DeckManager(qt, mw)
+        self.main_window = mw
         self._settings = Settings(qt)
-        self._mw = mw
         self._timer = make_timer(100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
 
@@ -61,10 +61,12 @@ class Lifedrain(object):
         '''
         conf = self._settings.preferences_save(pref)
 
-        self.status['disable'] = conf['disable']
         self.status['stop_on_answer'] = conf['stopOnAnswer']
         self.status['card_new_state'] = True
         self.status['reviewed'] = False
+
+        if conf['disable'] is True:
+            self.deck_manager.bar_visible(False)
 
     def deck_settings_load(self, settings):
         '''
@@ -85,26 +87,22 @@ class Lifedrain(object):
         self.status['card_new_state'] = True
         self.status['reviewed'] = False
 
+    @must_be_enabled
     def toggle_drain(self, enable=None):
         '''
         Toggle the timer to pause/unpause the drain.
         '''
-        if self.status['disable']:
-            return
-
         if self._timer.isActive() and enable is not True:
             self._timer.stop()
         elif not self._timer.isActive() and enable is not False:
             self._timer.start()
 
+    @must_be_enabled
     def screen_change(self, state):
         '''
         When screen changes, update state of the lifedrain.
         '''
         self._update()
-        if self.status['disable']:
-            self.deck_manager.bar_visible(False)
-            return
 
         if state != 'review':
             self.toggle_drain(False)
@@ -117,17 +115,15 @@ class Lifedrain(object):
 
         if state == 'deckBrowser':
             self.deck_manager.bar_visible(False)
-        elif self._mw.col is not None:
-            self.deck_manager.set_deck(self._mw.col.decks.current()['id'])
+        elif self.main_window.col is not None:
+            self.deck_manager.set_deck(self.main_window.col.decks.current()['id'])
             self.deck_manager.bar_visible(True)
 
+    @must_be_enabled
     def show_question(self):
         '''
         Called when a question is shown.
         '''
-        if self.status['disable']:
-            return
-
         self.toggle_drain(True)
         if self.status['reviewed']:
             if self.status['review_response'] == 1:
@@ -137,33 +133,26 @@ class Lifedrain(object):
         self.status['reviewed'] = False
         self.status['card_new_state'] = False
 
+    @must_be_enabled
     def show_answer(self):
         '''
         Called when an answer is shown.
         '''
-        if self.status['disable']:
-            return
-
         self.toggle_drain(not self.status['stop_on_answer'])
         self.status['reviewed'] = True
 
+    @must_be_enabled
     def undo(self):
         '''
         Deals with undoing.
         '''
-        if self.status['disable']:
-            return
-
         if self.status['screen'] == 'review' and not self.status['card_new_state']:
             self.status['reviewed'] = False
             self.deck_manager.recover_life(False)
         self.status['card_new_state'] = False
 
     def _update(self):
-        if self._mw.col is None:
-            return
-
-        conf = self._mw.col.conf
+        conf = self.main_window.col.conf
         self.deck_manager.set_progress_bar_style({
             'position': conf.get('barPosition', DEFAULTS['barPosition']),
             'progressBarStyle': {
@@ -176,5 +165,4 @@ class Lifedrain(object):
                 'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
             }
         })
-        self.status['disable'] = conf.get('disable', DEFAULTS['disable'])
         self.status['stop_on_answer'] = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])
