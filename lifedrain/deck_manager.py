@@ -13,6 +13,8 @@ class DeckManager(object):
     '''
     Manages different Life Drain configuration for each deck.
     '''
+    bar_visible = None
+
     _bar_info = {}
     _game_over = False
     _main_window = None
@@ -21,6 +23,7 @@ class DeckManager(object):
     def __init__(self, qt, mw):
         self._progress_bar = ProgressBar(qt, mw)
         self._main_window = mw
+        self.bar_visible = self._progress_bar.set_visible
 
     def set_deck(self, deck_id):
         '''
@@ -43,7 +46,6 @@ class DeckManager(object):
         '''
         if deck_id not in self._bar_info:
             self._add_deck(deck_id)
-
         return self._bar_info[deck_id]
 
     def set_deck_conf(self, deck_id, conf):
@@ -80,20 +82,11 @@ class DeckManager(object):
 
         life = self._progress_bar.get_current_value()
         self._bar_info[deck_id]['currentValue'] = life
-        if life == 0 and not self._game_over:
+        if life > 0:
+            self._game_over = False
+        elif not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
-        elif life > 0:
-            self._game_over = False
-
-    def bar_visible(self, visible):
-        '''
-        Sets the visibility of the Progress Bar
-        '''
-        if visible:
-            self._progress_bar.show()
-        else:
-            self._progress_bar.hide()
 
     def _add_deck(self, deck_id):
         '''

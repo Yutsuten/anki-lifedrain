@@ -24,17 +24,11 @@ class ProgressBar(object):
         self._qt = qt
         self._qprogressbar = qt.QProgressBar()
 
-    def show(self):
+    def set_visible(self, visible):
         '''
-        Shows the progress bar.
+        Updates the visibility of the Progress Bar.
         '''
-        self._qprogressbar.show()
-
-    def hide(self):
-        '''
-        Hides the progress bar.
-        '''
-        self._qprogressbar.hide()
+        self._qprogressbar.setVisible(visible)
 
     def reset_bar(self):
         '''
@@ -111,10 +105,7 @@ class ProgressBar(object):
                 QProgressBar {
                     max-height: %spx;
                 }
-                '''
-                % (
-                    options['height'],
-                )
+                ''' % (options['height'])
             )
         else:
             self._qprogressbar.setStyleSheet(
@@ -131,8 +122,7 @@ class ProgressBar(object):
                     margin: 0px;
                     border-radius: %dpx;
                 }
-                '''
-                % (
+                ''' % (
                     options['backgroundColor'],
                     options['borderRadius'],
                     options['height'],
@@ -181,7 +171,6 @@ class ProgressBar(object):
                 self._qt.Qt.Vertical
             )
         self._mw.web.setFocus()
-
         self._qprogressbar.setVisible(bar_visible)
 
     def _validate_update_current_value(self):
