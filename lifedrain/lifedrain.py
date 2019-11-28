@@ -20,7 +20,6 @@ class Lifedrain(object):
         'reviewed': False,
         'review_response': 0,
         'screen': None,
-        'stop_on_answer': None
     }
     preferences_ui = None
     deck_settings_ui = None
@@ -61,7 +60,6 @@ class Lifedrain(object):
         '''
         conf = self._settings.preferences_save(pref)
 
-        self.status['stop_on_answer'] = conf['stopOnAnswer']
         self.status['card_new_state'] = True
         self.status['reviewed'] = False
 
@@ -102,8 +100,6 @@ class Lifedrain(object):
         '''
         When screen changes, update state of the lifedrain.
         '''
-        self._update()
-
         if state != 'review':
             self.toggle_drain(False)
 
@@ -138,7 +134,8 @@ class Lifedrain(object):
         '''
         Called when an answer is shown.
         '''
-        self.toggle_drain(not self.status['stop_on_answer'])
+        conf = self.main_window.col.conf
+        self.toggle_drain(not conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer']))
         self.status['reviewed'] = True
 
     @must_be_enabled
@@ -150,19 +147,3 @@ class Lifedrain(object):
             self.status['reviewed'] = False
             self.deck_manager.recover_life(False)
         self.status['card_new_state'] = False
-
-    def _update(self):
-        conf = self.main_window.col.conf
-        self.deck_manager.set_progress_bar_style({
-            'position': conf.get('barPosition', DEFAULTS['barPosition']),
-            'progressBarStyle': {
-                'height': conf.get('barHeight', DEFAULTS['barHeight']),
-                'backgroundColor': conf.get('barBgColor', DEFAULTS['barBgColor']),
-                'foregroundColor': conf.get('barFgColor', DEFAULTS['barFgColor']),
-                'borderRadius': conf.get('barBorderRadius', DEFAULTS['barBorderRadius']),
-                'text': conf.get('barText', DEFAULTS['barText']),
-                'textColor': conf.get('barTextColor', DEFAULTS['barTextColor']),
-                'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
-            }
-        })
-        self.status['stop_on_answer'] = conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer'])

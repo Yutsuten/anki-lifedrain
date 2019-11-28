@@ -26,6 +26,7 @@ class DeckManager(object):
         '''
         Sets the current deck.
         '''
+        self._update_progress_bar_style()
         if deck_id not in self._bar_info:
             self._add_deck(deck_id)
 
@@ -58,13 +59,6 @@ class DeckManager(object):
         self._bar_info[deck_id]['enableDamageValue'] = conf['enableDamage']
         self._bar_info[deck_id]['damageValue'] = conf['damage']
         self._bar_info[deck_id]['currentValue'] = current_value
-
-    def set_progress_bar_style(self, config):
-        '''
-        Updates the AnkiProgressBar instance.
-        '''
-        self._progress_bar.dock_at(config['position'])
-        self._progress_bar.set_style(config['progressBarStyle'])
 
     def recover_life(self, increment=True, value=None, damage=False):
         '''
@@ -113,3 +107,19 @@ class DeckManager(object):
             'enableDamageValue': conf.get('enableDamage', DEFAULTS['enableDamage']),
             'damageValue': conf.get('damage', DEFAULTS['damage'])
         }
+
+    def _update_progress_bar_style(self):
+        '''
+        Updates the ProgressBar styling.
+        '''
+        conf = self._main_window.col.conf
+        self._progress_bar.dock_at(conf.get('barPosition', DEFAULTS['barPosition']))
+        self._progress_bar.set_style({
+            'height': conf.get('barHeight', DEFAULTS['barHeight']),
+            'backgroundColor': conf.get('barBgColor', DEFAULTS['barBgColor']),
+            'foregroundColor': conf.get('barFgColor', DEFAULTS['barFgColor']),
+            'borderRadius': conf.get('barBorderRadius', DEFAULTS['barBorderRadius']),
+            'text': conf.get('barText', DEFAULTS['barText']),
+            'textColor': conf.get('barTextColor', DEFAULTS['barTextColor']),
+            'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
+        })
