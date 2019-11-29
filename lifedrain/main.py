@@ -1,7 +1,7 @@
-'''
+"""
 Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
-'''
+"""
 
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
@@ -18,9 +18,7 @@ from .lifedrain import Lifedrain
 
 
 def main():
-    '''
-    Lifedrain's main function.
-    '''
+    """Initializes the Life Drain add-on."""
     make_timer = ProgressManager(mw).timer
     lifedrain = Lifedrain(make_timer, mw, qt)
 
@@ -30,11 +28,16 @@ def main():
 
 
 def setup_user_interface(lifedrain):
-    '''
-    Setup some windows for configurating the add-on.
-    These are the Preferences, Deck configuration and Custom deck configuration.
-    '''
-    # Preferences
+    """Generates the User Interfaces for configurating the add-on.
+
+    Generates the Preferences (Global Settings), Deck Settings and Custom Deck
+    Settings (Filtered Deck Settings) User Interface. It also adds the triggers
+    for loading and saving each setting.
+
+    Args:
+        lifedrain: A Lifedrain instance.
+    """
+    # Global Settings
     forms.preferences.Ui_Preferences.setupUi = wrap(
         forms.preferences.Ui_Preferences.setupUi,
         lambda *args: lifedrain.preferences_ui(args[0])
@@ -49,7 +52,7 @@ def setup_user_interface(lifedrain):
         'before'
     )
 
-    # Deck configuration
+    # Deck Settings
     forms.dconf.Ui_Dialog.setupUi = wrap(
         forms.dconf.Ui_Dialog.setupUi,
         lambda *args: lifedrain.deck_settings_ui(args[0])
@@ -64,7 +67,7 @@ def setup_user_interface(lifedrain):
         'before'
     )
 
-    # Custom deck configuration
+    # Filtered Deck Settings
     forms.dyndconf.Ui_Dialog.setupUi = wrap(
         forms.dyndconf.Ui_Dialog.setupUi,
         lambda *args: lifedrain.custom_deck_settings_ui(
@@ -84,10 +87,11 @@ def setup_user_interface(lifedrain):
 
 
 def setup_shortcuts(lifedrain):
-    '''
-    Setup the shortcuts provided by the add-on.
-    It deals with key presses for both Anki 2.0 and 2.1
-    '''
+    """Configures the shortcuts provided by the add-on.
+
+    Args:
+        lifedrain: A Lifedrain instance.
+    """
     if appVersion.startswith('2.0'):
         Reviewer._keyHandler = wrap(  # pylint: disable=protected-access
             Reviewer._keyHandler,  # pylint: disable=protected-access
@@ -103,10 +107,11 @@ def setup_shortcuts(lifedrain):
 
 
 def setup_hooks(lifedrain):
-    '''
-    Setup the hooks that will make the magic happen.
-    Here we configure all triggers that will invoke a lifedrain method.
-    '''
+    """Links events triggered on Anki to Life Drain methods.
+
+    Args:
+        lifedrain: A Lifedrain instance.
+    """
     addHook('beforeStateChange', lambda *args: lifedrain.screen_change(args[0]))
     addHook('showQuestion', lifedrain.show_question)
     addHook('showAnswer', lifedrain.show_answer)

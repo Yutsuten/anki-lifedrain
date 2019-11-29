@@ -1,7 +1,7 @@
-'''
+"""
 Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
-'''
+"""
 
 from operator import itemgetter
 
@@ -9,10 +9,11 @@ from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
 
 
 class Settings(object):
-    '''
-    Contains a set of methods that creates the User Interface
-    for configurating the add-on.
-    '''
+    """Creates the User Interfaces for configurating the add-on.
+
+    Attributes:
+        qt: A PyQt instance.
+    """
     _qt = None
     _form = None
     _row = None
@@ -21,9 +22,11 @@ class Settings(object):
         self._qt = qt
 
     def preferences_ui(self, form):
-        '''
-        Appends a Life Drain tab to Global Settings dialog.
-        '''
+        """Appends a Life Drain tab to the Global Settings dialog.
+
+        Args:
+            form: The form instance of the Global Settings dialog.
+        """
         self._form = form
         self._row = 0
 
@@ -45,9 +48,11 @@ class Settings(object):
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
     def deck_settings_ui(self, form):
-        '''
-        Appends a Life Drain tab to Deck Settings dialog.
-        '''
+        """Appends a Life Drain tab to Deck Settings dialog.
+
+        Args:
+            form: The form instance of the Global Settings dialog.
+        """
         self._form = form
         self._row = 0
 
@@ -68,9 +73,11 @@ class Settings(object):
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
     def custom_deck_settings_ui(self, form, is_anki21):
-        '''
-        Adds Life Drain settings to Custom Deck Settings (Filtered Deck Settings) dialog.
-        '''
+        """Adds Life Drain settings to Custom Deck Settings (Filtered Deck Settings) dialog.
+
+        Args:
+            form: The form instance of the Global Settings dialog.
+        """
         self._form = form
         self._row = 0
 
@@ -85,9 +92,11 @@ class Settings(object):
         form.verticalLayout.insertWidget(index, form.lifedrain_widget)
 
     def preferences_load(self, pref):
-        '''
-        Loads LifeDrain global configurations into the Preferences UI.
-        '''
+        """Loads LifeDrain global configurations into the form.
+
+        Args:
+            pref: The instance of the Global Settings dialog.
+        """
         conf = pref.mw.col.conf
         pref.form.positionList.setCurrentIndex(
             conf.get('barPosition', DEFAULTS['barPosition'])
@@ -141,9 +150,11 @@ class Settings(object):
 
     @staticmethod
     def preferences_save(pref):
-        '''
-        Saves Life Drain global configurations.
-        '''
+        """Saves LifeDrain global configurations from the form.
+
+        Args:
+            pref: The instance of the Global Settings dialog.
+        """
         conf = pref.mw.col.conf
         conf['barPosition'] = pref.form.positionList.currentIndex()
         conf['barHeight'] = pref.form.heightInput.value()
@@ -159,9 +170,12 @@ class Settings(object):
 
     @staticmethod
     def deck_settings_load(settings, current_life):
-        '''
-        Loads LifeDrain deck configurations into the Settings UI.
-        '''
+        """Loads LifeDrain deck configurations into the form.
+
+        Args:
+            settings: The instance of the Deck Settings dialog.
+            current_life: The current amount of life.
+        """
         settings.conf = settings.mw.col.decks.confForDid(settings.deck['id'])
         settings.form.maxLifeInput.setValue(
             settings.conf.get('maxLife', DEFAULTS['maxLife'])
@@ -179,9 +193,11 @@ class Settings(object):
 
     @staticmethod
     def deck_settings_save(settings):
-        '''
-        Saves LifeDrain deck configurations.
-        '''
+        """Saves LifeDrain deck configurations from the form.
+
+        Args:
+            settings: The instance of the Deck Settings dialog.
+        """
         settings.conf['maxLife'] = settings.form.maxLifeInput.value()
         settings.conf['recover'] = settings.form.recoverInput.value()
         settings.conf['currentValue'] = settings.form.currentValueInput.value()
