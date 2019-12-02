@@ -9,16 +9,18 @@ from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
 
 
 class Settings(object):
-    """Creates the User Interfaces for configurating the add-on.
+    """Creates the User Interfaces for configurating the add-on."""
 
-    Attributes:
-        qt: A PyQt instance.
-    """
     _qt = None
     _form = None
     _row = None
 
     def __init__(self, qt):
+        """Saves the qt library to generate the Settings UI later.
+
+        Args:
+            qt: The PyQt library.
+        """
         self._qt = qt
 
     def preferences_ui(self, form):
@@ -92,7 +94,7 @@ class Settings(object):
         form.verticalLayout.insertWidget(index, form.lifedrain_widget)
 
     def preferences_load(self, pref):
-        """Loads LifeDrain global configurations into the form.
+        """Loads Life Drain global settings into the form.
 
         Args:
             pref: The instance of the Global Settings dialog.
@@ -150,7 +152,7 @@ class Settings(object):
 
     @staticmethod
     def preferences_save(pref):
-        """Saves LifeDrain global configurations from the form.
+        """Saves Life Drain global settings from the form.
 
         Args:
             pref: The instance of the Global Settings dialog.
@@ -170,7 +172,7 @@ class Settings(object):
 
     @staticmethod
     def deck_settings_load(settings, current_life):
-        """Loads LifeDrain deck configurations into the form.
+        """Loads Life Drain deck settings into the form.
 
         Args:
             settings: The instance of the Deck Settings dialog.
@@ -193,7 +195,7 @@ class Settings(object):
 
     @staticmethod
     def deck_settings_save(settings):
-        """Saves LifeDrain deck configurations from the form.
+        """Saves Life Drain deck settings from the form.
 
         Args:
             settings: The instance of the Deck Settings dialog.
@@ -206,9 +208,11 @@ class Settings(object):
         return settings.conf
 
     def _gui_settings_setup_layout(self, widget):
-        '''
-        Sets up the layout used for the menus used in Life Drain.
-        '''
+        """Sets up the form layout used on Life Drain's settings UI.
+
+        Args:
+            widget: A Life Drain widget.
+        """
         layout = self._qt.QGridLayout(widget)
         layout.setColumnStretch(0, 2)
         layout.setColumnStretch(1, 4)
@@ -218,9 +222,12 @@ class Settings(object):
         return layout
 
     def _create_label(self, text, color=None):
-        '''
-        Creates a label that occupies the whole line and wraps if it is too big.
-        '''
+        """Creates a label in the current row of the form.
+
+        Args:
+            text: The text to be shown by the label.
+            color: Optional. The color of the text in hex format.
+        """
         label = self._qt.QLabel(text)
         label.setWordWrap(True)
         self._form.lifedrain_layout.addWidget(label, self._row, 0, 1, 4)
@@ -229,9 +236,13 @@ class Settings(object):
         self._row += 1
 
     def _create_combo_box(self, cb_name, label_text, options):
-        '''
-        Creates a combo box with the specified label and options.
-        '''
+        """Creates a combo box in the current row of the form.
+
+        Args:
+            cb_name: The name of the combo box. Not visible by the user.
+            label_text: A text that describes what is the combo box for.
+            options: A list of options.
+        """
         label = self._qt.QLabel(label_text)
         setattr(self._form, cb_name, self._qt.QComboBox(self._form.lifedrain_widget))
         for option in options:
@@ -241,9 +252,12 @@ class Settings(object):
         self._row += 1
 
     def _create_check_box(self, cb_name, label_text):
-        '''
-        Creates a checkbox with the specified label.
-        '''
+        """Creates a check box in the current row of the form.
+
+        Args:
+            cb_name: The name of the check box. Not visible by the user.
+            label_text: A text that describes what is the check box for.
+        """
         label = self._qt.QLabel(label_text)
         setattr(self._form, cb_name, self._qt.QCheckBox(self._form.lifedrain_widget))
         self._form.lifedrain_layout.addWidget(label, self._row, 0)
@@ -251,9 +265,13 @@ class Settings(object):
         self._row += 1
 
     def _create_spin_box(self, sb_name, label_text, val_range):
-        '''
-        Creates a spin box with the specified label and range.
-        '''
+        """Creates a spin box in the current row of the form.
+
+        Args:
+            sb_name: The name of the spin box. Not visible by the user.
+            label_text: A text that describes what is the spin box for.
+            val_range: A list of two integers that are the range of the spin box.
+        """
         label = self._qt.QLabel(label_text)
         setattr(self._form, sb_name, self._qt.QSpinBox(self._form.lifedrain_widget))
         getattr(self._form, sb_name).setRange(val_range[0], val_range[1])
@@ -262,9 +280,12 @@ class Settings(object):
         self._row += 1
 
     def _create_color_select(self, cs_name, label_text):
-        '''
-        Creates a color select with the specified label.
-        '''
+        """Creates a color select in the current row of the form.
+
+        Args:
+            cs_name: The name of the color select. Not visible by the user.
+            label_text: A text that describes what is the color select for.
+        """
         label = self._qt.QLabel(label_text)
         select_button = self._qt.QPushButton('Select')
         cs_preview_name = '%sPreview' % cs_name
@@ -284,9 +305,7 @@ class Settings(object):
         self._row += 1
 
     def _fill_remaining_space(self):
-        '''
-        Fills the remaining space, so what comes after this is in the bottom.
-        '''
+        """Creates a spacer that will vertically fill all the free space in the form."""
         spacer = self._qt.QSpacerItem(
             1, 1, self._qt.QSizePolicy.Minimum, self._qt.QSizePolicy.Expanding
         )
@@ -295,9 +314,12 @@ class Settings(object):
 
     @staticmethod
     def _select_color_dialog(qcolor_dialog, preview_label):
-        '''
-        Shows the select color dialog and updates the preview color in settings.
-        '''
+        """Shows the select color dialog and updates the preview color in the form.
+
+        Args:
+            qcolor_dialog: The instance of the color dialog.
+            preview_label: The instance of the color dialog preview label.
+        """
         if qcolor_dialog.exec_():
             preview_label.setStyleSheet(
                 'QLabel { background-color: %s; }'

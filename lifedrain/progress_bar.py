@@ -1,16 +1,18 @@
-'''
+"""
 Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
-'''
+"""
 
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 
 
 class ProgressBar(object):
-    '''
-    A Progress Bar on Anki.
-    This class creates an interface with QProgressBar to make it accept decimal values.
-    '''
+    """Implements a Progress Bar to be used on Anki.
+
+    Creates an interface with QProgressBar to make its usage on Anki easier. It also adds
+    a (limited) ability to use decimal values as the current value.
+    """
+
     _current_value = 1
     _dock = {}
     _max_value = 1
@@ -19,62 +21,73 @@ class ProgressBar(object):
     _qt = None
     _text_format = ''
 
-    def __init__(self, qt, mw):
+    def __init__(self, mw, qt):
+        """Initializes a QProgressBar and keeps Anki's main window and PyQt references.
+
+        Args:
+            mw: Anki's main window.
+            qt: The PyQt library.
+        """
         self._mw = mw
         self._qt = qt
         self._qprogressbar = qt.QProgressBar()
 
     def set_visible(self, visible):
-        '''
-        Updates the visibility of the Progress Bar.
-        '''
+        """Sets the visibility of the Progress Bar.
+
+        Args:
+            visible: A flag indicating if the Progress Bar should be visible or not.
+        """
         self._qprogressbar.setVisible(visible)
 
     def reset_bar(self):
-        '''
-        Resets bar, setting current value to maximum.
-        '''
+        """Resets the current value back to the maximum."""
         self._current_value = self._max_value
         self._validate_current_value()
         self._update_text()
 
     def set_max_value(self, max_value):
-        '''
-        Sets the maximum value for the bar.
-        '''
+        """Sets the maximum value for the bar.
+
+        Args:
+            max_value: The maximum value of the bar. May have 1 decimal place.
+        """
         self._max_value = max_value * 10
         if self._max_value <= 0:
             self._max_value = 1
         self._qprogressbar.setRange(0, self._max_value)
 
     def set_current_value(self, current_value):
-        '''
-        Sets the current value for the bar.
-        '''
+        """Sets the current value for the bar.
+
+        Args:
+            current_value: The current value of the bar. May have 1 decimal place.
+        """
         self._current_value = current_value * 10
         self._validate_current_value()
         self._update_text()
 
     def inc_current_value(self, increment):
-        '''
-        Increments the current value of the bar.
-        Negative values will decrement.
-        '''
+        """Increments the current value of the bar.
+
+        Args:
+            increment: A positive or negative number, up to 1 decimal place.
+        """
         self._current_value += increment * 10
         self._validate_current_value()
         if self._current_value % 10 == 0 or abs(increment) >= 1:
             self._update_text()
 
     def get_current_value(self):
-        '''
-        Gets the current value of the bar.
-        '''
+        """Gets the current value of the bar."""
         return float(self._current_value) / 10
 
     def set_style(self, options):
-        '''
-        Sets the style of the bar.
-        '''
+        """Sets the styling of the Progress Bar.
+
+        Args:
+            options: A dictionary with bar styling information.
+        """
         self._qprogressbar.setTextVisible(options['text'] != 0)  # 0 is the index of None
         text_format = TEXT_FORMAT[options['text']]
         if 'format' in text_format:
@@ -133,9 +146,11 @@ class ProgressBar(object):
             )
 
     def dock_at(self, position):
-        '''
-        Docks the bar at the specified position in the Anki window.
-        '''
+        """Docks the bar at the specified position in the Anki window.
+
+        Args:
+            position: The position where the Progress Bar will be placed.
+        """
         if 'position' in self._dock and self._dock['position'] == position:
             return
 
@@ -174,9 +189,7 @@ class ProgressBar(object):
         self._qprogressbar.setVisible(bar_visible)
 
     def _validate_current_value(self):
-        '''
-        When updating current value, makes sure that the value is [0; max].
-        '''
+        """Asserts that the current value is between [0; max]."""
         if self._current_value > self._max_value:
             self._current_value = self._max_value
         elif self._current_value < 0:
@@ -185,6 +198,7 @@ class ProgressBar(object):
         self._qprogressbar.update()
 
     def _update_text(self):
+        """Updates the Progress Bar text."""
         if not self._text_format:
             return
         if self._text_format == 'mm:ss':
