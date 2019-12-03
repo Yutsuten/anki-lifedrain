@@ -57,10 +57,10 @@ class Lifedrain(object):
         self.deck_settings_ui = self._settings.deck_settings_ui
         self.custom_deck_settings_ui = self._settings.custom_deck_settings_ui
 
-        # Configure separator strip
+        # Configure separator strip - Seems that it is not needed on Anki 2.1
         mw.setStyleSheet('QMainWindow::separator { width: 0px; height: 0px; }')
         try:
-            import Night_Mode
+            import Night_Mode  # pylint: disable=import-error
             Night_Mode.nm_css_menu += 'QMainWindow::separator { width: 0px; height: 0px; }'
         except Exception:  # nosec  # pylint: disable=broad-except
             pass

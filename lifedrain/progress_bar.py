@@ -168,9 +168,8 @@ class ProgressBar(object):
             dock_area = self._qt.Qt.BottomDockWidgetArea
 
         self._dock['widget'] = self._qt.QDockWidget()
-        twidget = self._qt.QWidget()
         self._dock['widget'].setWidget(self._qprogressbar)
-        self._dock['widget'].setTitleBarWidget(twidget)
+        self._dock['widget'].setTitleBarWidget(self._qt.QWidget())
 
         existing_widgets = [
             widget for widget in self._mw.findChildren(self._qt.QDockWidget)
