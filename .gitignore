@@ -5,9 +5,6 @@ tmp/
 # Dist files
 dist/
 
-# Virtual environment
-venv/
-
 # Anki
 anki/
 anki-2.0.*/
