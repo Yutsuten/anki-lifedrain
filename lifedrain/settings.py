@@ -104,36 +104,30 @@ class Settings(object):
             pref: The instance of the Global Settings dialog.
         """
         self._conf = pref.mw.col.conf
-        pref.form.positionList.setCurrentIndex(self._get_conf('barPosition'))
-        pref.form.heightInput.setValue(self._get_conf('barHeight'))
+        form = pref.form
 
-        pref.form.bgColorDialog.setCurrentColor(
+        form.positionList.setCurrentIndex(self._get_conf('barPosition'))
+        form.heightInput.setValue(self._get_conf('barHeight'))
+        form.bgColorDialog.setCurrentColor(
             self._qt.QColor(self._get_conf('barBgColor')))
-        pref.form.bgColorPreview.setStyleSheet(
+        form.bgColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
-            pref.form.bgColorDialog.currentColor().name())
-
-        pref.form.fgColorDialog.setCurrentColor(
+            form.bgColorDialog.currentColor().name())
+        form.fgColorDialog.setCurrentColor(
             self._qt.QColor(self._get_conf('barFgColor')))
-        pref.form.fgColorPreview.setStyleSheet(
+        form.fgColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
-            pref.form.fgColorDialog.currentColor().name())
-
-        pref.form.borderRadiusInput.setValue(self._get_conf('barBorderRadius'))
-
-        pref.form.textList.setCurrentIndex(self._get_conf('barText'))
-
-        pref.form.textColorDialog.setCurrentColor(
+            form.fgColorDialog.currentColor().name())
+        form.borderRadiusInput.setValue(self._get_conf('barBorderRadius'))
+        form.textList.setCurrentIndex(self._get_conf('barText'))
+        form.textColorDialog.setCurrentColor(
             self._qt.QColor(self._get_conf('barTextColor')))
-        pref.form.textColorPreview.setStyleSheet(
+        form.textColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
-            pref.form.textColorDialog.currentColor().name())
-
-        pref.form.styleList.setCurrentIndex(self._get_conf('barStyle'))
-
-        pref.form.stopOnAnswer.setChecked(self._get_conf('stopOnAnswer'))
-
-        pref.form.disableAddon.setChecked(self._get_conf('disable'))
+            form.textColorDialog.currentColor().name())
+        form.styleList.setCurrentIndex(self._get_conf('barStyle'))
+        form.stopOnAnswer.setChecked(self._get_conf('stopOnAnswer'))
+        form.disableAddon.setChecked(self._get_conf('disable'))
 
     @staticmethod
     def preferences_save(pref):
@@ -163,12 +157,12 @@ class Settings(object):
             current_life: The current amount of life.
         """
         self._conf = settings.mw.col.decks.confForDid(settings.deck['id'])
-        settings.form.maxLifeInput.setValue(self._get_conf('maxLife'))
-        settings.form.recoverInput.setValue(self._get_conf('recover'))
-        settings.form.enableDamageInput.setChecked(
-            self._get_conf('enableDamage'))
-        settings.form.damageInput.setValue(self._get_conf('damage'))
-        settings.form.currentValueInput.setValue(current_life)
+        form = settings.form
+        form.maxLifeInput.setValue(self._get_conf('maxLife'))
+        form.recoverInput.setValue(self._get_conf('recover'))
+        form.enableDamageInput.setChecked(self._get_conf('enableDamage'))
+        form.damageInput.setValue(self._get_conf('damage'))
+        form.currentValueInput.setValue(current_life)
 
     @staticmethod
     def deck_settings_save(settings):
