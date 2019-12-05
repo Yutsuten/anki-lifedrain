@@ -137,16 +137,18 @@ class Settings(object):
             pref: The instance of the Global Settings dialog.
         """
         conf = pref.mw.col.conf
-        conf['barPosition'] = pref.form.positionList.currentIndex()
-        conf['barHeight'] = pref.form.heightInput.value()
-        conf['barBgColor'] = pref.form.bgColorDialog.currentColor().name()
-        conf['barFgColor'] = pref.form.fgColorDialog.currentColor().name()
-        conf['barBorderRadius'] = pref.form.borderRadiusInput.value()
-        conf['barText'] = pref.form.textList.currentIndex()
-        conf['barTextColor'] = pref.form.textColorDialog.currentColor().name()
-        conf['barStyle'] = pref.form.styleList.currentIndex()
-        conf['stopOnAnswer'] = pref.form.stopOnAnswer.isChecked()
-        conf['disable'] = pref.form.disableAddon.isChecked()
+        form = pref.form
+
+        conf['barPosition'] = form.positionList.currentIndex()
+        conf['barHeight'] = form.heightInput.value()
+        conf['barBgColor'] = form.bgColorDialog.currentColor().name()
+        conf['barFgColor'] = form.fgColorDialog.currentColor().name()
+        conf['barBorderRadius'] = form.borderRadiusInput.value()
+        conf['barText'] = form.textList.currentIndex()
+        conf['barTextColor'] = form.textColorDialog.currentColor().name()
+        conf['barStyle'] = form.styleList.currentIndex()
+        conf['stopOnAnswer'] = form.stopOnAnswer.isChecked()
+        conf['disable'] = form.disableAddon.isChecked()
         return conf
 
     def deck_settings_load(self, settings, current_life):
@@ -158,6 +160,7 @@ class Settings(object):
         """
         self._conf = settings.mw.col.decks.confForDid(settings.deck['id'])
         form = settings.form
+
         form.maxLifeInput.setValue(self._get_conf('maxLife'))
         form.recoverInput.setValue(self._get_conf('recover'))
         form.enableDamageInput.setChecked(self._get_conf('enableDamage'))
@@ -171,13 +174,15 @@ class Settings(object):
         Args:
             settings: The instance of the Deck Settings dialog.
         """
-        settings.conf['maxLife'] = settings.form.maxLifeInput.value()
-        settings.conf['recover'] = settings.form.recoverInput.value()
-        settings.conf['currentValue'] = settings.form.currentValueInput.value()
-        settings.conf[
-            'enableDamage'] = settings.form.enableDamageInput.isChecked()
-        settings.conf['damage'] = settings.form.damageInput.value()
-        return settings.conf
+        conf = settings.mw.col.decks.confForDid(settings.deck['id'])
+        form = settings.form
+
+        conf['maxLife'] = form.maxLifeInput.value()
+        conf['recover'] = form.recoverInput.value()
+        conf['currentValue'] = form.currentValueInput.value()
+        conf['enableDamage'] = form.enableDamageInput.isChecked()
+        conf['damage'] = form.damageInput.value()
+        return conf
 
     def _gui_settings_setup_layout(self, widget):
         """Sets up the form layout used on Life Drain's settings UI.

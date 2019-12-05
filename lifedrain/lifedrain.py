@@ -97,10 +97,10 @@ class Lifedrain(object):
         Args:
             settings: The instance of the Deck Settings dialog.
         """
+        deck_id = settings.deck['id']
         self._settings.deck_settings_load(
             settings,
-            self.deck_manager.get_deck_conf(
-                settings.deck['id'])['currentValue'])
+            self.deck_manager.get_deck_conf(deck_id)['currentValue'])
         self.toggle_drain(False)
 
     def deck_settings_save(self, settings):
@@ -172,8 +172,8 @@ class Lifedrain(object):
     @must_be_enabled
     def undo(self):
         """Called when an undo event happens on Anki. Not so accurate though."""
-        if self.status[
-                'screen'] == 'review' and not self.status['card_new_state']:
+        on_review = self.status['screen'] == 'review'
+        if on_review and not self.status['card_new_state']:
             self.status['reviewed'] = False
             self.deck_manager.recover_life(False)
         self.status['card_new_state'] = False

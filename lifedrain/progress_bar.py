@@ -195,8 +195,7 @@ class ProgressBar(object):
             if self._current_value % 10 != 0:
                 current_value += 1
             max_value = int(self._max_value / 10)
-            text = self._text_format \
-                .replace('%v', str(current_value)) \
-                .replace('%m', str(max_value)) \
-                .replace('%p', str(int(100 * current_value / max_value)))
+            text = self._text_format.replace('%v', str(current_value)).replace(
+                '%m', str(max_value)).replace(
+                    '%p', str(int(100 * current_value / max_value)))
             self._qprogressbar.setFormat(text)
