@@ -5,7 +5,7 @@ See the LICENCE file in the repository root for full licence text.
 
 from operator import itemgetter
 
-from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, DEFAULTS
+from .defaults import DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 
 
 class Settings(object):
@@ -14,6 +14,7 @@ class Settings(object):
     _qt = None
     _form = None
     _row = None
+    _conf = None
 
     def __init__(self, qt):
         """Saves the qt library to generate the Settings UI later.
@@ -33,7 +34,8 @@ class Settings(object):
         self._row = 0
 
         form.lifedrain_widget = self._qt.QWidget()
-        form.lifedrain_layout = self._gui_settings_setup_layout(form.lifedrain_widget)
+        form.lifedrain_layout = self._gui_settings_setup_layout(
+            form.lifedrain_widget)
         self._create_label('<b>Bar behaviour</b>')
         self._create_check_box('stopOnAnswer', 'Stop drain on answer shown')
         self._create_check_box('disableAddon', 'Disable Life Drain (!)')
@@ -41,7 +43,8 @@ class Settings(object):
         self._create_combo_box('positionList', 'Position', POSITION_OPTIONS)
         self._create_spin_box('heightInput', 'Height', [1, 40])
         self._create_spin_box('borderRadiusInput', 'Border radius', [0, 20])
-        self._create_combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT))
+        self._create_combo_box('textList', 'Text',
+                               map(itemgetter('text'), TEXT_FORMAT))
         self._create_combo_box('styleList', 'Style', STYLE_OPTIONS)
         self._create_color_select('bgColor', 'Background color')
         self._create_color_select('fgColor', 'Foreground color')
@@ -59,13 +62,13 @@ class Settings(object):
         self._row = 0
 
         form.lifedrain_widget = self._qt.QWidget()
-        form.lifedrain_layout = self._gui_settings_setup_layout(form.lifedrain_widget)
+        form.lifedrain_layout = self._gui_settings_setup_layout(
+            form.lifedrain_widget)
         self._create_label(
-            'The <b>maximum life</b> is the time in seconds for the life bar go '
-            'from full to empty.\n<b>Recover</b> is the time in seconds that is '
-            'recovered after answering a card. <b>Damage</b> is the life lost '
-            'when a card is answered with \'Again\'.'
-        )
+            'The <b>maximum life</b> is the time in seconds for the life bar '
+            'go from full to empty.\n<b>Recover</b> is the time in seconds '
+            'that is recovered after answering a card. <b>Damage</b> is the '
+            'life lost when a card is answered with \'Again\'.')
         self._create_spin_box('maxLifeInput', 'Maximum life', [1, 10000])
         self._create_spin_box('recoverInput', 'Recover', [0, 1000])
         self._create_check_box('enableDamageInput', 'Enable damage')
@@ -75,16 +78,17 @@ class Settings(object):
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
     def custom_deck_settings_ui(self, form, is_anki21):
-        """Adds Life Drain settings to Custom Deck Settings (Filtered Deck Settings) dialog.
+        """Adds Life Drain settings to Filtered Deck Settings dialog.
 
         Args:
-            form: The form instance of the Global Settings dialog.
+            form: The form instance of the Filtered Deck Settings dialog.
         """
         self._form = form
         self._row = 0
 
         form.lifedrain_widget = self._qt.QGroupBox('Life Drain')
-        form.lifedrain_layout = self._gui_settings_setup_layout(form.lifedrain_widget)
+        form.lifedrain_layout = self._gui_settings_setup_layout(
+            form.lifedrain_widget)
         self._create_spin_box('maxLifeInput', 'Maximum life', [1, 10000])
         self._create_spin_box('recoverInput', 'Recover', [0, 1000])
         self._create_check_box('enableDamageInput', 'Enable damage')
@@ -99,56 +103,37 @@ class Settings(object):
         Args:
             pref: The instance of the Global Settings dialog.
         """
-        conf = pref.mw.col.conf
-        pref.form.positionList.setCurrentIndex(
-            conf.get('barPosition', DEFAULTS['barPosition'])
-        )
-        pref.form.heightInput.setValue(
-            conf.get('barHeight', DEFAULTS['barHeight'])
-        )
+        self._conf = pref.mw.col.conf
+        pref.form.positionList.setCurrentIndex(self._get_conf('barPosition'))
+        pref.form.heightInput.setValue(self._get_conf('barHeight'))
 
         pref.form.bgColorDialog.setCurrentColor(
-            self._qt.QColor(conf.get('barBgColor', DEFAULTS['barBgColor']))
-        )
+            self._qt.QColor(self._get_conf('barBgColor')))
         pref.form.bgColorPreview.setStyleSheet(
-            'QLabel { background-color: %s; }'
-            % pref.form.bgColorDialog.currentColor().name()
-        )
+            'QLabel { background-color: %s; }' %
+            pref.form.bgColorDialog.currentColor().name())
 
         pref.form.fgColorDialog.setCurrentColor(
-            self._qt.QColor(conf.get('barFgColor', DEFAULTS['barFgColor']))
-        )
+            self._qt.QColor(self._get_conf('barFgColor')))
         pref.form.fgColorPreview.setStyleSheet(
-            'QLabel { background-color: %s; }'
-            % pref.form.fgColorDialog.currentColor().name()
-        )
+            'QLabel { background-color: %s; }' %
+            pref.form.fgColorDialog.currentColor().name())
 
-        pref.form.borderRadiusInput.setValue(
-            conf.get('barBorderRadius', DEFAULTS['barBorderRadius'])
-        )
+        pref.form.borderRadiusInput.setValue(self._get_conf('barBorderRadius'))
 
-        pref.form.textList.setCurrentIndex(
-            conf.get('barText', DEFAULTS['barText'])
-        )
+        pref.form.textList.setCurrentIndex(self._get_conf('barText'))
 
         pref.form.textColorDialog.setCurrentColor(
-            self._qt.QColor(conf.get('barTextColor', DEFAULTS['barTextColor']))
-        )
+            self._qt.QColor(self._get_conf('barTextColor')))
         pref.form.textColorPreview.setStyleSheet(
-            'QLabel { background-color: %s; }'
-            % pref.form.textColorDialog.currentColor().name()
-        )
+            'QLabel { background-color: %s; }' %
+            pref.form.textColorDialog.currentColor().name())
 
-        pref.form.styleList.setCurrentIndex(
-            conf.get('barStyle', DEFAULTS['barStyle'])
-        )
+        pref.form.styleList.setCurrentIndex(self._get_conf('barStyle'))
 
-        pref.form.stopOnAnswer.setChecked(
-            conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer']))
+        pref.form.stopOnAnswer.setChecked(self._get_conf('stopOnAnswer'))
 
-        pref.form.disableAddon.setChecked(
-            conf.get('disable', DEFAULTS['disable'])
-        )
+        pref.form.disableAddon.setChecked(self._get_conf('disable'))
 
     @staticmethod
     def preferences_save(pref):
@@ -170,27 +155,19 @@ class Settings(object):
         conf['disable'] = pref.form.disableAddon.isChecked()
         return conf
 
-    @staticmethod
-    def deck_settings_load(settings, current_life):
+    def deck_settings_load(self, settings, current_life):
         """Loads Life Drain deck settings into the form.
 
         Args:
             settings: The instance of the Deck Settings dialog.
             current_life: The current amount of life.
         """
-        settings.conf = settings.mw.col.decks.confForDid(settings.deck['id'])
-        settings.form.maxLifeInput.setValue(
-            settings.conf.get('maxLife', DEFAULTS['maxLife'])
-        )
-        settings.form.recoverInput.setValue(
-            settings.conf.get('recover', DEFAULTS['recover'])
-        )
+        self._conf = settings.mw.col.decks.confForDid(settings.deck['id'])
+        settings.form.maxLifeInput.setValue(self._get_conf('maxLife'))
+        settings.form.recoverInput.setValue(self._get_conf('recover'))
         settings.form.enableDamageInput.setChecked(
-            settings.conf.get('enableDamage', DEFAULTS['enableDamage'])
-        )
-        settings.form.damageInput.setValue(
-            settings.conf.get('damage', DEFAULTS['damage'])
-        )
+            self._get_conf('enableDamage'))
+        settings.form.damageInput.setValue(self._get_conf('damage'))
         settings.form.currentValueInput.setValue(current_life)
 
     @staticmethod
@@ -203,7 +180,8 @@ class Settings(object):
         settings.conf['maxLife'] = settings.form.maxLifeInput.value()
         settings.conf['recover'] = settings.form.recoverInput.value()
         settings.conf['currentValue'] = settings.form.currentValueInput.value()
-        settings.conf['enableDamage'] = settings.form.enableDamageInput.isChecked()
+        settings.conf[
+            'enableDamage'] = settings.form.enableDamageInput.isChecked()
         settings.conf['damage'] = settings.form.damageInput.value()
         return settings.conf
 
@@ -244,11 +222,13 @@ class Settings(object):
             options: A list of options.
         """
         label = self._qt.QLabel(label_text)
-        setattr(self._form, cb_name, self._qt.QComboBox(self._form.lifedrain_widget))
+        setattr(self._form, cb_name,
+                self._qt.QComboBox(self._form.lifedrain_widget))
         for option in options:
             getattr(self._form, cb_name).addItem(option)
         self._form.lifedrain_layout.addWidget(label, self._row, 0)
-        self._form.lifedrain_layout.addWidget(getattr(self._form, cb_name), self._row, 2, 1, 2)
+        self._form.lifedrain_layout.addWidget(getattr(self._form, cb_name),
+                                              self._row, 2, 1, 2)
         self._row += 1
 
     def _create_check_box(self, cb_name, label_text):
@@ -259,9 +239,11 @@ class Settings(object):
             label_text: A text that describes what is the check box for.
         """
         label = self._qt.QLabel(label_text)
-        setattr(self._form, cb_name, self._qt.QCheckBox(self._form.lifedrain_widget))
+        setattr(self._form, cb_name,
+                self._qt.QCheckBox(self._form.lifedrain_widget))
         self._form.lifedrain_layout.addWidget(label, self._row, 0)
-        self._form.lifedrain_layout.addWidget(getattr(self._form, cb_name), self._row, 2, 1, 2)
+        self._form.lifedrain_layout.addWidget(getattr(self._form, cb_name),
+                                              self._row, 2, 1, 2)
         self._row += 1
 
     def _create_spin_box(self, sb_name, label_text, val_range):
@@ -270,13 +252,15 @@ class Settings(object):
         Args:
             sb_name: The name of the spin box. Not visible by the user.
             label_text: A text that describes what is the spin box for.
-            val_range: A list of two integers that are the range of the spin box.
+            val_range: A list of two integers that are the range.
         """
         label = self._qt.QLabel(label_text)
-        setattr(self._form, sb_name, self._qt.QSpinBox(self._form.lifedrain_widget))
+        setattr(self._form, sb_name,
+                self._qt.QSpinBox(self._form.lifedrain_widget))
         getattr(self._form, sb_name).setRange(val_range[0], val_range[1])
         self._form.lifedrain_layout.addWidget(label, self._row, 0)
-        self._form.lifedrain_layout.addWidget(getattr(self._form, sb_name), self._row, 2, 1, 2)
+        self._form.lifedrain_layout.addWidget(getattr(self._form, sb_name),
+                                              self._row, 2, 1, 2)
         self._row += 1
 
     def _create_color_select(self, cs_name, label_text):
@@ -291,37 +275,38 @@ class Settings(object):
         cs_preview_name = '%sPreview' % cs_name
         cs_dialog_name = '%sDialog' % cs_name
         setattr(self._form, cs_preview_name, self._qt.QLabel(''))
-        setattr(self._form, cs_dialog_name, self._qt.QColorDialog(select_button))
-        getattr(self._form, cs_dialog_name).setOption(self._qt.QColorDialog.DontUseNativeDialog)
-        select_button.pressed.connect(
-            lambda: self._select_color_dialog(
-                getattr(self._form, cs_dialog_name),
-                getattr(self._form, cs_preview_name)
-            )
-        )
+        setattr(self._form, cs_dialog_name,
+                self._qt.QColorDialog(select_button))
+        getattr(self._form, cs_dialog_name).setOption(
+            self._qt.QColorDialog.DontUseNativeDialog)
+        select_button.pressed.connect(lambda: self._select_color_dialog(
+            getattr(self._form, cs_dialog_name),
+            getattr(self._form, cs_preview_name)))
         self._form.lifedrain_layout.addWidget(label, self._row, 0)
         self._form.lifedrain_layout.addWidget(select_button, self._row, 2)
-        self._form.lifedrain_layout.addWidget(getattr(self._form, cs_preview_name), self._row, 3)
+        self._form.lifedrain_layout.addWidget(
+            getattr(self._form, cs_preview_name), self._row, 3)
         self._row += 1
 
     def _fill_remaining_space(self):
-        """Creates a spacer that will vertically fill all the free space in the form."""
-        spacer = self._qt.QSpacerItem(
-            1, 1, self._qt.QSizePolicy.Minimum, self._qt.QSizePolicy.Expanding
-        )
+        """Creates a spacer that will vertically fill all the free space."""
+        spacer = self._qt.QSpacerItem(1, 1, self._qt.QSizePolicy.Minimum,
+                                      self._qt.QSizePolicy.Expanding)
         self._form.lifedrain_layout.addItem(spacer, self._row, 0)
         self._row += 1
 
+    def _get_conf(self, key):
+        """Gets the value of a configuration."""
+        return self._conf.get(key, DEFAULTS[key])
+
     @staticmethod
     def _select_color_dialog(qcolor_dialog, preview_label):
-        """Shows the select color dialog and updates the preview color in the form.
+        """Shows the select color dialog and updates the preview color.
 
         Args:
             qcolor_dialog: The instance of the color dialog.
             preview_label: The instance of the color dialog preview label.
         """
         if qcolor_dialog.exec_():
-            preview_label.setStyleSheet(
-                'QLabel { background-color: %s; }'
-                % qcolor_dialog.currentColor().name()
-            )
+            preview_label.setStyleSheet('QLabel { background-color: %s; }' %
+                                        qcolor_dialog.currentColor().name())
