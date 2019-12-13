@@ -5,17 +5,27 @@ See the LICENCE file in the repository root for full licence text.
 
 POSITION_OPTIONS = ['Top', 'Bottom']
 STYLE_OPTIONS = [
-    'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh',
-    'Motif', 'Plastique', 'Windows', 'Windows Vista', 'Windows XP'
+    'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh', 'Motif',
+    'Plastique', 'Windows', 'Windows Vista', 'Windows XP'
 ]
-TEXT_FORMAT = [
-    {'text': 'None'},
-    {'text': 'current/total (XX%)', 'format': '%v/%m (%p%)'},
-    {'text': 'current/total', 'format': '%v/%m'},
-    {'text': 'current', 'format': '%v'},
-    {'text': 'XX%', 'format': '%p%'},
-    {'text': 'mm:ss', 'format': 'mm:ss'}
-]
+TEXT_FORMAT = [{
+    'text': 'None'
+}, {
+    'text': 'current/total (XX%)',
+    'format': '%v/%m (%p%)'
+}, {
+    'text': 'current/total',
+    'format': '%v/%m'
+}, {
+    'text': 'current',
+    'format': '%v'
+}, {
+    'text': 'XX%',
+    'format': '%p%'
+}, {
+    'text': 'mm:ss',
+    'format': 'mm:ss'
+}]
 
 DEFAULTS = {
     'maxLife': 120,

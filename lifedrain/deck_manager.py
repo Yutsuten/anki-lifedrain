@@ -12,8 +12,8 @@ from .progress_bar import ProgressBar
 class DeckManager(object):
     """Manages Life Drain status and configuration for each deck.
 
-    Users may configure each deck with different settings, and the current status of
-    the life bar (e.g. current life) will likely differ for each deck.
+    Users may configure each deck with different settings, and the current
+    status of the life bar (e.g. current life) will likely differ for each deck.
 
     Attributes:
         bar_visible: Function that toggles the Progress Bar visibility.
@@ -22,6 +22,7 @@ class DeckManager(object):
     bar_visible = None
 
     _bar_info = {}
+    _conf = None
     _game_over = False
     _main_window = None
     _progress_bar = None
@@ -48,7 +49,8 @@ class DeckManager(object):
             self._add_deck(deck_id)
 
         self._progress_bar.set_max_value(self._bar_info[deck_id]['maxValue'])
-        self._progress_bar.set_current_value(self._bar_info[deck_id]['currentValue'])
+        self._progress_bar.set_current_value(
+            self._bar_info[deck_id]['currentValue'])
 
     def get_deck_conf(self, deck_id):
         """Get the settings and state of a deck.
@@ -81,9 +83,9 @@ class DeckManager(object):
         """Recover life of the currently active deck.
 
         Args:
-            increment: Optional. A flag that indicates if life will be increased or decreased.
+            increment: Optional. A flag that indicates increment or decrement.
             value: Optional. The value used to increment or decrement.
-            damage: Optional. If this flag is ON, uses the default damage value to remove life.
+            damage: Optional. If this flag is ON, uses the default damage value.
         """
         deck_id = self._main_window.col.decks.current()['id']
 
@@ -113,25 +115,30 @@ class DeckManager(object):
         Args:
             deck_id: The ID of the deck.
         """
-        conf = self._main_window.col.decks.confForDid(deck_id)
+        self._conf = self._main_window.col.decks.confForDid(deck_id)
         self._bar_info[deck_id] = {
-            'maxValue': conf.get('maxLife', DEFAULTS['maxLife']),
-            'currentValue': conf.get('maxLife', DEFAULTS['maxLife']),
-            'recoverValue': conf.get('recover', DEFAULTS['recover']),
-            'enableDamageValue': conf.get('enableDamage', DEFAULTS['enableDamage']),
-            'damageValue': conf.get('damage', DEFAULTS['damage'])
+            'maxValue': self._get_conf('maxLife'),
+            'currentValue': self._get_conf('maxLife'),
+            'recoverValue': self._get_conf('recover'),
+            'enableDamageValue': self._get_conf('enableDamage'),
+            'damageValue': self._get_conf('damage')
         }
 
     def _update_progress_bar_style(self):
         """Synchronizes the Progress Bar styling with the Global Settings."""
-        conf = self._main_window.col.conf
-        self._progress_bar.dock_at(conf.get('barPosition', DEFAULTS['barPosition']))
-        self._progress_bar.set_style({
-            'height': conf.get('barHeight', DEFAULTS['barHeight']),
-            'backgroundColor': conf.get('barBgColor', DEFAULTS['barBgColor']),
-            'foregroundColor': conf.get('barFgColor', DEFAULTS['barFgColor']),
-            'borderRadius': conf.get('barBorderRadius', DEFAULTS['barBorderRadius']),
-            'text': conf.get('barText', DEFAULTS['barText']),
-            'textColor': conf.get('barTextColor', DEFAULTS['barTextColor']),
-            'customStyle': conf.get('barStyle', DEFAULTS['barStyle'])
-        })
+        self._conf = self._main_window.col.conf
+        self._progress_bar.dock_at(self._get_conf('barPosition'))
+        progress_bar_style = {
+            'height': self._get_conf('barHeight'),
+            'backgroundColor': self._get_conf('barBgColor'),
+            'foregroundColor': self._get_conf('barFgColor'),
+            'borderRadius': self._get_conf('barBorderRadius'),
+            'text': self._get_conf('barText'),
+            'textColor': self._get_conf('barTextColor'),
+            'customStyle': self._get_conf('barStyle')
+        }
+        self._progress_bar.set_style(progress_bar_style)
+
+    def _get_conf(self, key):
+        """Gets the value of a configuration."""
+        return self._conf.get(key, DEFAULTS[key])

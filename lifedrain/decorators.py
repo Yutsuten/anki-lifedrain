@@ -9,8 +9,9 @@ from .defaults import DEFAULTS
 def must_be_enabled(func):
     """Runs the method only if the add-on is enabled."""
     def _wrapper(self, *args, **kwargs):
-        if self.main_window.col is None or \
-                self.main_window.col.conf.get('disable', DEFAULTS['disable']) is True:
+        col = self.main_window.col
+        if col is None or col.conf.get('disable', DEFAULTS['disable']) is True:
             return None
         return func(self, *args, **kwargs)
+
     return _wrapper

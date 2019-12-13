@@ -9,8 +9,8 @@ from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 class ProgressBar(object):
     """Implements a Progress Bar to be used on Anki.
 
-    Creates an interface with QProgressBar to make its usage on Anki easier. It also adds
-    a (limited) ability to use decimal values as the current value.
+    Creates an interface with QProgressBar to make its usage on Anki easier. It
+    also adds a (limited) ability to use decimal values as the current value.
     """
 
     _current_value = 1
@@ -22,7 +22,7 @@ class ProgressBar(object):
     _text_format = ''
 
     def __init__(self, mw, qt):
-        """Initializes a QProgressBar and keeps Anki's main window and PyQt references.
+        """Initializes a QProgressBar and keeps main window and PyQt references.
 
         Args:
             mw: Anki's main window.
@@ -36,7 +36,7 @@ class ProgressBar(object):
         """Sets the visibility of the Progress Bar.
 
         Args:
-            visible: A flag indicating if the Progress Bar should be visible or not.
+            visible: A flag indicating if the Progress Bar should be visible.
         """
         self._qprogressbar.setVisible(visible)
 
@@ -61,7 +61,7 @@ class ProgressBar(object):
         """Sets the current value for the bar.
 
         Args:
-            current_value: The current value of the bar. May have 1 decimal place.
+            current_value: The current value of the bar. Up to 1 decimal place.
         """
         self._current_value = current_value * 10
         self._validate_current_value()
@@ -71,7 +71,7 @@ class ProgressBar(object):
         """Increments the current value of the bar.
 
         Args:
-            increment: A positive or negative number, up to 1 decimal place.
+            increment: A positive or negative number. Up to 1 decimal place.
         """
         self._current_value += increment * 10
         self._validate_current_value()
@@ -88,7 +88,7 @@ class ProgressBar(object):
         Args:
             options: A dictionary with bar styling information.
         """
-        self._qprogressbar.setTextVisible(options['text'] != 0)  # 0 is the index of None
+        self._qprogressbar.setTextVisible(options['text'] != 0)  # 0 = No text
         text_format = TEXT_FORMAT[options['text']]
         if 'format' in text_format:
             self._text_format = text_format['format']
@@ -98,31 +98,25 @@ class ProgressBar(object):
             .replace(' ', '').lower()
         if custom_style != 'default':
             palette = self._qt.QPalette()
-            palette.setColor(
-                self._qt.QPalette.Base, self._qt.QColor(options['backgroundColor'])
-            )
-            palette.setColor(
-                self._qt.QPalette.Highlight, self._qt.QColor(options['foregroundColor'])
-            )
-            palette.setColor(
-                self._qt.QPalette.Button, self._qt.QColor(options['backgroundColor'])
-            )
-            palette.setColor(
-                self._qt.QPalette.Window, self._qt.QColor(options['backgroundColor'])
-            )
+            palette.setColor(self._qt.QPalette.Base,
+                             self._qt.QColor(options['backgroundColor']))
+            palette.setColor(self._qt.QPalette.Highlight,
+                             self._qt.QColor(options['foregroundColor']))
+            palette.setColor(self._qt.QPalette.Button,
+                             self._qt.QColor(options['backgroundColor']))
+            palette.setColor(self._qt.QPalette.Window,
+                             self._qt.QColor(options['backgroundColor']))
 
-            self._qprogressbar.setStyle(self._qt.QStyleFactory.create(custom_style))
+            self._qprogressbar.setStyle(
+                self._qt.QStyleFactory.create(custom_style))
             self._qprogressbar.setPalette(palette)
-            self._qprogressbar.setStyleSheet(
-                '''
+            self._qprogressbar.setStyleSheet('''
                 QProgressBar {
                     max-height: %spx;
                 }
-                ''' % (options['height'])
-            )
+                ''' % (options['height']))
         else:
-            self._qprogressbar.setStyleSheet(
-                '''
+            self._qprogressbar.setStyleSheet('''
                 QProgressBar {
                     text-align:center;
                     background-color: %s;
@@ -135,15 +129,9 @@ class ProgressBar(object):
                     margin: 0px;
                     border-radius: %dpx;
                 }
-                ''' % (
-                    options['backgroundColor'],
-                    options['borderRadius'],
-                    options['height'],
-                    options['textColor'],
-                    options['foregroundColor'],
-                    options['borderRadius']
-                )
-            )
+                ''' % (options['backgroundColor'], options['borderRadius'],
+                       options['height'], options['textColor'],
+                       options['foregroundColor'], options['borderRadius']))
 
     def dock_at(self, position):
         """Docks the bar at the specified position in the Anki window.
@@ -179,11 +167,8 @@ class ProgressBar(object):
             self._mw.addDockWidget(dock_area, self._dock['widget'])
         else:
             self._mw.setDockNestingEnabled(True)
-            self._mw.splitDockWidget(
-                existing_widgets[0],
-                self._dock['widget'],
-                self._qt.Qt.Vertical
-            )
+            self._mw.splitDockWidget(existing_widgets[0], self._dock['widget'],
+                                     self._qt.Qt.Vertical)
         self._mw.web.setFocus()
         self._qprogressbar.setVisible(bar_visible)
 
@@ -203,14 +188,14 @@ class ProgressBar(object):
         if self._text_format == 'mm:ss':
             minutes = int(self._current_value / 600)
             seconds = int((self._current_value / 10) % 60)
-            self._qprogressbar.setFormat('{0:01d}:{1:02d}'.format(minutes, seconds))
+            self._qprogressbar.setFormat('{0:01d}:{1:02d}'.format(
+                minutes, seconds))
         else:
             current_value = int(self._current_value / 10)
             if self._current_value % 10 != 0:
                 current_value += 1
             max_value = int(self._max_value / 10)
-            text = self._text_format \
-                .replace('%v', str(current_value)) \
-                .replace('%m', str(max_value)) \
-                .replace('%p', str(int(100 * current_value / max_value)))
+            text = self._text_format.replace('%v', str(current_value)).replace(
+                '%m', str(max_value)).replace(
+                    '%p', str(int(100 * current_value / max_value)))
             self._qprogressbar.setFormat(text)
