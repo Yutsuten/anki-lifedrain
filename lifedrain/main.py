@@ -99,7 +99,6 @@ def setup_hooks(lifedrain):
             lambda *args: lifedrain.screen_change(args[0]))
     addHook('showQuestion', lifedrain.show_question)
     addHook('showAnswer', lifedrain.show_answer)
-    addHook('reset', lifedrain.undo)
     addHook('revertedCard', lambda cid: lifedrain.undo())
     addHook('leech',
             lambda *args: lifedrain.status.update({'card_new_state': True}))
