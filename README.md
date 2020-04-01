@@ -83,25 +83,17 @@ The [Progress Bar](https://ankiweb.net/shared/info/2091361802) add-on showed me 
 
 And then I just thought: why not to have a life bar with drain in Anki?
 
-## CHANGELOG
-- **2019-10-10**: Smooth life drain ([PR #40](https://github.com/Yutsuten/anki-lifedrain/pull/40))
-- **2019-07-30**: Fix undo while reviewing not removing life on Anki 2.1 ([PR #36](https://github.com/Yutsuten/anki-lifedrain/pull/36)); Ignore errors from another add-ons being raised in Life Drain. ([PR #38](https://github.com/Yutsuten/anki-lifedrain/pull/38))
-- **2019-06-11**: Add damage feature (Thanks to [@whiteisthenewblack](https://github.com/whiteisthenewblack) in [PR #35](https://github.com/Yutsuten/anki-lifedrain/pull/35)).
-- **2019-04-28**: Fix bug when selecting bar colors on Mac OS. ([Issue #30](https://github.com/Yutsuten/anki-lifedrain/issues/30))
-- **2019-01-12**: Added option to stop drain on answer shown.
-- **2018-12-09**: Added disable option and some hooks to allow integration with other add-ons.
-- **2018-12-08**: Fixed autosync failing.
-- **2018-12-01**: Fixed sync failing.
-- **2018-12-01**: Make the settings more flexible (max life with 4 digits and drain 0) and bugfix.
-- **2018-11-23**: Added option to show remaining life as text.
-- **2018-10-27**: Fixed keyboard shortcut affecting other add-ons on Anki 2.1.
-- **2018-07-01**: Added life drain options to filtered decks.
-- **2018-06-10**: Fixed bugs when suspending cards while reviewing.
-- **2018-05-20**: Initial release.
-
-## Contribute
+## Feedback & Contribution
 If you find any bugs, feel free to open issues. I'll try to answer / fix those as soon as I can!
 
 If you want to help even more, fell free to open a PR too!
 
 Any feedback and help is very welcome!
+
+## Donations
+A lot of time have been used to create and maintain this add-on.
+I did this on my spare time (I also have a job!).
+If you like it, any donation will be greatly appreciated!
+
+[![paypal](https://www.paypal.com/en_US/i/btn/x-click-but04.gif)](https://www.paypal.me/mateusetto)
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G61KF5O)
