@@ -179,10 +179,13 @@ class Settings(object):
 
         conf['maxLife'] = form.maxLifeInput.value()
         conf['recover'] = form.recoverInput.value()
-        conf['currentValue'] = form.currentValueInput.value()
         conf['enableDamage'] = form.enableDamageInput.isChecked()
         conf['damage'] = form.damageInput.value()
-        return conf
+        conf.pop('currentValue', None)
+
+        deck_conf = conf.copy()
+        deck_conf['currentValue'] = form.currentValueInput.value()
+        return deck_conf
 
     def _gui_settings_setup_layout(self, widget):
         """Sets up the form layout used on Life Drain's settings UI.
