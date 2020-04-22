@@ -77,7 +77,7 @@ class Settings(object):
         self._fill_remaining_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
-    def custom_deck_settings_ui(self, form, is_anki21):
+    def custom_deck_settings_ui(self, form):
         """Adds Life Drain settings to Filtered Deck Settings dialog.
 
         Args:
@@ -94,8 +94,7 @@ class Settings(object):
         self._create_check_box('enableDamageInput', 'Enable damage')
         self._create_spin_box('damageInput', 'Damage', [-1000, 1000])
         self._create_spin_box('currentValueInput', 'Current life', [0, 10000])
-        index = 3 if is_anki21 else 2
-        form.verticalLayout.insertWidget(index, form.lifedrain_widget)
+        form.verticalLayout.insertWidget(3, form.lifedrain_widget)
 
     def preferences_load(self, pref):
         """Loads Life Drain global settings into the form.

@@ -6,7 +6,7 @@ See the LICENCE file in the repository root for full licence text.
 from anki.collection import _Collection
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
-from aqt import appVersion, forms, mw, qt
+from aqt import forms, mw, qt
 from aqt.deckconf import DeckConf
 from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.editcurrent import EditCurrent
@@ -61,8 +61,7 @@ def setup_user_interface(lifedrain):
     # Filtered Deck Settings
     forms.dyndconf.Ui_Dialog.setupUi = wrap(
         forms.dyndconf.Ui_Dialog.setupUi,
-        lambda *args: lifedrain.custom_deck_settings_ui(
-            args[0], appVersion.startswith('2.1')))
+        lambda *args: lifedrain.custom_deck_settings_ui(args[0]))
     FiltDeckConf.loadConf = wrap(
         FiltDeckConf.loadConf,
         lambda *args: lifedrain.deck_settings_load(args[0]))
@@ -77,16 +76,9 @@ def setup_shortcuts(lifedrain):
     Args:
         lifedrain: A Lifedrain instance.
     """
-    if appVersion.startswith('2.0'):
-        Reviewer._keyHandler = wrap(  # pylint: disable=protected-access
-            Reviewer._keyHandler,  # pylint: disable=protected-access
-            lambda self, evt, _old: lifedrain.toggle_drain()
-            if evt.text() == 'p' else _old(self, evt),
-            'around')
-    elif appVersion.startswith('2.1'):
-        toggle_drain_shortcut = tuple(['p', lifedrain.toggle_drain])
-        addHook('reviewStateShortcuts',
-                lambda shortcuts: shortcuts.append(toggle_drain_shortcut))
+    toggle_drain_shortcut = tuple(['p', lifedrain.toggle_drain])
+    addHook('reviewStateShortcuts',
+            lambda shortcuts: shortcuts.append(toggle_drain_shortcut))
 
 
 def setup_hooks(lifedrain):
