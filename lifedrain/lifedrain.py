@@ -59,15 +59,6 @@ class Lifedrain(object):
         self.deck_settings_ui = self._settings.deck_settings_ui
         self.custom_deck_settings_ui = self._settings.custom_deck_settings_ui
 
-        # Configure separator strip - Seems that it is not needed on Anki 2.1
-        css = 'QMainWindow::separator { width: 0px; height: 0px; }'
-        mw.setStyleSheet(css)
-        try:
-            import Night_Mode  # pylint: disable=import-error
-            Night_Mode.nm_css_menu += css
-        except Exception:  # nosec  # pylint: disable=broad-except
-            pass
-
     def preferences_load(self, pref):
         """Loads Life Drain global settings into the Global Settings dialog.
 
