@@ -36,9 +36,8 @@ class Settings(object):
         form.lifedrain_widget = self._qt.QWidget()
         form.lifedrain_layout = self._gui_settings_setup_layout(
             form.lifedrain_widget)
-        self._create_label('<b>Bar behaviour</b>')
+        self._create_check_box('enableAddon', 'Enable Life Drain')
         self._create_check_box('stopOnAnswer', 'Stop drain on answer shown')
-        self._create_check_box('disableAddon', 'Disable Life Drain (!)')
         self._create_label('<b>Bar style</b>')
         self._create_combo_box('positionList', 'Position', POSITION_OPTIONS)
         self._create_spin_box('heightInput', 'Height', [1, 40])
@@ -126,7 +125,7 @@ class Settings(object):
             form.textColorDialog.currentColor().name())
         form.styleList.setCurrentIndex(self._get_conf('barStyle'))
         form.stopOnAnswer.setChecked(self._get_conf('stopOnAnswer'))
-        form.disableAddon.setChecked(self._get_conf('disable'))
+        form.enableAddon.setChecked(not self._get_conf('disable'))
 
     @staticmethod
     def preferences_save(pref):
@@ -147,7 +146,7 @@ class Settings(object):
         conf['barTextColor'] = form.textColorDialog.currentColor().name()
         conf['barStyle'] = form.styleList.currentIndex()
         conf['stopOnAnswer'] = form.stopOnAnswer.isChecked()
-        conf['disable'] = form.disableAddon.isChecked()
+        conf['disable'] = not form.enableAddon.isChecked()
         return conf
 
     def deck_settings_load(self, settings, current_life):
@@ -193,11 +192,6 @@ class Settings(object):
             widget: A Life Drain widget.
         """
         layout = self._qt.QGridLayout(widget)
-        layout.setColumnStretch(0, 2)
-        layout.setColumnStretch(1, 4)
-        layout.setColumnStretch(2, 3)
-        layout.setColumnStretch(3, 2)
-        layout.setColumnMinimumWidth(2, 50)
         return layout
 
     def _create_label(self, text, color=None):
@@ -239,12 +233,10 @@ class Settings(object):
             cb_name: The name of the check box. Not visible by the user.
             label_text: A text that describes what is the check box for.
         """
-        label = self._qt.QLabel(label_text)
         setattr(self._form, cb_name,
-                self._qt.QCheckBox(self._form.lifedrain_widget))
-        self._form.lifedrain_layout.addWidget(label, self._row, 0)
+                self._qt.QCheckBox(label_text, self._form.lifedrain_widget))
         self._form.lifedrain_layout.addWidget(getattr(self._form, cb_name),
-                                              self._row, 2, 1, 2)
+                                              self._row, 0, 1, 4)
         self._row += 1
 
     def _create_spin_box(self, sb_name, label_text, val_range):
