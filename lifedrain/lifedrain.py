@@ -82,6 +82,11 @@ class Lifedrain(object):
         if conf['disable'] is True:
             self.deck_manager.bar_visible(False)
 
+    def deck_settings(self):
+        """Opens a dialog with the Deck Settings."""
+        deck = self.main_window.col.decks.current()
+        self._settings.deck_settings(deck['name'])
+
     def deck_settings_load(self, settings):
         """Loads Life Drain deck settings into the Deck Settings dialog.
 

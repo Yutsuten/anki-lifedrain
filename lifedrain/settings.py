@@ -51,6 +51,41 @@ class Settings(object):
         self._fill_remaining_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
+    def deck_settings(self, deck_name):
+        """Opens a dialog with the Deck Settings."""
+        settings_dialog = self._qt.QDialog()
+
+        window_title = 'Life Drain options for {}'.format(deck_name)
+        settings_dialog.setWindowTitle(window_title)
+
+        layout = self._qt.QGridLayout(settings_dialog)
+        self.build_deck_settings_form(settings_dialog, layout)
+
+        settings_dialog.exec()
+
+    def build_deck_settings_form(self, form, layout):
+        """Appends a Life Drain tab to Deck Settings dialog.
+
+        Args:
+            form: The form instance of the Global Settings dialog.
+        """
+        self._form = form
+        self._row = 0
+
+        form.lifedrain_widget = self._qt.QWidget()
+        form.lifedrain_layout = layout
+        self._create_label(
+            'The <b>maximum life</b> is the time in seconds for the life bar '
+            'go from full to empty.\n<b>Recover</b> is the time in seconds '
+            'that is recovered after answering a card. <b>Damage</b> is the '
+            'life lost when a card is answered with \'Again\'.')
+        self._create_spin_box('maxLifeInput', 'Maximum life', [1, 10000])
+        self._create_spin_box('recoverInput', 'Recover', [0, 1000])
+        self._create_check_box('enableDamageInput', 'Enable damage')
+        self._create_spin_box('damageInput', 'Damage', [-1000, 1000])
+        self._create_spin_box('currentValueInput', 'Current life', [0, 10000])
+        self._fill_remaining_space()
+
     def deck_settings_ui(self, form):
         """Appends a Life Drain tab to Deck Settings dialog.
 

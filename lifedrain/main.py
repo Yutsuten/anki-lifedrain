@@ -79,6 +79,9 @@ def setup_shortcuts(lifedrain):
     toggle_drain_shortcut = tuple(['p', lifedrain.toggle_drain])
     addHook('reviewStateShortcuts',
             lambda shortcuts: shortcuts.append(toggle_drain_shortcut))
+    deck_settings_shortcut = tuple(['l', lifedrain.deck_settings])
+    addHook('overviewStateShortcuts',
+            lambda shortcuts: shortcuts.append(deck_settings_shortcut))
 
 
 def setup_hooks(lifedrain):
