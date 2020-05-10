@@ -98,14 +98,8 @@ class ProgressBar(object):
             .replace(' ', '').lower()
         if custom_style != 'default':
             palette = self._qt.QPalette()
-            palette.setColor(self._qt.QPalette.Base,
-                             self._qt.QColor(options['backgroundColor']))
             palette.setColor(self._qt.QPalette.Highlight,
                              self._qt.QColor(options['foregroundColor']))
-            palette.setColor(self._qt.QPalette.Button,
-                             self._qt.QColor(options['backgroundColor']))
-            palette.setColor(self._qt.QPalette.Window,
-                             self._qt.QColor(options['backgroundColor']))
 
             self._qprogressbar.setStyle(
                 self._qt.QStyleFactory.create(custom_style))
@@ -119,7 +113,6 @@ class ProgressBar(object):
             self._qprogressbar.setStyleSheet('''
                 QProgressBar {
                     text-align:center;
-                    background-color: %s;
                     border-radius: %dpx;
                     max-height: %spx;
                     color: %s;
@@ -129,9 +122,9 @@ class ProgressBar(object):
                     margin: 0px;
                     border-radius: %dpx;
                 }
-                ''' % (options['backgroundColor'], options['borderRadius'],
-                       options['height'], options['textColor'],
-                       options['foregroundColor'], options['borderRadius']))
+                ''' % (options['borderRadius'], options['height'],
+                       options['textColor'], options['foregroundColor'],
+                       options['borderRadius']))
 
     def dock_at(self, position):
         """Docks the bar at the specified position in the Anki window.

@@ -34,7 +34,6 @@ DEFAULTS = {
     'damage': 5,
     'barPosition': POSITION_OPTIONS.index('Bottom'),
     'barHeight': 15,
-    'barBgColor': '#f3f3f2',
     'barFgColor': '#489ef6',
     'barBorderRadius': 0,
     'barText': 0,

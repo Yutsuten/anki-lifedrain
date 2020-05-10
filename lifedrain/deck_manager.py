@@ -130,7 +130,6 @@ class DeckManager(object):
         self._progress_bar.dock_at(self._get_conf('barPosition'))
         progress_bar_style = {
             'height': self._get_conf('barHeight'),
-            'backgroundColor': self._get_conf('barBgColor'),
             'foregroundColor': self._get_conf('barFgColor'),
             'borderRadius': self._get_conf('barBorderRadius'),
             'text': self._get_conf('barText'),
