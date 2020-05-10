@@ -45,8 +45,7 @@ class Settings(object):
         self._create_combo_box('textList', 'Text',
                                map(itemgetter('text'), TEXT_FORMAT))
         self._create_combo_box('styleList', 'Style', STYLE_OPTIONS)
-        self._create_color_select('bgColor', 'Background color')
-        self._create_color_select('fgColor', 'Foreground color')
+        self._create_color_select('fgColor', 'Bar color')
         self._create_color_select('textColor', 'Text color')
         self._fill_remaining_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
@@ -141,11 +140,6 @@ class Settings(object):
 
         form.positionList.setCurrentIndex(self._get_conf('barPosition'))
         form.heightInput.setValue(self._get_conf('barHeight'))
-        form.bgColorDialog.setCurrentColor(
-            self._qt.QColor(self._get_conf('barBgColor')))
-        form.bgColorPreview.setStyleSheet(
-            'QLabel { background-color: %s; }' %
-            form.bgColorDialog.currentColor().name())
         form.fgColorDialog.setCurrentColor(
             self._qt.QColor(self._get_conf('barFgColor')))
         form.fgColorPreview.setStyleSheet(
@@ -174,7 +168,6 @@ class Settings(object):
 
         conf['barPosition'] = form.positionList.currentIndex()
         conf['barHeight'] = form.heightInput.value()
-        conf['barBgColor'] = form.bgColorDialog.currentColor().name()
         conf['barFgColor'] = form.fgColorDialog.currentColor().name()
         conf['barBorderRadius'] = form.borderRadiusInput.value()
         conf['barText'] = form.textList.currentIndex()
@@ -182,6 +175,7 @@ class Settings(object):
         conf['barStyle'] = form.styleList.currentIndex()
         conf['stopOnAnswer'] = form.stopOnAnswer.isChecked()
         conf['disable'] = not form.enableAddon.isChecked()
+        conf.pop('barBgColor', None)
         return conf
 
     def deck_settings_load(self, settings, current_life):
