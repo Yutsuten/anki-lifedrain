@@ -60,6 +60,12 @@ class Settings(object):
         layout = self._qt.QGridLayout(settings_dialog)
         self.build_deck_settings_form(settings_dialog, layout)
 
+        button_box = self._qt.QDialogButtonBox(
+            self._qt.QDialogButtonBox.Ok |
+            self._qt.QDialogButtonBox.Cancel
+        )
+        layout.addWidget(button_box, self._row, 0, 1, 4)
+
         settings_dialog.exec()
 
     def build_deck_settings_form(self, form, layout):
