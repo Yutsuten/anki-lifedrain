@@ -140,7 +140,8 @@ class Settings(object):
         conf['barStyle'] = form.styleList.currentIndex()
         conf['stopOnAnswer'] = form.stopOnAnswer.isChecked()
         conf['disable'] = not form.enableAddon.isChecked()
-        conf.pop('barBgColor', None)
+        if 'barBgColor' in conf:
+            del conf['barBgColor']
         return conf
 
     def deck_settings_load(self, settings, current_life):
