@@ -50,15 +50,23 @@ class Settings(object):
         self._fill_remaining_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
-    def deck_settings(self, deck_name):
+    def deck_settings(self, conf, current_life):
         """Opens a dialog with the Deck Settings."""
+        self._conf = conf
         settings_dialog = self._qt.QDialog()
 
-        window_title = 'Life Drain options for {}'.format(deck_name)
+        window_title = 'Life Drain options for {}'.format(conf['name'])
         settings_dialog.setWindowTitle(window_title)
 
         layout = self._qt.QGridLayout(settings_dialog)
         self.build_deck_settings_form(settings_dialog, layout)
+
+        form = settings_dialog
+        form.maxLifeInput.setValue(self._get_conf('maxLife'))
+        form.recoverInput.setValue(self._get_conf('recover'))
+        form.enableDamageInput.setChecked(self._get_conf('enableDamage'))
+        form.damageInput.setValue(self._get_conf('damage'))
+        form.currentValueInput.setValue(current_life)
 
         button_box = self._qt.QDialogButtonBox(
             self._qt.QDialogButtonBox.Ok |

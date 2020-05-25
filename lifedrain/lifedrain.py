@@ -85,7 +85,9 @@ class Lifedrain(object):
     def deck_settings(self):
         """Opens a dialog with the Deck Settings."""
         deck = self.main_window.col.decks.current()
-        self._settings.deck_settings(deck['name'])
+        lifedrain_conf = self.deck_manager.get_deck_conf(deck['id'])
+        conf = self.main_window.col.decks.confForDid(deck['id'])
+        self._settings.deck_settings(conf, lifedrain_conf['currentValue'])
 
     def deck_settings_load(self, settings):
         """Loads Life Drain deck settings into the Deck Settings dialog.
