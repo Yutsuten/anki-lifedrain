@@ -3,6 +3,7 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
+from copy import deepcopy
 from operator import itemgetter
 
 from .defaults import DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
@@ -50,9 +51,22 @@ class Settings(object):
         self._fill_remaining_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
-    def deck_settings(self, conf, current_life):
+    def deck_settings(self, conf, life, set_deck_conf, old_conf):
         """Opens a dialog with the Deck Settings."""
-        self._conf = conf
+        lifedrain_conf = conf.get('lifedrain')
+        if not lifedrain_conf:
+            dmg_value = old_conf.pop('damage', DEFAULTS['damage'])
+            dmg_enable = old_conf.pop('enableDamage', False)
+            damage = dmg_value if dmg_enable else None
+            lifedrain_conf = {
+                'maxLife': old_conf.pop('maxLife', DEFAULTS['maxLife']),
+                'recover': old_conf.pop('recover', DEFAULTS['recover']),
+                'damage': damage
+            }
+            old_conf.pop('currentValue', None)
+            conf['lifedrain'] = lifedrain_conf
+
+        self._conf = lifedrain_conf
         settings_dialog = self._qt.QDialog()
 
         window_title = 'Life Drain options for {}'.format(conf['name'])
@@ -64,14 +78,21 @@ class Settings(object):
         form = settings_dialog
         form.maxLifeInput.setValue(self._get_conf('maxLife'))
         form.recoverInput.setValue(self._get_conf('recover'))
-        form.enableDamageInput.setChecked(self._get_conf('enableDamage'))
-        form.damageInput.setValue(self._get_conf('damage'))
-        form.currentValueInput.setValue(current_life)
+        damage = self._get_conf('damage')
+        form.enableDamageInput.setChecked(damage is None)
+        form.damageInput.setValue(damage if damage else 5)
+        form.currentValueInput.setValue(life)
+
+        def save():
+            set_deck_conf(self.deck_settings_save(form, conf))
+            return settings_dialog.accept()
 
         button_box = self._qt.QDialogButtonBox(
             self._qt.QDialogButtonBox.Ok |
             self._qt.QDialogButtonBox.Cancel
         )
+        button_box.rejected.connect(settings_dialog.reject)
+        button_box.accepted.connect(save)
         layout.addWidget(button_box, self._row, 0, 1, 4)
 
         settings_dialog.exec()
@@ -210,23 +231,21 @@ class Settings(object):
         form.currentValueInput.setValue(current_life)
 
     @staticmethod
-    def deck_settings_save(settings):
+    def deck_settings_save(form, conf):
         """Saves Life Drain deck settings from the form.
 
         Args:
             settings: The instance of the Deck Settings dialog.
         """
-        conf = settings.mw.col.decks.confForDid(settings.deck['id'])
-        form = settings.form
+        enable_damage = form.enableDamageInput.isChecked()
+        damage = form.damageInput.value() if enable_damage else None
 
-        conf['maxLife'] = form.maxLifeInput.value()
-        conf['recover'] = form.recoverInput.value()
-        conf['enableDamage'] = form.enableDamageInput.isChecked()
-        conf['damage'] = form.damageInput.value()
-        conf.pop('currentValue', None)
+        conf['lifedrain']['maxLife'] = form.maxLifeInput.value()
+        conf['lifedrain']['recover'] = form.recoverInput.value()
+        conf['lifedrain']['damage'] = damage
 
-        deck_conf = conf.copy()
-        deck_conf['currentValue'] = form.currentValueInput.value()
+        deck_conf = deepcopy(conf)
+        deck_conf['lifedrain']['currentValue'] = form.currentValueInput.value()
         return deck_conf
 
     def _gui_settings_setup_layout(self, widget):

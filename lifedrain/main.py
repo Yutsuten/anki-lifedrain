@@ -7,8 +7,6 @@ from anki.collection import _Collection
 from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
 from aqt import forms, mw, qt
-from aqt.deckconf import DeckConf
-from aqt.dyndeckconf import DeckConf as FiltDeckConf
 from aqt.editcurrent import EditCurrent
 from aqt.preferences import Preferences
 from aqt.progress import ProgressManager
@@ -47,27 +45,6 @@ def setup_user_interface(lifedrain):
     Preferences.accept = wrap(
         Preferences.accept, lambda *args: lifedrain.preferences_save(args[0]),
         'before')
-
-    # Deck Settings
-    forms.dconf.Ui_Dialog.setupUi = wrap(
-        forms.dconf.Ui_Dialog.setupUi,
-        lambda *args: lifedrain.deck_settings_ui(args[0]))
-    DeckConf.loadConf = wrap(
-        DeckConf.loadConf, lambda *args: lifedrain.deck_settings_load(args[0]))
-    DeckConf.saveConf = wrap(
-        DeckConf.saveConf, lambda *args: lifedrain.deck_settings_save(args[0]),
-        'before')
-
-    # Filtered Deck Settings
-    forms.dyndconf.Ui_Dialog.setupUi = wrap(
-        forms.dyndconf.Ui_Dialog.setupUi,
-        lambda *args: lifedrain.custom_deck_settings_ui(args[0]))
-    FiltDeckConf.loadConf = wrap(
-        FiltDeckConf.loadConf,
-        lambda *args: lifedrain.deck_settings_load(args[0]))
-    FiltDeckConf.saveConf = wrap(
-        FiltDeckConf.saveConf,
-        lambda *args: lifedrain.deck_settings_save(args[0]), 'before')
 
 
 def setup_shortcuts(lifedrain):
