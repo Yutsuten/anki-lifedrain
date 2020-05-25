@@ -93,7 +93,7 @@ class DeckManager(object):
         if not increment:
             multiplier = -1
         if value is None:
-            if damage is not None:
+            if damage and self._bar_info[deck_id]['damageValue'] is not None:
                 multiplier = -1
                 value = self._bar_info[deck_id]['damageValue']
             else:

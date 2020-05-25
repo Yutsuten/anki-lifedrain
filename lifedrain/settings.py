@@ -79,7 +79,7 @@ class Settings(object):
         form.maxLifeInput.setValue(self._get_conf('maxLife'))
         form.recoverInput.setValue(self._get_conf('recover'))
         damage = self._get_conf('damage')
-        form.enableDamageInput.setChecked(damage is None)
+        form.enableDamageInput.setChecked(damage is not None)
         form.damageInput.setValue(damage if damage else 5)
         form.currentValueInput.setValue(life)
 
@@ -213,22 +213,6 @@ class Settings(object):
         if 'barBgColor' in conf:
             del conf['barBgColor']
         return conf
-
-    def deck_settings_load(self, settings, current_life):
-        """Loads Life Drain deck settings into the form.
-
-        Args:
-            settings: The instance of the Deck Settings dialog.
-            current_life: The current amount of life.
-        """
-        self._conf = settings.mw.col.decks.confForDid(settings.deck['id'])
-        form = settings.form
-
-        form.maxLifeInput.setValue(self._get_conf('maxLife'))
-        form.recoverInput.setValue(self._get_conf('recover'))
-        form.enableDamageInput.setChecked(self._get_conf('enableDamage'))
-        form.damageInput.setValue(self._get_conf('damage'))
-        form.currentValueInput.setValue(current_life)
 
     @staticmethod
     def deck_settings_save(form, conf):
