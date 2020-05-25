@@ -88,6 +88,7 @@ class Lifedrain(object):
         self._settings.deck_settings(deck, life, set_deck_conf, old_conf)
 
         self.main_window.col.decks.save(deck)
+        self.main_window.col.decks.save(old_conf)
         self.screen_change(self._state)
 
     @must_be_enabled

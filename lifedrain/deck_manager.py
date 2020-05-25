@@ -130,6 +130,7 @@ class DeckManager(object):
             old_conf.pop('currentValue', None)
             conf['lifedrain'] = lifedrain_conf
             self._main_window.col.decks.save(conf)
+            self._main_window.col.decks.save(old_conf)
 
         self._conf = lifedrain_conf
         self._bar_info[deck_id] = {
