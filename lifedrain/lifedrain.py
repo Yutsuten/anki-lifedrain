@@ -85,11 +85,15 @@ class Lifedrain(object):
 
         life = lifedrain_conf['currentValue']
         set_deck_conf = self.deck_manager.set_deck_conf
+
+        drain_enabled = self._timer.isActive()
+        self.toggle_drain(False)
         self._settings.deck_settings(deck, life, set_deck_conf, old_conf)
+        self.toggle_drain(drain_enabled)
 
         self.main_window.col.decks.save(deck)
         self.main_window.col.decks.save(old_conf)
-        self.screen_change(self._state)
+        self.deck_manager.set_deck(deck['id'])
 
     @must_be_enabled
     def toggle_drain(self, enable=None):

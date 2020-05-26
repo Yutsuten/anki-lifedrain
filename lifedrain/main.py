@@ -53,12 +53,15 @@ def setup_shortcuts(lifedrain):
     Args:
         lifedrain: A Lifedrain instance.
     """
-    toggle_drain_shortcut = tuple(['p', lifedrain.toggle_drain])
-    addHook('reviewStateShortcuts',
-            lambda shortcuts: shortcuts.append(toggle_drain_shortcut))
-    deck_settings_shortcut = tuple(['l', lifedrain.deck_settings])
-    addHook('overviewStateShortcuts',
-            lambda shortcuts: shortcuts.append(deck_settings_shortcut))
+    def review(shortcuts):
+        shortcuts.append(tuple(['p', lifedrain.toggle_drain]))
+        shortcuts.append(tuple(['l', lifedrain.deck_settings]))
+
+    def overview(shortcuts):
+        shortcuts.append(tuple(['l', lifedrain.deck_settings]))
+
+    addHook('reviewStateShortcuts', review)
+    addHook('overviewStateShortcuts', overview)
 
 
 def setup_hooks(lifedrain):
