@@ -62,21 +62,21 @@ class DeckManager(object):
             self._add_deck(deck_id)
         return self._bar_info[deck_id]
 
-    def set_deck_conf(self, deck_id, conf):
+    def set_deck_conf(self, conf):
         """Updates a deck's current settings and state.
 
         Args:
             deck_id: The ID of the deck.
             conf: A dictionary with the deck's configuration and state.
         """
-        current_value = conf['currentValue']
-        if current_value > conf['maxLife']:
-            current_value = conf['maxLife']
+        current_value = conf['lifedrain']['currentValue']
+        if current_value > conf['lifedrain']['maxLife']:
+            current_value = conf['lifedrain']['maxLife']
 
-        self._bar_info[deck_id]['maxValue'] = conf['maxLife']
-        self._bar_info[deck_id]['recoverValue'] = conf['recover']
-        self._bar_info[deck_id]['enableDamageValue'] = conf['enableDamage']
-        self._bar_info[deck_id]['damageValue'] = conf['damage']
+        deck_id = conf['id']
+        self._bar_info[deck_id]['maxValue'] = conf['lifedrain']['maxLife']
+        self._bar_info[deck_id]['recoverValue'] = conf['lifedrain']['recover']
+        self._bar_info[deck_id]['damageValue'] = conf['lifedrain']['damage']
         self._bar_info[deck_id]['currentValue'] = current_value
 
     def recover_life(self, increment=True, value=None, damage=False):
@@ -93,7 +93,7 @@ class DeckManager(object):
         if not increment:
             multiplier = -1
         if value is None:
-            if damage and self._bar_info[deck_id]['enableDamageValue']:
+            if damage and self._bar_info[deck_id]['damageValue'] is not None:
                 multiplier = -1
                 value = self._bar_info[deck_id]['damageValue']
             else:
@@ -115,12 +115,28 @@ class DeckManager(object):
         Args:
             deck_id: The ID of the deck.
         """
-        self._conf = self._main_window.col.decks.confForDid(deck_id)
+        conf = self._main_window.col.decks.current()
+        lifedrain_conf = conf.get('lifedrain')
+        if not lifedrain_conf:
+            old_conf = self._main_window.col.decks.confForDid(deck_id)
+            dmg_value = old_conf.pop('damage', DEFAULTS['damage'])
+            dmg_enable = old_conf.pop('enableDamage', False)
+            damage = dmg_value if dmg_enable else None
+            lifedrain_conf = {
+                'maxLife': old_conf.pop('maxLife', DEFAULTS['maxLife']),
+                'recover': old_conf.pop('recover', DEFAULTS['recover']),
+                'damage': damage
+            }
+            old_conf.pop('currentValue', None)
+            conf['lifedrain'] = lifedrain_conf
+            self._main_window.col.decks.save(conf)
+            self._main_window.col.decks.save(old_conf)
+
+        self._conf = lifedrain_conf
         self._bar_info[deck_id] = {
             'maxValue': self._get_conf('maxLife'),
             'currentValue': self._get_conf('maxLife'),
             'recoverValue': self._get_conf('recover'),
-            'enableDamageValue': self._get_conf('enableDamage'),
             'damageValue': self._get_conf('damage')
         }
 

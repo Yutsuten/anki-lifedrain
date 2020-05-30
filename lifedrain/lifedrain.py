@@ -20,8 +20,6 @@ class Lifedrain(object):
         main_window: A reference to the Anki's main window.
         status: A dictionary that keeps track the events on Anki.
         preferences_ui: Function that generates the Global Settings dialog.
-        deck_settings_ui: Function that generates the Deck Settings dialog.
-        custom_deck_settings_ui: Function that generates the Filtered Deck
         Settings dialog.
     """
 
@@ -34,11 +32,10 @@ class Lifedrain(object):
         'screen': None,
     }
     preferences_ui = None
-    deck_settings_ui = None
-    custom_deck_settings_ui = None
 
     _settings = None
     _timer = None
+    _state = None
 
     def __init__(self, make_timer, mw, qt):
         """Initializes DeckManager and Settings, and add-on initial setup.
@@ -56,8 +53,6 @@ class Lifedrain(object):
         self._timer.stop()
 
         self.preferences_ui = self._settings.preferences_ui
-        self.deck_settings_ui = self._settings.deck_settings_ui
-        self.custom_deck_settings_ui = self._settings.custom_deck_settings_ui
 
     def preferences_load(self, pref):
         """Loads Life Drain global settings into the Global Settings dialog.
@@ -82,28 +77,23 @@ class Lifedrain(object):
         if conf['disable'] is True:
             self.deck_manager.bar_visible(False)
 
-    def deck_settings_load(self, settings):
-        """Loads Life Drain deck settings into the Deck Settings dialog.
+    def deck_settings(self):
+        """Opens a dialog with the Deck Settings."""
+        deck = self.main_window.col.decks.current()
+        lifedrain_conf = self.deck_manager.get_deck_conf(deck['id'])
+        old_conf = self.main_window.col.decks.confForDid(deck['id'])
 
-        Args:
-            settings: The instance of the Deck Settings dialog.
-        """
-        deck_id = settings.deck['id']
-        self._settings.deck_settings_load(
-            settings,
-            self.deck_manager.get_deck_conf(deck_id)['currentValue'])
+        life = lifedrain_conf['currentValue']
+        set_deck_conf = self.deck_manager.set_deck_conf
+
+        drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
+        self._settings.deck_settings(deck, life, set_deck_conf, old_conf)
+        self.toggle_drain(drain_enabled)
 
-    def deck_settings_save(self, settings):
-        """Saves Life Drain deck settings.
-
-        Args:
-            settings: The instance of the Deck Settings dialog.
-        """
-        deck_conf = self._settings.deck_settings_save(settings)
-        self.deck_manager.set_deck_conf(settings.deck['id'], deck_conf)
-        self.status['card_new_state'] = True
-        self.status['reviewed'] = False
+        self.main_window.col.decks.save(deck)
+        self.main_window.col.decks.save(old_conf)
+        self.deck_manager.set_deck(deck['id'])
 
     @must_be_enabled
     def toggle_drain(self, enable=None):
@@ -124,6 +114,7 @@ class Lifedrain(object):
         Args:
             state: The name of the current screen.
         """
+        self._state = state
         if state != 'review':
             self.toggle_drain(False)
 

@@ -30,8 +30,7 @@ TEXT_FORMAT = [{
 DEFAULTS = {
     'maxLife': 120,
     'recover': 5,
-    'enableDamage': False,
-    'damage': 5,
+    'damage': None,
     'barPosition': POSITION_OPTIONS.index('Bottom'),
     'barHeight': 15,
     'barFgColor': '#489ef6',
