@@ -8,9 +8,11 @@ from anki.hooks import addHook, wrap
 from anki.sched import Scheduler
 from aqt import forms, mw, qt
 from aqt.editcurrent import EditCurrent
+from aqt.overview import OverviewBottomBar
 from aqt.preferences import Preferences
 from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
+from aqt.toolbar import BottomBar
 
 from .lifedrain import Lifedrain
 
@@ -78,6 +80,37 @@ def setup_hooks(lifedrain):
     addHook('leech',
             lambda *args: lifedrain.status.update({'card_new_state': True}))
     addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
+
+    # hack to add Life Drain button into the overview screen
+    def bottom_bar_draw(*args, **kwargs):
+        if isinstance(kwargs['web_context'], OverviewBottomBar):
+
+            def update_buf(buf):
+                attribute_list = [
+                    'title="Shortcut key: L"',
+                    'onclick="pycmd(\'lifedrain\')"']
+                attributes = ' '.join(attribute_list)
+                text = 'Life Drain'
+                button = '<button {}>{}</button>'.format(attributes, text)
+                return '{}\n{}'.format(buf, button)
+
+            def link_handler(url):
+                if url == 'lifedrain':
+                    lifedrain.deck_settings()
+                default_link_handler(url=url)
+
+            default_link_handler = kwargs['link_handler']
+
+            new_kwargs = dict(kwargs)
+            new_kwargs['buf'] = update_buf(kwargs['buf'])
+            new_kwargs['link_handler'] = link_handler
+            return default_bottom_bar_draw(*args, **new_kwargs)
+
+        return default_bottom_bar_draw(*args, **kwargs)
+
+    default_bottom_bar_draw = BottomBar.draw
+    BottomBar.draw = bottom_bar_draw
+    # end-of-hack
 
     Scheduler.buryNote = wrap(
         Scheduler.buryNote,
