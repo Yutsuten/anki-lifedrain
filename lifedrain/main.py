@@ -5,6 +5,7 @@ See the LICENCE file in the repository root for full licence text.
 
 from anki.collection import _Collection
 from anki.hooks import addHook, wrap
+from anki.lang import _
 from anki.sched import Scheduler
 from aqt import forms, mw, qt
 from aqt.editcurrent import EditCurrent
@@ -87,7 +88,7 @@ def setup_hooks(lifedrain):
 
             def update_buf(buf):
                 attribute_list = [
-                    'title="Shortcut key: L"',
+                    'title="{}"'.format(_('Shortcut key: %s') % 'L'),
                     'onclick="pycmd(\'lifedrain\')"']
                 attributes = ' '.join(attribute_list)
                 text = 'Life Drain'
