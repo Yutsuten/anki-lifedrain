@@ -3,10 +3,6 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
-from anki.collection import _Collection
-from anki.hooks import addHook, wrap
-from anki.lang import _
-from anki.sched import Scheduler
 from aqt import forms, mw, qt
 from aqt.editcurrent import EditCurrent
 from aqt.overview import OverviewBottomBar
@@ -15,7 +11,12 @@ from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.toolbar import BottomBar
 
-from .lifedrain import Lifedrain
+from anki.collection import _Collection
+from anki.hooks import addHook, wrap
+from anki.lang import _
+from anki.sched import Scheduler
+
+from lifedrain.lifedrain import Lifedrain
 
 
 def main():
