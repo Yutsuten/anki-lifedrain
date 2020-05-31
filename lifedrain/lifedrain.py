@@ -7,7 +7,7 @@ from lifedrain.config import DeckConf
 from lifedrain.deck_manager import DeckManager
 from lifedrain.decorators import must_be_enabled
 from lifedrain.defaults import DEFAULTS
-from lifedrain.settings import Settings
+from lifedrain.settings import GlobalSettings, DeckSettings
 
 
 class Lifedrain:
@@ -34,7 +34,8 @@ class Lifedrain:
     }
     preferences_ui = None
 
-    _settings = None
+    _global_settings = None
+    _deck_settings = None
     _timer = None
     _state = None
 
@@ -50,12 +51,13 @@ class Lifedrain:
 
         self.deck_manager = DeckManager(mw, qt, deck_conf)
         self.main_window = mw
-        self._settings = Settings(qt, deck_conf)
+        self._global_settings = GlobalSettings(qt)
+        self._deck_settings = DeckSettings(qt, deck_conf)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
 
-        self.preferences_ui = self._settings.preferences_ui
+        self.preferences_ui = self._global_settings.generate_form
 
     def preferences_load(self, pref):
         """Loads Life Drain global settings into the Global Settings dialog.
@@ -63,7 +65,7 @@ class Lifedrain:
         Args:
             pref: The instance of the Global Settings dialog.
         """
-        self._settings.preferences_load(pref)
+        self._global_settings.load_form_data(pref)
         self.toggle_drain(False)
 
     def preferences_save(self, pref):
@@ -72,7 +74,7 @@ class Lifedrain:
         Args:
             pref: The instance of the Global Settings dialog.
         """
-        conf = self._settings.preferences_save(pref)
+        conf = self._global_settings.save_form_data(pref)
 
         self.status['card_new_state'] = True
         self.status['reviewed'] = False
@@ -87,7 +89,7 @@ class Lifedrain:
 
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
-        self._settings.deck_settings(life, set_deck_conf)
+        self._deck_settings.open(life, set_deck_conf)
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
