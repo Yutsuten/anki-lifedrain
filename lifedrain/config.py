@@ -21,7 +21,7 @@ class DeckConf:
         conf = deck.get('lifedrain')
 
         if conf is None:
-            old_conf = col.decks.confForDid(conf['id'])
+            old_conf = col.decks.confForDid(deck['id'])
             dmg_value = old_conf.get('damage', DEFAULTS['damage'])
             dmg_enable = old_conf.get('enableDamage', False)
             return {
