@@ -3,6 +3,7 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
+from lifedrain.config import DeckConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
 from .defaults import DEFAULTS
@@ -45,9 +46,11 @@ class Lifedrain(object):
             mw: Anki's main window.
             qt: The PyQt library.
         """
-        self.deck_manager = DeckManager(mw, qt)
+        deck_conf = DeckConf(mw)
+
+        self.deck_manager = DeckManager(mw, qt, deck_conf)
         self.main_window = mw
-        self._settings = Settings(qt)
+        self._settings = Settings(qt, deck_conf)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
@@ -79,21 +82,14 @@ class Lifedrain(object):
 
     def deck_settings(self):
         """Opens a dialog with the Deck Settings."""
-        deck = self.main_window.col.decks.current()
-        lifedrain_conf = self.deck_manager.get_deck_conf(deck['id'])
-        old_conf = self.main_window.col.decks.confForDid(deck['id'])
-
-        life = lifedrain_conf['currentValue']
+        life = self.deck_manager.get_current_life()
         set_deck_conf = self.deck_manager.set_deck_conf
 
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
-        self._settings.deck_settings(deck, life, set_deck_conf, old_conf)
+        self._settings.deck_settings(life, set_deck_conf)
         self.toggle_drain(drain_enabled)
-
-        self.main_window.col.decks.save(deck)
-        self.main_window.col.decks.save(old_conf)
-        self.deck_manager.set_deck(deck['id'])
+        self.deck_manager.update()
 
     @must_be_enabled
     def toggle_drain(self, enable=None):
@@ -127,8 +123,7 @@ class Lifedrain(object):
         if state == 'deckBrowser':
             self.deck_manager.bar_visible(False)
         else:
-            self.deck_manager.set_deck(
-                self.main_window.col.decks.current()['id'])
+            self.deck_manager.update()
             self.deck_manager.bar_visible(True)
 
     @must_be_enabled
