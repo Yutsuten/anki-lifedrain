@@ -82,18 +82,14 @@ class Lifedrain(object):
 
     def deck_settings(self):
         """Opens a dialog with the Deck Settings."""
-        deck = self.main_window.col.decks.current()
-        lifedrain_conf = self.deck_manager.get_deck_conf(deck['id'])
-
-        life = lifedrain_conf['currentValue']
+        life = self.deck_manager.get_current_life()
         set_deck_conf = self.deck_manager.set_deck_conf
 
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
         self._settings.deck_settings(life, set_deck_conf)
         self.toggle_drain(drain_enabled)
-
-        self.deck_manager.set_deck(deck['id'])
+        self.deck_manager.update()
 
     @must_be_enabled
     def toggle_drain(self, enable=None):
