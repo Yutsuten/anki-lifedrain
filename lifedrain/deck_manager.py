@@ -69,14 +69,14 @@ class DeckManager(object):
             deck_id: The ID of the deck.
             conf: A dictionary with the deck's configuration and state.
         """
-        current_value = conf['lifedrain']['currentValue']
-        if current_value > conf['lifedrain']['maxLife']:
-            current_value = conf['lifedrain']['maxLife']
+        current_value = conf['currentValue']
+        if current_value > conf['maxLife']:
+            current_value = conf['maxLife']
 
         deck_id = conf['id']
-        self._bar_info[deck_id]['maxValue'] = conf['lifedrain']['maxLife']
-        self._bar_info[deck_id]['recoverValue'] = conf['lifedrain']['recover']
-        self._bar_info[deck_id]['damageValue'] = conf['lifedrain']['damage']
+        self._bar_info[deck_id]['maxValue'] = conf['maxLife']
+        self._bar_info[deck_id]['recoverValue'] = conf['recover']
+        self._bar_info[deck_id]['damageValue'] = conf['damage']
         self._bar_info[deck_id]['currentValue'] = current_value
 
     def recover_life(self, increment=True, value=None, damage=False):
