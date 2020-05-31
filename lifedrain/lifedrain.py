@@ -123,8 +123,7 @@ class Lifedrain(object):
         if state == 'deckBrowser':
             self.deck_manager.bar_visible(False)
         else:
-            self.deck_manager.set_deck(
-                self.main_window.col.decks.current()['id'])
+            self.deck_manager.update()
             self.deck_manager.bar_visible(True)
 
     @must_be_enabled

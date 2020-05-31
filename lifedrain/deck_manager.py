@@ -43,22 +43,17 @@ class DeckManager(object):
 
     def update(self):
         """Updates the current deck's life bar."""
-        deck_id = self._cur_deck_id
+        conf = self._deck_conf.get()
+        self._cur_deck_id = conf['id']
+
+        if conf['id'] not in self._bar_info:
+            self._add_deck(conf['id'])
+
         self._update_progress_bar_style()
-        self._progress_bar.set_max_value(self._bar_info[deck_id]['maxValue'])
-        self._progress_bar.set_current_value(
-            self._bar_info[deck_id]['currentValue'])
 
-    def set_deck(self, deck_id):
-        """Sets a deck as the currently active.
-
-        Args:
-            deck_id: The ID of the deck.
-        """
-        self._cur_deck_id = deck_id
-        if deck_id not in self._bar_info:
-            self._add_deck(deck_id)
-        self.update()
+        bar_info = self._bar_info[conf['id']]
+        self._progress_bar.set_max_value(bar_info['maxValue'])
+        self._progress_bar.set_current_value(bar_info['currentValue'])
 
     def get_current_life(self):
         """Get the current deck's current life."""
