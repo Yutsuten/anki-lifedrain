@@ -1,5 +1,2 @@
 [MASTER]
-init-hook='import os, sys; sys.path.append("{}/anki".format(os.getcwd()))'
-
-[TYPECHECK]
-disable=useless-object-inheritance
+init-hook='import os, sys; sys.path.append("{}/anki/qt".format(os.getcwd()))'

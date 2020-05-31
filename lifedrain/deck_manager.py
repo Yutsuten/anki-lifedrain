@@ -5,11 +5,11 @@ See the LICENCE file in the repository root for full licence text.
 
 from anki.hooks import runHook
 
-from .defaults import DEFAULTS
-from .progress_bar import ProgressBar
+from lifedrain.defaults import DEFAULTS
+from lifedrain.progress_bar import ProgressBar
 
 
-class DeckManager(object):
+class DeckManager:
     """Manages Life Drain status and configuration for each deck.
 
     Users may configure each deck with different settings, and the current

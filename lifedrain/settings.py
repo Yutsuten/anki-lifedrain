@@ -5,10 +5,11 @@ See the LICENCE file in the repository root for full licence text.
 
 from operator import itemgetter
 
-from .defaults import DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
+from lifedrain.defaults import (
+    DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT)
 
 
-class Settings(object):
+class Settings:
     """Creates the User Interfaces for configurating the add-on."""
 
     _qt = None
