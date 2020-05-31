@@ -15,14 +15,16 @@ class Settings(object):
     _form = None
     _row = None
     _conf = None
+    _deck_conf = None
 
-    def __init__(self, qt):
+    def __init__(self, qt, deck_conf):
         """Saves the qt library to generate the Settings UI later.
 
         Args:
             qt: The PyQt library.
         """
         self._qt = qt
+        self._deck_conf = deck_conf
 
     def preferences_ui(self, form):
         """Appends a Life Drain tab to the Global Settings dialog.
@@ -50,9 +52,9 @@ class Settings(object):
         self._fill_remaining_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
-    def deck_settings(self, deck_conf, life, set_deck_conf):
+    def deck_settings(self, life, set_deck_conf):
         """Opens a dialog with the Deck Settings."""
-        conf = deck_conf.get()
+        conf = self._deck_conf.get()
         settings_dialog = self._qt.QDialog()
 
         window_title = 'Life Drain options for {}'.format(conf['name'])
@@ -70,10 +72,10 @@ class Settings(object):
         form.currentValueInput.setValue(life)
 
         def save():
-            conf = deck_conf.get()
+            conf = self._deck_conf.get()
             conf.update(self.deck_settings_save(form))
             set_deck_conf(conf)
-            deck_conf.set(conf)
+            self._deck_conf.set(conf)
             return settings_dialog.accept()
 
         button_box = self._qt.QDialogButtonBox(

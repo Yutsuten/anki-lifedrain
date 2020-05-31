@@ -23,11 +23,13 @@ class DeckManager(object):
 
     _bar_info = {}
     _conf = None
+    _deck_conf = None
     _game_over = False
     _main_window = None
     _progress_bar = None
+    _cur_deck_id = None
 
-    def __init__(self, mw, qt):
+    def __init__(self, mw, qt, deck_conf):
         """Initializes a Progress Bar, and keeps Anki's main window reference.
 
         Args:
@@ -36,6 +38,7 @@ class DeckManager(object):
         """
         self._progress_bar = ProgressBar(mw, qt)
         self._main_window = mw
+        self._deck_conf = deck_conf
         self.bar_visible = self._progress_bar.set_visible
 
     def set_deck(self, deck_id):
@@ -45,6 +48,8 @@ class DeckManager(object):
             deck_id: The ID of the deck.
         """
         self._update_progress_bar_style()
+        self._cur_deck_id = deck_id
+
         if deck_id not in self._bar_info:
             self._add_deck(deck_id)
 
@@ -87,7 +92,7 @@ class DeckManager(object):
             value: Optional. The value used to increment or decrement.
             damage: Optional. If this flag is ON, uses the default damage value.
         """
-        deck_id = self._main_window.col.decks.current()['id']
+        deck_id = self._cur_deck_id
 
         multiplier = 1
         if not increment:
@@ -115,29 +120,12 @@ class DeckManager(object):
         Args:
             deck_id: The ID of the deck.
         """
-        conf = self._main_window.col.decks.current()
-        lifedrain_conf = conf.get('lifedrain')
-        if not lifedrain_conf:
-            old_conf = self._main_window.col.decks.confForDid(deck_id)
-            dmg_value = old_conf.pop('damage', DEFAULTS['damage'])
-            dmg_enable = old_conf.pop('enableDamage', False)
-            damage = dmg_value if dmg_enable else None
-            lifedrain_conf = {
-                'maxLife': old_conf.pop('maxLife', DEFAULTS['maxLife']),
-                'recover': old_conf.pop('recover', DEFAULTS['recover']),
-                'damage': damage
-            }
-            old_conf.pop('currentValue', None)
-            conf['lifedrain'] = lifedrain_conf
-            self._main_window.col.decks.save(conf)
-            self._main_window.col.decks.save(old_conf)
-
-        self._conf = lifedrain_conf
+        conf = self._deck_conf.get()
         self._bar_info[deck_id] = {
-            'maxValue': self._get_conf('maxLife'),
-            'currentValue': self._get_conf('maxLife'),
-            'recoverValue': self._get_conf('recover'),
-            'damageValue': self._get_conf('damage')
+            'maxValue': conf['maxLife'],
+            'currentValue': conf['maxLife'],
+            'recoverValue': conf['recover'],
+            'damageValue': conf['damage']
         }
 
     def _update_progress_bar_style(self):

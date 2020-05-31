@@ -35,7 +35,6 @@ class Lifedrain(object):
     preferences_ui = None
 
     _settings = None
-    _deck_conf = None
     _timer = None
     _state = None
 
@@ -47,10 +46,11 @@ class Lifedrain(object):
             mw: Anki's main window.
             qt: The PyQt library.
         """
-        self.deck_manager = DeckManager(mw, qt)
+        deck_conf = DeckConf(mw)
+
+        self.deck_manager = DeckManager(mw, qt, deck_conf)
         self.main_window = mw
-        self._deck_conf = DeckConf(mw)
-        self._settings = Settings(qt)
+        self._settings = Settings(qt, deck_conf)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
@@ -90,7 +90,7 @@ class Lifedrain(object):
 
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
-        self._settings.deck_settings(self._deck_conf, life, set_deck_conf)
+        self._settings.deck_settings(life, set_deck_conf)
         self.toggle_drain(drain_enabled)
 
         self.deck_manager.set_deck(deck['id'])
