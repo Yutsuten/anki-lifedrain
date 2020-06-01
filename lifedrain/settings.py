@@ -289,3 +289,71 @@ class DeckSettings(Form):
             'damage': form.damageInput.value() if enable_damage else None,
             'currentValue': form.currentValueInput.value()
         }
+
+    def old_generate_deck_form(self, form):
+        """Appends a Life Drain tab to Deck Settings dialog.
+        Args:
+            form: The form instance of the Global Settings dialog.
+        """
+        self._form = form
+        self._row = 0
+        form.lifedrain_widget = self._qt.QWidget()
+        form.lifedrain_layout = self._qt.QGridLayout(form.lifedrain_widget)
+        self.label(
+            'The <b>maximum life</b> is the time in seconds for the life bar '
+            'go from full to empty.\n<b>Recover</b> is the time in seconds '
+            'that is recovered after answering a card. <b>Damage</b> is the '
+            'life lost when a card is answered with \'Again\'.')
+        self.spin_box('maxLifeInput', 'Maximum life', [1, 10000])
+        self.spin_box('recoverInput', 'Recover', [0, 1000])
+        self.check_box('enableDamageInput', 'Enable damage')
+        self.spin_box('damageInput', 'Damage', [-1000, 1000])
+        self.spin_box('currentValueInput', 'Current life', [0, 10000])
+        self.fill_space()
+        form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
+
+    def old_generate_custom_deck_form(self, form):
+        """Adds Life Drain settings to Filtered Deck Settings dialog.
+        Args:
+            form: The form instance of the Filtered Deck Settings dialog.
+        """
+        self._form = form
+        self._row = 0
+        form.lifedrain_widget = self._qt.QGroupBox('Life Drain')
+        form.lifedrain_layout = self._qt.QGridLayout(form.lifedrain_widget)
+        self.spin_box('maxLifeInput', 'Maximum life', [1, 10000])
+        self.spin_box('recoverInput', 'Recover', [0, 1000])
+        self.check_box('enableDamageInput', 'Enable damage')
+        self.spin_box('damageInput', 'Damage', [-1000, 1000])
+        self.spin_box('currentValueInput', 'Current life', [0, 10000])
+        form.verticalLayout.insertWidget(3, form.lifedrain_widget)
+
+    def old_load_form_data(self, settings, current_life):
+        """Loads Life Drain deck settings into the form.
+        Args:
+            settings: The instance of the Deck Settings dialog.
+            current_life: The current amount of life.
+        """
+        conf = self._deck_conf.get()
+        form = settings.form
+
+        form.maxLifeInput.setValue(conf['maxLife'])
+        form.recoverInput.setValue(conf['recover'])
+        form.enableDamageInput.setChecked(conf['damage'] is not None)
+        form.damageInput.setValue(conf['damage'] or 5)
+        form.currentValueInput.setValue(current_life)
+
+    def old_save_form_data(self, settings, set_deck_conf):
+        """Saves Life Drain deck settings from the form.
+        Args:
+            settings: The instance of the Deck Settings dialog.
+        """
+        conf = self._deck_conf.get()
+        form = settings.form
+        enable_damage = form.enableDamageInput.isChecked()
+        conf['maxLife'] = form.maxLifeInput.value()
+        conf['recover'] = form.recoverInput.value()
+        conf['damage'] = form.damageInput.value() if enable_damage else None
+        conf['currentValue'] = form.currentValueInput.value()
+        set_deck_conf(conf)
+        self._deck_conf.set(conf)

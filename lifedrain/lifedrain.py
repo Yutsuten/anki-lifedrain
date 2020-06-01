@@ -34,6 +34,11 @@ class Lifedrain:
     }
     preferences_ui = None
 
+    # deprecated
+    deck_settings_ui = None
+    custom_deck_settings_ui = None
+    # end-of-deprecated
+
     _global_settings = None
     _deck_settings = None
     _timer = None
@@ -58,6 +63,11 @@ class Lifedrain:
         self._timer.stop()
 
         self.preferences_ui = self._global_settings.generate_form
+        # deprecated
+        self.deck_settings_ui = self._deck_settings.old_generate_deck_form
+        self.custom_deck_settings_ui = \
+            self._deck_settings.old_generate_custom_deck_form
+        # end-of-deprecated
 
     def preferences_load(self, pref):
         """Loads Life Drain global settings into the Global Settings dialog.
@@ -81,6 +91,27 @@ class Lifedrain:
 
         if conf['disable'] is True:
             self.deck_manager.bar_visible(False)
+
+    # Deprecated method
+    def deck_settings_load(self, settings):
+        """Loads Life Drain deck settings into the Deck Settings dialog.
+        Args:
+            settings: The instance of the Deck Settings dialog.
+        """
+        self._deck_settings.old_load_form_data(
+            settings, self.deck_manager.get_current_life())
+        self.toggle_drain(False)
+
+    # Deprecated method
+    def deck_settings_save(self, settings):
+        """Saves Life Drain deck settings.
+        Args:
+            settings: The instance of the Deck Settings dialog.
+        """
+        set_deck_conf = self.deck_manager.set_deck_conf
+        self._deck_settings.old_save_form_data(settings, set_deck_conf)
+        self.status['card_new_state'] = True
+        self.status['reviewed'] = False
 
     def deck_settings(self):
         """Opens a dialog with the Deck Settings."""
