@@ -8,49 +8,49 @@ If the life is low, it means that you are distracted or taking too much time to 
 
 ## Install
 ### Recommended way
-- Follow the instructions in [AnkiWeb](https://ankiweb.net/shared/info/715575551).
+- Install from the [AnkiWeb](https://ankiweb.net/shared/info/715575551).
 
 ### Manual
-- Anki 2.0: Copy the folder `lifedrain` into your add-ons folder and create a `lifedrain_loader.py` with `import lifedrain` in it.
 - Anki 2.1: Copy the folder `lifedrain` into your add-ons folder.
 
 ## Screenshot
 ![Review](screenshots/review_screen.png)
 
 ## Features
-### Bar behaviour/styling
+### Global settings
 There are many configurations to style the bar.
 Access `Tools > Preferences`, then select the tab `Life Drain`, and you'll see this screen:
 
 ![Preferences](screenshots/preferences.png)
 
+- **Enable Life Drain**: Enable/disable the add-on without restarting Anki.
 - **Stop drain on answer shown**: Automatically stops the drain after answering a card.
-- **Disable Life Drain**: Disable the add-on if you don't want to rush yourself all the time.
 - **Position**: Choose where to show the bar: `Top` or `Bottom`.
 - **Height**: The height of the bar, to make it bigger or smaller.
 - **Border radius**: Adds a rounded border to the bar.
 - **Text**: The text shown inside the bar.
-- **Style**: Allow selecting some custom style to the bar.
-- **Background color**: The background color of the bar.
-- **Foreground color**: The foreground color of the bar.
+- **Style**: Allow selecting some custom style to the bar (not all options may work on your platform).
+- **Bar color**: The color of the bar.
 - **Text color**: If you chose to show text, you can select its color.
 
-### Bar configuration (per deck)
-The bar has 3 configurations: the `Maximum life`, `Recover` and `Current life`.
+### Deck settings
+You can create different configurations for each deck.
+Here you may set things like your maximum life and the recover value when answering a card!
 
-Select a deck, then in `Options`, select the tab `Life Drain`:
+On the overview screen,
+click the Life Drain button (or press its shortcut **L**).
+
+![Overview](screenshots/overview.png)
+
+Then the following dialog will appear:
 
 ![Deck options](screenshots/deck_options.png)
 
-Filtered deck configurations (Added in 2018-07-01):
-
-![Custom deck options](screenshots/custom_deck_options.png)
-
-- **Maximum life**: Is the time in seconds for the life bar go from full to empty.
-- **Recover**: Is the time in seconds that is recovered after answering a card.
-- **Enable damage**: Select this to reduce the time remaining on the life bar each time a card is responded to with 'Again'.
-- **Damage**: Is the time in seconds that is removed when a card is responded to with 'Again'.
-- **Current life**: Your current life, in case you want to set it for whatever reason.
+- **Maximum life**: The time in seconds for the life bar go from full to empty.
+- **Recover**: The time in seconds that is recovered after answering a card.
+- **Enable damage**: Enable damage if a card is answered with 'Again'.
+- **Damage**: The damage value to be dealt if answering with 'Again'.
+- **Current life**: The current life, in seconds.
 
 ### Pause drain during reviews
 If for some reason you want to stop the drain, press **P** (**P**ause) to toggle it!
