@@ -53,7 +53,7 @@ class Form:
                                               self._row, 2, 1, 2)
         self._row += 1
 
-    def check_box(self, cb_name, label_text):
+    def check_box(self, cb_name, label_text, tooltip=None):
         """Creates a check box in the current row of the form.
 
         Args:
@@ -62,11 +62,13 @@ class Form:
         """
         setattr(self._form, cb_name,
                 self._qt.QCheckBox(label_text, self._form.lifedrain_widget))
+        if tooltip is not None:
+            getattr(self._form, cb_name).setToolTip(tooltip)
         self._form.lifedrain_layout.addWidget(getattr(self._form, cb_name),
                                               self._row, 0, 1, 4)
         self._row += 1
 
-    def spin_box(self, sb_name, label_text, val_range):
+    def spin_box(self, sb_name, label_text, val_range, tooltip=None):
         """Creates a spin box in the current row of the form.
 
         Args:
@@ -78,6 +80,9 @@ class Form:
         setattr(self._form, sb_name,
                 self._qt.QSpinBox(self._form.lifedrain_widget))
         getattr(self._form, sb_name).setRange(val_range[0], val_range[1])
+        if tooltip is not None:
+            label.setToolTip(tooltip)
+            getattr(self._form, sb_name).setToolTip(tooltip)
         self._form.lifedrain_layout.addWidget(label, self._row, 0)
         self._form.lifedrain_layout.addWidget(getattr(self._form, sb_name),
                                               self._row, 2, 1, 2)
@@ -260,16 +265,16 @@ class DeckSettings(Form):
 
         form.lifedrain_widget = self._qt.QWidget()
         form.lifedrain_layout = layout
-        self.label(
-            'The <b>maximum life</b> is the time in seconds for the life bar '
-            'go from full to empty.\n<b>Recover</b> is the time in seconds '
-            'that is recovered after answering a card. <b>Damage</b> is the '
-            'life lost when a card is answered with \'Again\'.')
-        self.spin_box('maxLifeInput', 'Maximum life', [1, 10000])
-        self.spin_box('recoverInput', 'Recover', [0, 1000])
-        self.check_box('enableDamageInput', 'Enable damage')
-        self.spin_box('damageInput', 'Damage', [-1000, 1000])
-        self.spin_box('currentValueInput', 'Current life', [0, 10000])
+        self.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''The time \
+in seconds for the life bar go from full to empty.''')
+        self.spin_box('recoverInput', 'Recover', [0, 1000], '''The time in \
+seconds that is recovered after answering a card.''')
+        self.check_box('enableDamageInput', 'Enable damage', '''Enable damage \
+if a card is answered with 'Again'.''')
+        self.spin_box('damageInput', 'Damage', [-1000, 1000], '''The damage \
+value to be dealt if answering with 'Again'.''')
+        self.spin_box('currentValueInput', 'Current life', [0, 10000], '''The \
+current life, in seconds.''')
         self.fill_space()
 
     @staticmethod
