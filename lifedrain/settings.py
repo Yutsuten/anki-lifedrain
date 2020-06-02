@@ -19,7 +19,7 @@ class Form:
     def __init__(self, qt):
         self._qt = qt
 
-    def label(self, text, color=None):
+    def label(self, text, color=None, minw=None, minh=None):
         """Creates a label in the current row of the form.
 
         Args:
@@ -28,6 +28,8 @@ class Form:
         """
         label = self._qt.QLabel(text)
         label.setWordWrap(True)
+        if minw and minh:
+            label.setMinimumSize(minw, minh)
         self._form.lifedrain_layout.addWidget(label, self._row, 0, 1, 4)
         if color:
             label.setStyleSheet('color: {}'.format(color))
@@ -300,10 +302,10 @@ class DeckSettings(Form):
         form.lifedrain_widget = self._qt.QWidget()
         form.lifedrain_layout = self._qt.QGridLayout(form.lifedrain_widget)
         self.label(
-            'The <b>maximum life</b> is the time in seconds for the life bar '
-            'go from full to empty.\n<b>Recover</b> is the time in seconds '
-            'that is recovered after answering a card. <b>Damage</b> is the '
-            'life lost when a card is answered with \'Again\'.')
+            'This form has been deprecated and will be removed the next '
+            'release. <b>On the overview screen</b>, access the new Life Drain '
+            'deck options by using the Life Drain button, or press the '
+            'shortcut L.', '#FF0000', 200, 60)
         self.spin_box('maxLifeInput', 'Maximum life', [1, 10000])
         self.spin_box('recoverInput', 'Recover', [0, 1000])
         self.check_box('enableDamageInput', 'Enable damage')
@@ -319,8 +321,13 @@ class DeckSettings(Form):
         """
         self._form = form
         self._row = 0
-        form.lifedrain_widget = self._qt.QGroupBox('Life Drain')
+        form.lifedrain_widget = self._qt.QGroupBox('Life Drain  ')
         form.lifedrain_layout = self._qt.QGridLayout(form.lifedrain_widget)
+        self.label(
+            'This form has been deprecated and will be removed the next '
+            'release. <b>On the overview screen</b>, access the new Life Drain '
+            'deck options by using the Life Drain button, or press the '
+            'shortcut L.', '#FF0000', 200, 60)
         self.spin_box('maxLifeInput', 'Maximum life', [1, 10000])
         self.spin_box('recoverInput', 'Recover', [0, 1000])
         self.check_box('enableDamageInput', 'Enable damage')
