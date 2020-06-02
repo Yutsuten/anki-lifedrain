@@ -11,6 +11,11 @@ from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.toolbar import BottomBar
 
+# deprecated
+from aqt.deckconf import DeckConf
+from aqt.dyndeckconf import DeckConf as FiltDeckConf
+# end-of-deprecated
+
 from anki.collection import _Collection
 from anki.hooks import addHook, wrap
 from anki.lang import _
@@ -133,3 +138,26 @@ def setup_hooks(lifedrain):
         Reviewer._answerCard,  # pylint: disable=protected-access
         lambda *args: lifedrain.status.update({'review_response': args[1]}),
         'before')
+
+    # deprecated
+    # Deck Settings
+    forms.dconf.Ui_Dialog.setupUi = wrap(
+        forms.dconf.Ui_Dialog.setupUi,
+        lambda *args: lifedrain.deck_settings_ui(args[0]))
+    DeckConf.loadConf = wrap(
+        DeckConf.loadConf, lambda *args: lifedrain.deck_settings_load(args[0]))
+    DeckConf.saveConf = wrap(
+        DeckConf.saveConf, lambda *args: lifedrain.deck_settings_save(args[0]),
+        'before')
+
+    # Filtered Deck Settings
+    forms.dyndconf.Ui_Dialog.setupUi = wrap(
+        forms.dyndconf.Ui_Dialog.setupUi,
+        lambda *args: lifedrain.custom_deck_settings_ui(args[0]))
+    FiltDeckConf.loadConf = wrap(
+        FiltDeckConf.loadConf,
+        lambda *args: lifedrain.deck_settings_load(args[0]))
+    FiltDeckConf.saveConf = wrap(
+        FiltDeckConf.saveConf,
+        lambda *args: lifedrain.deck_settings_save(args[0]), 'before')
+    # end-of-deprecated
