@@ -252,6 +252,7 @@ class DeckSettings(Form):
         button_box.accepted.connect(save)
         layout.addWidget(button_box, self._row, 0, 1, 4)
 
+        settings_dialog.setMinimumSize(300, 210)
         settings_dialog.exec()
 
     def _generate_form(self, form, layout):
