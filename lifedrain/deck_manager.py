@@ -72,6 +72,8 @@ class DeckManager:
         current_value = conf['currentValue']
         if current_value > conf['maxLife']:
             current_value = conf['maxLife']
+        if conf['id'] not in self._bar_info:
+            self._add_deck(conf['id'])
 
         deck_id = conf['id']
         self._bar_info[deck_id]['maxValue'] = conf['maxLife']
