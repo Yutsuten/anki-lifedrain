@@ -5,8 +5,8 @@ See the LICENCE file in the repository root for full licence text.
 
 from anki.hooks import runHook
 
-from lifedrain.defaults import DEFAULTS
-from lifedrain.progress_bar import ProgressBar
+from .defaults import DEFAULTS
+from .progress_bar import ProgressBar
 
 
 class DeckManager:

@@ -3,11 +3,11 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
-from lifedrain.config import DeckConf
-from lifedrain.deck_manager import DeckManager
-from lifedrain.decorators import must_be_enabled
-from lifedrain.defaults import DEFAULTS
-from lifedrain.settings import GlobalSettings, DeckSettings
+from .config import DeckConf
+from .deck_manager import DeckManager
+from .decorators import must_be_enabled
+from .defaults import DEFAULTS
+from .settings import GlobalSettings, DeckSettings
 
 
 class Lifedrain:

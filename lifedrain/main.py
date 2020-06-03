@@ -21,7 +21,7 @@ from anki.hooks import addHook, wrap
 from anki.lang import _
 from anki.sched import Scheduler
 
-from lifedrain.lifedrain import Lifedrain
+from .lifedrain import Lifedrain
 
 
 def main():
