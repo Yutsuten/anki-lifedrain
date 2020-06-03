@@ -279,11 +279,18 @@ current life, in seconds.''')
 
     @staticmethod
     def _load_form_data(form, conf, life):
+        def update_damageinput_state():
+            damage_enabled = form.enableDamageInput.isChecked()
+            form.damageInput.setEnabled(damage_enabled)
+            form.damageInput.setValue(5)
+
         form.maxLifeInput.setValue(conf['maxLife'])
         form.recoverInput.setValue(conf['recover'])
         damage = conf['damage']
         form.enableDamageInput.setChecked(damage is not None)
+        form.enableDamageInput.stateChanged.connect(update_damageinput_state)
         form.damageInput.setValue(damage if damage else 5)
+        form.damageInput.setEnabled(conf['damage'] is not None)
         form.currentValueInput.setValue(life)
 
     @staticmethod
@@ -346,13 +353,20 @@ current life, in seconds.''')
             settings: The instance of the Deck Settings dialog.
             current_life: The current amount of life.
         """
+        def update_damageinput_state():
+            damage_enabled = form.enableDamageInput.isChecked()
+            form.damageInput.setEnabled(damage_enabled)
+            form.damageInput.setValue(5)
+
         conf = self._deck_conf.get()
         form = settings.form
 
         form.maxLifeInput.setValue(conf['maxLife'])
         form.recoverInput.setValue(conf['recover'])
         form.enableDamageInput.setChecked(conf['damage'] is not None)
+        form.enableDamageInput.stateChanged.connect(update_damageinput_state)
         form.damageInput.setValue(conf['damage'] or 5)
+        form.damageInput.setEnabled(conf['damage'] is not None)
         form.currentValueInput.setValue(current_life)
 
     def old_save_form_data(self, settings, set_deck_conf):
