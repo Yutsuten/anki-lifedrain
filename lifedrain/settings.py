@@ -289,7 +289,7 @@ current life, in seconds.''')
         damage = conf['damage']
         form.enableDamageInput.setChecked(damage is not None)
         form.enableDamageInput.stateChanged.connect(update_damageinput_state)
-        form.damageInput.setValue(damage if damage else 5)
+        form.damageInput.setValue(damage if damage is not None else 5)
         form.damageInput.setEnabled(conf['damage'] is not None)
         form.currentValueInput.setValue(life)
 
@@ -363,9 +363,10 @@ current life, in seconds.''')
 
         form.maxLifeInput.setValue(conf['maxLife'])
         form.recoverInput.setValue(conf['recover'])
-        form.enableDamageInput.setChecked(conf['damage'] is not None)
+        damage = conf['damage']
+        form.enableDamageInput.setChecked(damage is not None)
         form.enableDamageInput.stateChanged.connect(update_damageinput_state)
-        form.damageInput.setValue(conf['damage'] or 5)
+        form.damageInput.setValue(damage if damage is not None else 5)
         form.damageInput.setEnabled(conf['damage'] is not None)
         form.currentValueInput.setValue(current_life)
 
