@@ -57,10 +57,11 @@ class DeckManager:
 
     def get_current_life(self):
         """Get the current deck's current life."""
-        deck_id = self._cur_deck_id
-        if deck_id not in self._bar_info:
-            self._add_deck(deck_id)
-        return self._bar_info[deck_id]['currentValue']
+        conf = self._deck_conf.get()
+        self._cur_deck_id = conf['id']
+        if conf['id'] not in self._bar_info:
+            self._add_deck(conf['id'])
+        return self._bar_info[conf['id']]['currentValue']
 
     def set_deck_conf(self, conf):
         """Updates a deck's current settings and state.
