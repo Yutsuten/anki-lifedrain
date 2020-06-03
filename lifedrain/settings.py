@@ -5,8 +5,7 @@ See the LICENCE file in the repository root for full licence text.
 
 from operator import itemgetter
 
-from lifedrain.defaults import (
-    DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT)
+from .defaults import DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 
 
 class Form:
