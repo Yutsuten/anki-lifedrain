@@ -97,34 +97,43 @@ class ProgressBar:
         custom_style = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
         if custom_style != 'default':
-            palette = self._qt.QPalette()
-            palette.setColor(self._qt.QPalette.Highlight,
-                             self._qt.QColor(options['foregroundColor']))
+            qstyle = self._qt.QStyleFactory.create(custom_style)
+            self._qprogressbar.setStyle(qstyle)
 
-            self._qprogressbar.setStyle(
-                self._qt.QStyleFactory.create(custom_style))
+            palette = self._qt.QPalette()
+            fg_color = self._qt.QColor(options['fgColor'])
+            palette.setColor(self._qt.QPalette.Highlight, fg_color)
+
+            if 'bgColor' in options:
+                bg_color = self._qt.QColor(options['bgColor'])
+                palette.setColor(self._qt.QPalette.Base, bg_color)
+                palette.setColor(self._qt.QPalette.Window, bg_color)
+
             self._qprogressbar.setPalette(palette)
-            self._qprogressbar.setStyleSheet('''
-                QProgressBar {
-                    max-height: %spx;
-                }
-                ''' % (options['height']))
+
+            bar_elem_dict = {'max-height': '{}px'.format(options['height'])}
+            bar_elem = self._dict_to_css(bar_elem_dict)
+            self._qprogressbar.setStyleSheet(
+                'QProgressBar {{ {} }}'.format(bar_elem))
         else:
-            self._qprogressbar.setStyleSheet('''
-                QProgressBar {
-                    text-align:center;
-                    border-radius: %dpx;
-                    max-height: %spx;
-                    color: %s;
-                }
-                QProgressBar::chunk {
-                    background-color: %s;
-                    margin: 0px;
-                    border-radius: %dpx;
-                }
-                ''' % (options['borderRadius'], options['height'],
-                       options['textColor'], options['foregroundColor'],
-                       options['borderRadius']))
+            bar_elem_dict = {
+                'text-align': 'center',
+                'border-radius': '{}px'.format(options['borderRadius']),
+                'max-height': '{}px'.format(options['height']),
+                'color': options['textColor']}
+
+            if 'bgColor' in options:
+                bar_elem_dict['background-color'] = options['bgColor']
+
+            bar_elem = self._dict_to_css(bar_elem_dict)
+            bar_chunk = self._dict_to_css({
+                'background-color': options['fgColor'],
+                'margin': '0px',
+                'border-radius': '{}px'.format(options['borderRadius'])})
+
+            self._qprogressbar.setStyleSheet(
+                'QProgressBar {{ {} }}'
+                'QProgressBar::chunk {{ {} }}'.format(bar_elem, bar_chunk))
 
     def dock_at(self, position):
         """Docks the bar at the specified position in the Anki window.
@@ -192,3 +201,11 @@ class ProgressBar:
                 '%m', str(max_value)).replace(
                     '%p', str(int(100 * current_value / max_value)))
             self._qprogressbar.setFormat(text)
+
+    @staticmethod
+    def _dict_to_css(dictionary):
+        """Convert a python dict to a stylesheet."""
+        css = ''
+        for key, value in dictionary.items():
+            css += '\n{}: {};'.format(key, value)
+        return css
