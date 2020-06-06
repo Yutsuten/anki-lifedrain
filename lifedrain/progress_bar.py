@@ -97,18 +97,24 @@ class ProgressBar:
         custom_style = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
         if custom_style != 'default':
-            palette = self._qt.QPalette()
-            palette.setColor(self._qt.QPalette.Highlight,
-                             self._qt.QColor(options['fgColor']))
+            qstyle = self._qt.QStyleFactory.create(custom_style)
+            self._qprogressbar.setStyle(qstyle)
 
-            self._qprogressbar.setStyle(
-                self._qt.QStyleFactory.create(custom_style))
+            palette = self._qt.QPalette()
+            fg_color = self._qt.QColor(options['fgColor'])
+            palette.setColor(self._qt.QPalette.Highlight, fg_color)
+
+            if 'bgColor' in options:
+                bg_color = self._qt.QColor(options['bgColor'])
+                palette.setColor(self._qt.QPalette.Base, bg_color)
+                palette.setColor(self._qt.QPalette.Window, bg_color)
+
             self._qprogressbar.setPalette(palette)
-            self._qprogressbar.setStyleSheet('''
-                QProgressBar {
-                    max-height: %spx;
-                }
-                ''' % (options['height']))
+
+            bar_elem_dict = {'max-height': '{}px'.format(options['height'])}
+            bar_elem = self._dict_to_css(bar_elem_dict)
+            self._qprogressbar.setStyleSheet(
+                'QProgressBar {{ {} }}'.format(bar_elem))
         else:
             bar_elem_dict = {
                 'text-align': 'center',
@@ -127,8 +133,7 @@ class ProgressBar:
 
             self._qprogressbar.setStyleSheet(
                 'QProgressBar {{ {} }}'
-                'QProgressBar::chunk {{ {} }}'.format(bar_elem, bar_chunk)
-            )
+                'QProgressBar::chunk {{ {} }}'.format(bar_elem, bar_chunk))
 
     def dock_at(self, position):
         """Docks the bar at the specified position in the Anki window.
