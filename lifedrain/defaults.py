@@ -34,10 +34,12 @@ DEFAULTS = {
     'barPosition': POSITION_OPTIONS.index('Bottom'),
     'barHeight': 15,
     'barFgColor': '#489ef6',
+    'barBgColor': '#f3f3f2',
     'barBorderRadius': 0,
     'barText': 0,
     'barTextColor': '#000',
     'barStyle': STYLE_OPTIONS.index('Default'),
     'stopOnAnswer': False,
-    'disable': False
+    'disable': False,
+    'enableBgColor': False
 }

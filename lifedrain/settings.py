@@ -158,6 +158,8 @@ class GlobalSettings(Form):
         self.combo_box('styleList', 'Style', STYLE_OPTIONS)
         self.color_select('fgColor', 'Bar color')
         self.color_select('textColor', 'Text color')
+        self.check_box('enableBgColor', 'Enable custom background color')
+        self.color_select('bgColor', 'Background color')
         self.fill_space()
         form.tabWidget.addTab(form.lifedrain_widget, 'Life Drain')
 
@@ -170,23 +172,29 @@ class GlobalSettings(Form):
         self._conf = pref.mw.col.conf
         form = pref.form
 
+        form.enableAddon.setChecked(not self._get_conf('disable'))
+        form.stopOnAnswer.setChecked(self._get_conf('stopOnAnswer'))
         form.positionList.setCurrentIndex(self._get_conf('barPosition'))
         form.heightInput.setValue(self._get_conf('barHeight'))
+        form.borderRadiusInput.setValue(self._get_conf('barBorderRadius'))
+        form.textList.setCurrentIndex(self._get_conf('barText'))
+        form.styleList.setCurrentIndex(self._get_conf('barStyle'))
         form.fgColorDialog.setCurrentColor(
             self._qt.QColor(self._get_conf('barFgColor')))
         form.fgColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
             form.fgColorDialog.currentColor().name())
-        form.borderRadiusInput.setValue(self._get_conf('barBorderRadius'))
-        form.textList.setCurrentIndex(self._get_conf('barText'))
         form.textColorDialog.setCurrentColor(
             self._qt.QColor(self._get_conf('barTextColor')))
         form.textColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
             form.textColorDialog.currentColor().name())
-        form.styleList.setCurrentIndex(self._get_conf('barStyle'))
-        form.stopOnAnswer.setChecked(self._get_conf('stopOnAnswer'))
-        form.enableAddon.setChecked(not self._get_conf('disable'))
+        form.enableBgColor.setChecked(self._get_conf('enableBgColor'))
+        form.bgColorDialog.setCurrentColor(
+            self._qt.QColor(self._get_conf('barBgColor')))
+        form.bgColorPreview.setStyleSheet(
+            'QLabel { background-color: %s; }' %
+            form.bgColorDialog.currentColor().name())
 
     @staticmethod
     def save_form_data(pref):
@@ -198,17 +206,17 @@ class GlobalSettings(Form):
         conf = pref.mw.col.conf
         form = pref.form
 
+        conf['disable'] = not form.enableAddon.isChecked()
+        conf['stopOnAnswer'] = form.stopOnAnswer.isChecked()
         conf['barPosition'] = form.positionList.currentIndex()
         conf['barHeight'] = form.heightInput.value()
-        conf['barFgColor'] = form.fgColorDialog.currentColor().name()
         conf['barBorderRadius'] = form.borderRadiusInput.value()
         conf['barText'] = form.textList.currentIndex()
-        conf['barTextColor'] = form.textColorDialog.currentColor().name()
         conf['barStyle'] = form.styleList.currentIndex()
-        conf['stopOnAnswer'] = form.stopOnAnswer.isChecked()
-        conf['disable'] = not form.enableAddon.isChecked()
-        if 'barBgColor' in conf:
-            del conf['barBgColor']
+        conf['barFgColor'] = form.fgColorDialog.currentColor().name()
+        conf['barTextColor'] = form.textColorDialog.currentColor().name()
+        conf['enableBgColor'] = form.enableBgColor.isChecked()
+        conf['barBgColor'] = form.bgColorDialog.currentColor().name()
         return conf
 
     def _get_conf(self, key):
