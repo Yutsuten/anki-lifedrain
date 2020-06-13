@@ -18,19 +18,7 @@ class DeckConf:
         """Get current deck configuration from Anki's database."""
         col = self._main_window.col
         deck = col.decks.current()
-        conf = deck.get('lifedrain')
-
-        if conf is None:
-            old_conf = col.decks.confForDid(deck['id'])
-            dmg_value = old_conf.get('damage', DEFAULTS['damage'])
-            dmg_enable = old_conf.get('enableDamage', False)
-            return {
-                'id': deck['id'],
-                'name': deck['name'],
-                'maxLife': old_conf.get('maxLife', DEFAULTS['maxLife']),
-                'recover': old_conf.get('recover', DEFAULTS['recover']),
-                'damage': dmg_value if dmg_enable else None
-            }
+        conf = deck.get('lifedrain', {})
         conf_dict = {
             'id': deck['id'],
             'name': deck['name'],
