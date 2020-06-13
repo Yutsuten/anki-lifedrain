@@ -18,7 +18,7 @@ class DeckConf:
         """Get current deck configuration from Anki's database."""
         col = self._main_window.col
         deck = col.decks.current()
-        conf = deck.get('lifedrain')
+        conf = deck.get('lifedrain', {})
         conf_dict = {
             'id': deck['id'],
             'name': deck['name'],
