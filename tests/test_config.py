@@ -48,3 +48,45 @@ class TestDeckConf(LifedrainTestCase):
             'recover': 15,
             'damage': 10}
         self.assertEqual(conf, expected_conf)
+
+    def test_set_first_time(self):
+        main_window = mock.MagicMock()
+        main_window.col.decks.current.return_value = {
+            'id': 123,
+            'name': 'My Deck'}
+
+        deck_conf = self.lifedrain.config.DeckConf(main_window)
+        conf = {
+            'maxLife': 200,
+            'recover': 15,
+            'damage': 10}
+        deck_conf.set(conf)
+
+        expected_conf = {
+            'id': 123,
+            'name': 'My Deck',
+            'lifedrain': conf}
+        main_window.col.decks.save.assert_called_with(expected_conf)
+
+    def test_set_overwrite(self):
+        main_window = mock.MagicMock()
+        main_window.col.decks.current.return_value = {
+            'id': 123,
+            'name': 'My Deck',
+            'lifedrain': {
+                'maxLife': 150,
+                'recover': 10,
+                'damage': 0}}
+
+        deck_conf = self.lifedrain.config.DeckConf(main_window)
+        conf = {
+            'maxLife': 200,
+            'recover': 15,
+            'damage': 10}
+        deck_conf.set(conf)
+
+        expected_conf = {
+            'id': 123,
+            'name': 'My Deck',
+            'lifedrain': conf}
+        main_window.col.decks.save.assert_called_with(expected_conf)
