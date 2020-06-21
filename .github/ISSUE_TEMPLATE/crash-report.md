@@ -1,7 +1,7 @@
 ---
 name: Crash Report
 about: Issues related to crashes.
-title: "[Crash] "
+title: ''
 labels: ''
 assignees: ''
 
@@ -11,4 +11,4 @@ assignees: ''
 
 **When does the crash happens?** 
 
-**⁨Traceback:**
+**Traceback:** 
