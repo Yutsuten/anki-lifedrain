@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Issues related to encountered bugs.
-title: "[Bug] "
+title: ''
 labels: ''
 assignees: ''
 
@@ -9,4 +9,4 @@ assignees: ''
 
 **Anki version & Operating System:** 
 
-**Describe the bug:**
+**Describe the bug:** 
