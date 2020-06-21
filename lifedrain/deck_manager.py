@@ -5,7 +5,6 @@ See the LICENCE file in the repository root for full licence text.
 
 from anki.hooks import runHook
 
-from .defaults import DEFAULTS
 from .progress_bar import ProgressBar
 
 
@@ -23,13 +22,13 @@ class DeckManager:
 
     _bar_info = {}
     _conf = None
+    _global_conf = None
     _deck_conf = None
     _game_over = False
-    _main_window = None
     _progress_bar = None
     _cur_deck_id = None
 
-    def __init__(self, mw, qt, deck_conf):
+    def __init__(self, mw, qt, global_conf, deck_conf):
         """Initializes a Progress Bar, and keeps Anki's main window reference.
 
         Args:
@@ -37,7 +36,7 @@ class DeckManager:
             qt: The PyQt library.
         """
         self._progress_bar = ProgressBar(mw, qt)
-        self._main_window = mw
+        self._global_conf = global_conf
         self._deck_conf = deck_conf
         self.bar_visible = self._progress_bar.set_visible
 
@@ -128,20 +127,15 @@ class DeckManager:
 
     def _update_progress_bar_style(self):
         """Synchronizes the Progress Bar styling with the Global Settings."""
-        self._conf = self._main_window.col.conf
-        self._progress_bar.dock_at(self._get_conf('barPosition'))
+        conf = self._global_conf.get()
+        self._progress_bar.dock_at(conf['barPosition'])
         progress_bar_style = {
-            'height': self._get_conf('barHeight'),
-            'fgColor': self._get_conf('barFgColor'),
-            'borderRadius': self._get_conf('barBorderRadius'),
-            'text': self._get_conf('barText'),
-            'textColor': self._get_conf('barTextColor'),
-            'customStyle': self._get_conf('barStyle')
-        }
-        if self._get_conf('enableBgColor'):
-            progress_bar_style['bgColor'] = self._get_conf('barBgColor')
+            'height': conf['barHeight'],
+            'fgColor': conf['barFgColor'],
+            'borderRadius': conf['barBorderRadius'],
+            'text': conf['barText'],
+            'textColor': conf['barTextColor'],
+            'customStyle': conf['barStyle']}
+        if conf['enableBgColor']:
+            progress_bar_style['bgColor'] = conf['barBgColor']
         self._progress_bar.set_style(progress_bar_style)
-
-    def _get_conf(self, key):
-        """Gets the value of a configuration."""
-        return self._conf.get(key, DEFAULTS[key])

@@ -5,7 +5,7 @@ See the LICENCE file in the repository root for full licence text.
 
 from operator import itemgetter
 
-from .defaults import DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
+from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 
 
 class Form:
@@ -134,8 +134,11 @@ class Form:
 
 class GlobalSettings(Form):
     """Creates the User Interfaces for configurating the add-on."""
-    def __init__(self, qt):
+    _global_conf = None
+
+    def __init__(self, qt, global_conf):
         Form.__init__(self, qt)
+        self._global_conf = global_conf
 
     def generate_form(self, form):
         """Appends a Life Drain tab to the Global Settings dialog.
@@ -169,59 +172,52 @@ class GlobalSettings(Form):
         Args:
             pref: The instance of the Global Settings dialog.
         """
-        self._conf = pref.mw.col.conf
+        conf = self._global_conf.get()
         form = pref.form
 
-        form.enableAddon.setChecked(not self._get_conf('disable'))
-        form.stopOnAnswer.setChecked(self._get_conf('stopOnAnswer'))
-        form.positionList.setCurrentIndex(self._get_conf('barPosition'))
-        form.heightInput.setValue(self._get_conf('barHeight'))
-        form.borderRadiusInput.setValue(self._get_conf('barBorderRadius'))
-        form.textList.setCurrentIndex(self._get_conf('barText'))
-        form.styleList.setCurrentIndex(self._get_conf('barStyle'))
-        form.fgColorDialog.setCurrentColor(
-            self._qt.QColor(self._get_conf('barFgColor')))
+        form.enableAddon.setChecked(conf['enable'])
+        form.stopOnAnswer.setChecked(conf['stopOnAnswer'])
+        form.positionList.setCurrentIndex(conf['barPosition'])
+        form.heightInput.setValue(conf['barHeight'])
+        form.borderRadiusInput.setValue(conf['barBorderRadius'])
+        form.textList.setCurrentIndex(conf['barText'])
+        form.styleList.setCurrentIndex(conf['barStyle'])
+        form.fgColorDialog.setCurrentColor(self._qt.QColor(conf['barFgColor']))
         form.fgColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
             form.fgColorDialog.currentColor().name())
         form.textColorDialog.setCurrentColor(
-            self._qt.QColor(self._get_conf('barTextColor')))
+            self._qt.QColor(conf['barTextColor']))
         form.textColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
             form.textColorDialog.currentColor().name())
-        form.enableBgColor.setChecked(self._get_conf('enableBgColor'))
-        form.bgColorDialog.setCurrentColor(
-            self._qt.QColor(self._get_conf('barBgColor')))
+        form.enableBgColor.setChecked(conf['enableBgColor'])
+        form.bgColorDialog.setCurrentColor(self._qt.QColor(conf['barBgColor']))
         form.bgColorPreview.setStyleSheet(
             'QLabel { background-color: %s; }' %
             form.bgColorDialog.currentColor().name())
 
-    @staticmethod
-    def save_form_data(pref):
+    def save_form_data(self, pref):
         """Saves Life Drain global settings from the form.
 
         Args:
             pref: The instance of the Global Settings dialog.
         """
-        conf = pref.mw.col.conf
         form = pref.form
-
-        conf['disable'] = not form.enableAddon.isChecked()
-        conf['stopOnAnswer'] = form.stopOnAnswer.isChecked()
-        conf['barPosition'] = form.positionList.currentIndex()
-        conf['barHeight'] = form.heightInput.value()
-        conf['barBorderRadius'] = form.borderRadiusInput.value()
-        conf['barText'] = form.textList.currentIndex()
-        conf['barStyle'] = form.styleList.currentIndex()
-        conf['barFgColor'] = form.fgColorDialog.currentColor().name()
-        conf['barTextColor'] = form.textColorDialog.currentColor().name()
-        conf['enableBgColor'] = form.enableBgColor.isChecked()
-        conf['barBgColor'] = form.bgColorDialog.currentColor().name()
+        conf = {
+            'enable': form.enableAddon.isChecked(),
+            'stopOnAnswer': form.stopOnAnswer.isChecked(),
+            'barPosition': form.positionList.currentIndex(),
+            'barHeight': form.heightInput.value(),
+            'barBorderRadius': form.borderRadiusInput.value(),
+            'barText': form.textList.currentIndex(),
+            'barStyle': form.styleList.currentIndex(),
+            'barFgColor': form.fgColorDialog.currentColor().name(),
+            'barTextColor': form.textColorDialog.currentColor().name(),
+            'enableBgColor': form.enableBgColor.isChecked(),
+            'barBgColor': form.bgColorDialog.currentColor().name()}
+        self._global_conf.set(conf)
         return conf
-
-    def _get_conf(self, key):
-        """Gets the value of a configuration."""
-        return self._conf.get(key, DEFAULTS[key])
 
 
 class DeckSettings(Form):

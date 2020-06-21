@@ -40,6 +40,6 @@ DEFAULTS = {
     'barTextColor': '#000',
     'barStyle': STYLE_OPTIONS.index('Default'),
     'stopOnAnswer': False,
-    'disable': False,
+    'enable': True,
     'enableBgColor': False
 }

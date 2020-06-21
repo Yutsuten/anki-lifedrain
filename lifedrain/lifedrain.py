@@ -3,7 +3,7 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
-from .config import DeckConf
+from .config import GlobalConf, DeckConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
 from .defaults import DEFAULTS
@@ -47,11 +47,12 @@ class Lifedrain:
             mw: Anki's main window.
             qt: The PyQt library.
         """
+        global_conf = GlobalConf(mw)
         deck_conf = DeckConf(mw)
 
-        self.deck_manager = DeckManager(mw, qt, deck_conf)
+        self.deck_manager = DeckManager(mw, qt, global_conf, deck_conf)
         self.main_window = mw
-        self._global_settings = GlobalSettings(qt)
+        self._global_settings = GlobalSettings(qt, global_conf)
         self._deck_settings = DeckSettings(qt, deck_conf)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
@@ -79,7 +80,7 @@ class Lifedrain:
         self.status['card_new_state'] = True
         self.status['reviewed'] = False
 
-        if conf['disable'] is True:
+        if conf['enable'] is False:
             self.deck_manager.bar_visible(False)
 
     def deck_settings(self):
