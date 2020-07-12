@@ -7,7 +7,7 @@ from .config import GlobalConf, DeckConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
 from .defaults import DEFAULTS
-from .settings import GlobalSettings, DeckSettings
+from .settings import GlobalSettings, GlobalSettingsOld, DeckSettings
 
 
 class Lifedrain:
@@ -52,7 +52,9 @@ class Lifedrain:
 
         self.deck_manager = DeckManager(mw, qt, global_conf, deck_conf)
         self.main_window = mw
-        self._global_settings = GlobalSettings(qt, global_conf)
+        self._global_settings = GlobalSettingsOld(qt, global_conf)
+        global_settings = GlobalSettings(qt, global_conf)
+        mw.addonManager.setConfigAction(__name__, global_settings.open)
         self._deck_settings = DeckSettings(qt, deck_conf)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
