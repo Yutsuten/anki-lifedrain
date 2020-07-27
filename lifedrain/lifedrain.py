@@ -34,6 +34,7 @@ class Lifedrain:
     }
     preferences_ui = None
 
+    _old_global_settings = None
     _global_settings = None
     _deck_settings = None
     _timer = None
@@ -52,15 +53,15 @@ class Lifedrain:
 
         self.deck_manager = DeckManager(mw, qt, global_conf, deck_conf)
         self.main_window = mw
-        self._global_settings = GlobalSettingsOld(qt, global_conf)
-        global_settings = GlobalSettings(qt, global_conf)
-        mw.addonManager.setConfigAction(__name__, global_settings.open)
+        self._old_global_settings = GlobalSettingsOld(qt, global_conf)
+        self._global_settings = GlobalSettings(qt, global_conf)
         self._deck_settings = DeckSettings(qt, deck_conf)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
 
-        self.preferences_ui = self._global_settings.generate_form
+        self.preferences_ui = self._old_global_settings.generate_form
+        mw.addonManager.setConfigAction(__name__, self.global_settings)
 
     def preferences_load(self, pref):
         """Loads Life Drain global settings into the Global Settings dialog.
@@ -68,7 +69,7 @@ class Lifedrain:
         Args:
             pref: The instance of the Global Settings dialog.
         """
-        self._global_settings.load_form_data(pref)
+        self._old_global_settings.load_form_data(pref)
         self.toggle_drain(False)
 
     def preferences_save(self, pref):
@@ -77,13 +78,21 @@ class Lifedrain:
         Args:
             pref: The instance of the Global Settings dialog.
         """
-        conf = self._global_settings.save_form_data(pref)
+        conf = self._old_global_settings.save_form_data(pref)
 
         self.status['card_new_state'] = True
         self.status['reviewed'] = False
 
         if conf['enable'] is False:
             self.deck_manager.bar_visible(False)
+
+    def global_settings(self):
+        """Opens a dialog with the Global Settings."""
+        drain_enabled = self._timer.isActive()
+        self.toggle_drain(False)
+        self._global_settings.open()
+        self.toggle_drain(drain_enabled)
+        self.deck_manager.update()
 
     def deck_settings(self):
         """Opens a dialog with the Deck Settings."""
