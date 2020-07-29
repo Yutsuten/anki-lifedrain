@@ -6,7 +6,6 @@ See the LICENCE file in the repository root for full licence text.
 from .config import GlobalConf, DeckConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
-from .defaults import DEFAULTS
 from .settings import GlobalSettings, GlobalSettingsOld, DeckSettings
 
 
@@ -17,15 +16,14 @@ class Lifedrain:
     complex functionalities implemented in another classes.
 
     Attributes:
+        config: An instance of GlobalConf.
         deck_manager: An instance of DeckManager.
-        main_window: A reference to the Anki's main window.
         status: A dictionary that keeps track the events on Anki.
         preferences_ui: Function that generates the Global Settings dialog.
-        Settings dialog.
     """
 
+    config = None
     deck_manager = None
-    main_window = None
     status = {
         'card_new_state': False,
         'reviewed': False,
@@ -38,7 +36,6 @@ class Lifedrain:
     _global_settings = None
     _deck_settings = None
     _timer = None
-    _state = None
 
     def __init__(self, make_timer, mw, qt):
         """Initializes DeckManager and Settings, and add-on initial setup.
@@ -48,20 +45,18 @@ class Lifedrain:
             mw: Anki's main window.
             qt: The PyQt library.
         """
-        global_conf = GlobalConf(mw)
-        deck_conf = DeckConf(mw)
+        self.config = GlobalConf(mw)
+        deck_config = DeckConf(mw)
 
-        self.deck_manager = DeckManager(mw, qt, global_conf, deck_conf)
-        self.main_window = mw
-        self._old_global_settings = GlobalSettingsOld(qt, global_conf)
-        self._global_settings = GlobalSettings(qt, global_conf)
-        self._deck_settings = DeckSettings(qt, deck_conf)
+        self.deck_manager = DeckManager(mw, qt, self.config, deck_config)
+        self._old_global_settings = GlobalSettingsOld(qt, self.config)
+        self._global_settings = GlobalSettings(qt, self.config)
+        self._deck_settings = DeckSettings(qt, deck_config)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
 
         self.preferences_ui = self._old_global_settings.generate_form
-        mw.addonManager.setConfigAction(__name__, self.global_settings)
 
     def preferences_load(self, pref):
         """Loads Life Drain global settings into the Global Settings dialog.
@@ -124,7 +119,6 @@ class Lifedrain:
         Args:
             state: The name of the current screen.
         """
-        self._state = state
         if state != 'review':
             self.toggle_drain(False)
 
@@ -155,9 +149,8 @@ class Lifedrain:
     @must_be_enabled
     def show_answer(self):
         """Called when an answer is shown."""
-        conf = self.main_window.col.conf
-        self.toggle_drain(
-            not conf.get('stopOnAnswer', DEFAULTS['stopOnAnswer']))
+        conf = self.config.get()
+        self.toggle_drain(not conf['stopOnAnswer'])
         self.status['reviewed'] = True
 
     @must_be_enabled
