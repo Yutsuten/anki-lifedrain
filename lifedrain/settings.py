@@ -132,7 +132,7 @@ class Form:
                                         qcolor_dialog.currentColor().name())
 
 
-class GlobalSettings(Form):
+class GlobalSettingsOld(Form):
     """Creates the User Interfaces for configurating the add-on."""
     _global_conf = None
 
@@ -220,8 +220,109 @@ class GlobalSettings(Form):
         return conf
 
 
+class GlobalSettings(Form):
+    """Creates the User Interfaces for Global Settings."""
+    _global_conf = None
+
+    def __init__(self, qt, global_conf):
+        Form.__init__(self, qt)
+        self._global_conf = global_conf
+
+    def open(self):
+        """Opens a dialog with the Global Settings."""
+        conf = self._global_conf.get()
+        dialog = self._qt.QDialog()
+
+        window_title = 'Life Drain Global Settings'
+        dialog.setWindowTitle(window_title)
+
+        layout = self._qt.QGridLayout(dialog)
+        self._generate_form(dialog, layout)
+        self._load_form_data(dialog, conf)
+
+        def save():
+            self._global_conf.set(self._get_form_data(dialog))
+            return dialog.accept()
+
+        button_box = self._qt.QDialogButtonBox(
+            self._qt.QDialogButtonBox.Ok | self._qt.QDialogButtonBox.Cancel
+        )
+        button_box.rejected.connect(dialog.reject)
+        button_box.accepted.connect(save)
+        layout.addWidget(button_box, self._row, 0, 1, 4)
+
+        dialog.setMinimumSize(400, 310)
+        dialog.exec()
+
+    def _generate_form(self, form, layout):
+        """Generates the Global Settings form.
+
+        Args:
+            form: The form instance of the Deck Settings dialog.
+            layout: The layout of the form.
+        """
+        self._form = form
+        self._row = 0
+
+        form.lifedrain_widget = self._qt.QWidget()
+        form.lifedrain_layout = layout
+
+        self.check_box('enableAddon', 'Enable Life Drain')
+        self.check_box('stopOnAnswer', 'Stop drain on answer shown')
+        self.label('<b>Bar style</b>')
+        self.combo_box('positionList', 'Position', POSITION_OPTIONS)
+        self.spin_box('heightInput', 'Height', [1, 40])
+        self.spin_box('borderRadiusInput', 'Border radius', [0, 20])
+        self.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT))
+        self.combo_box('styleList', 'Style', STYLE_OPTIONS)
+        self.color_select('fgColor', 'Bar color')
+        self.color_select('textColor', 'Text color')
+        self.check_box('enableBgColor', 'Enable custom background color')
+        self.color_select('bgColor', 'Background color')
+        self.fill_space()
+
+    def _load_form_data(self, form, conf):
+        form.enableAddon.setChecked(conf['enable'])
+        form.stopOnAnswer.setChecked(conf['stopOnAnswer'])
+        form.positionList.setCurrentIndex(conf['barPosition'])
+        form.heightInput.setValue(conf['barHeight'])
+        form.borderRadiusInput.setValue(conf['barBorderRadius'])
+        form.textList.setCurrentIndex(conf['barText'])
+        form.styleList.setCurrentIndex(conf['barStyle'])
+        form.fgColorDialog.setCurrentColor(self._qt.QColor(conf['barFgColor']))
+        form.fgColorPreview.setStyleSheet(
+            'QLabel { background-color: %s; }' %
+            form.fgColorDialog.currentColor().name())
+        form.textColorDialog.setCurrentColor(
+            self._qt.QColor(conf['barTextColor']))
+        form.textColorPreview.setStyleSheet(
+            'QLabel { background-color: %s; }' %
+            form.textColorDialog.currentColor().name())
+        form.enableBgColor.setChecked(conf['enableBgColor'])
+        form.bgColorDialog.setCurrentColor(self._qt.QColor(conf['barBgColor']))
+        form.bgColorPreview.setStyleSheet(
+            'QLabel { background-color: %s; }' %
+            form.bgColorDialog.currentColor().name())
+
+    @staticmethod
+    def _get_form_data(form):
+        conf = {
+            'enable': form.enableAddon.isChecked(),
+            'stopOnAnswer': form.stopOnAnswer.isChecked(),
+            'barPosition': form.positionList.currentIndex(),
+            'barHeight': form.heightInput.value(),
+            'barBorderRadius': form.borderRadiusInput.value(),
+            'barText': form.textList.currentIndex(),
+            'barStyle': form.styleList.currentIndex(),
+            'barFgColor': form.fgColorDialog.currentColor().name(),
+            'barTextColor': form.textColorDialog.currentColor().name(),
+            'enableBgColor': form.enableBgColor.isChecked(),
+            'barBgColor': form.bgColorDialog.currentColor().name()}
+        return conf
+
+
 class DeckSettings(Form):
-    """Creates the User Interface for the Life Drain's deck settings."""
+    """Creates the User Interface for Deck Settings."""
     _deck_conf = None
 
     def __init__(self, qt, deck_conf):
@@ -248,8 +349,7 @@ class DeckSettings(Form):
             return settings_dialog.accept()
 
         button_box = self._qt.QDialogButtonBox(
-            self._qt.QDialogButtonBox.Ok |
-            self._qt.QDialogButtonBox.Cancel
+            self._qt.QDialogButtonBox.Ok | self._qt.QDialogButtonBox.Cancel
         )
         button_box.rejected.connect(settings_dialog.reject)
         button_box.accepted.connect(save)
@@ -259,10 +359,11 @@ class DeckSettings(Form):
         settings_dialog.exec()
 
     def _generate_form(self, form, layout):
-        """Appends a Life Drain tab to Deck Settings dialog.
+        """Generates the Deck Settings form.
 
         Args:
-            form: The form instance of the Global Settings dialog.
+            form: The form instance of the Deck Settings dialog.
+            layout: The layout of the form.
         """
         self._form = form
         self._row = 0

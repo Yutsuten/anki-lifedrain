@@ -18,9 +18,7 @@ class GlobalConf:
 
     def get(self):
         """Get global configuration from Anki's database."""
-        col = self._main_window.col
-        conf = col.conf
-
+        conf = self._main_window.col.conf
         global_conf = conf.get('lifedrain')
         if global_conf is None:
             conf_dict = {}
@@ -55,8 +53,7 @@ class DeckConf:
 
     def get(self):
         """Get current deck configuration from Anki's database."""
-        col = self._main_window.col
-        deck = col.decks.current()
+        deck = self._main_window.col.decks.current()
         conf = deck.get('lifedrain', {})
         conf_dict = {
             'id': deck['id'],

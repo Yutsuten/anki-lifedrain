@@ -27,14 +27,14 @@ def main():
     setup_user_interface(lifedrain)
     setup_shortcuts(lifedrain)
     setup_hooks(lifedrain)
+    mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
 
 
 def setup_user_interface(lifedrain):
     """Generates the User Interfaces for configurating the add-on.
 
-    Generates the Preferences (Global Settings), Deck Settings and Custom Deck
-    Settings (Filtered Deck Settings) User Interface. It also adds the triggers
-    for loading and saving each setting.
+    Generates the Preferences (Global Settings) User Interface. It also adds the
+    triggers for loading and saving each setting.
 
     Args:
         lifedrain: A Lifedrain instance.
@@ -66,6 +66,9 @@ def setup_shortcuts(lifedrain):
 
     addHook('reviewStateShortcuts', review)
     addHook('overviewStateShortcuts', overview)
+
+    # Apply global shortcuts
+    mw.applyShortcuts([tuple(['Ctrl+l', lifedrain.global_settings])])
 
 
 def setup_hooks(lifedrain):
