@@ -67,6 +67,9 @@ def setup_shortcuts(lifedrain):
     addHook('reviewStateShortcuts', review)
     addHook('overviewStateShortcuts', overview)
 
+    # Apply global shortcuts
+    mw.applyShortcuts([tuple(['Ctrl+l', lifedrain.global_settings])])
+
 
 def setup_hooks(lifedrain):
     """Links events triggered on Anki to Life Drain methods.
