@@ -3,7 +3,7 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
-from aqt import forms, mw, qt
+from aqt import forms, mw, qt, gui_hooks
 from aqt.editcurrent import EditCurrent
 from aqt.overview import OverviewBottomBar
 from aqt.preferences import Preferences
@@ -27,7 +27,6 @@ def main():
     setup_user_interface(lifedrain)
     setup_shortcuts(lifedrain)
     setup_hooks(lifedrain)
-    mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
 
 
 def setup_user_interface(lifedrain):
@@ -57,18 +56,19 @@ def setup_shortcuts(lifedrain):
     Args:
         lifedrain: A Lifedrain instance.
     """
-    def review(shortcuts):
-        shortcuts.append(tuple(['p', lifedrain.toggle_drain]))
-        shortcuts.append(tuple(['l', lifedrain.deck_settings]))
 
-    def overview(shortcuts):
-        shortcuts.append(tuple(['l', lifedrain.deck_settings]))
-
-    addHook('reviewStateShortcuts', review)
-    addHook('overviewStateShortcuts', overview)
-
-    # Apply global shortcuts
+    # Global shortcuts
     mw.applyShortcuts([tuple(['Ctrl+l', lifedrain.global_settings])])
+
+    # State shortcuts
+    def state_shortcuts(state, shortcuts):
+        if state == 'review':
+            shortcuts.append(tuple(['p', lifedrain.toggle_drain]))
+            shortcuts.append(tuple(['l', lifedrain.deck_settings]))
+        elif state == 'overview':
+            shortcuts.append(tuple(['l', lifedrain.deck_settings]))
+
+    gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
 
 
 def setup_hooks(lifedrain):
@@ -77,6 +77,8 @@ def setup_hooks(lifedrain):
     Args:
         lifedrain: A Lifedrain instance.
     """
+    mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
+
     addHook('beforeStateChange',
             lambda *args: lifedrain.screen_change(args[0]))
     addHook('showQuestion', lifedrain.show_question)
