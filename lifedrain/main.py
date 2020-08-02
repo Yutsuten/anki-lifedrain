@@ -11,8 +11,9 @@ from aqt.progress import ProgressManager
 from aqt.reviewer import Reviewer
 from aqt.toolbar import BottomBar
 
+from anki import hooks
 from anki.collection import _Collection
-from anki.hooks import addHook, wrap
+from anki.hooks import wrap
 from anki.lang import _
 from anki.sched import Scheduler
 
@@ -79,14 +80,16 @@ def setup_hooks(lifedrain):
     """
     mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
 
-    addHook('beforeStateChange',
-            lambda *args: lifedrain.screen_change(args[0]))
-    addHook('showQuestion', lifedrain.show_question)
-    addHook('showAnswer', lifedrain.show_answer)
-    addHook('revertedCard', lambda cid: lifedrain.undo())
-    addHook('leech',
-            lambda *args: lifedrain.status.update({'card_new_state': True}))
-    addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
+    gui_hooks.state_will_change.append(
+        lambda *args: lifedrain.screen_change(args[0]))
+    gui_hooks.reviewer_did_show_question.append(
+        lambda card: lifedrain.show_question())
+    gui_hooks.reviewer_did_show_answer.append(
+        lambda card: lifedrain.show_answer())
+    gui_hooks.review_did_undo.append(lambda card_id: lifedrain.undo())
+    hooks.card_did_leech.append(
+        lambda *args: lifedrain.status.update({'card_new_state': True}))
+    hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
 
     # hack to add Life Drain button into the overview screen
     def bottom_bar_draw(*args, **kwargs):
