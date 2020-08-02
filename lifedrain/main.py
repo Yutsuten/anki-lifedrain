@@ -4,16 +4,12 @@ See the LICENCE file in the repository root for full licence text.
 """
 
 from aqt import forms, mw, qt, gui_hooks
-from aqt.editcurrent import EditCurrent
 from aqt.overview import OverviewBottomBar
 from aqt.preferences import Preferences
 from aqt.progress import ProgressManager
-from aqt.reviewer import Reviewer
 from aqt.toolbar import BottomBar
 
 from anki import hooks
-from anki.collection import _Collection
-from anki.hooks import wrap
 from anki.lang import _
 from anki.sched import Scheduler
 
@@ -40,13 +36,13 @@ def setup_user_interface(lifedrain):
         lifedrain: A Lifedrain instance.
     """
     # Global Settings
-    forms.preferences.Ui_Preferences.setupUi = wrap(
+    forms.preferences.Ui_Preferences.setupUi = hooks.wrap(
         forms.preferences.Ui_Preferences.setupUi,
         lambda *args: lifedrain.preferences_ui(args[0]))
-    Preferences.__init__ = wrap(
+    Preferences.__init__ = hooks.wrap(
         Preferences.__init__,
         lambda *args: lifedrain.preferences_load(args[0]))
-    Preferences.accept = wrap(
+    Preferences.accept = hooks.wrap(
         Preferences.accept, lambda *args: lifedrain.preferences_save(args[0]),
         'before')
 
@@ -80,18 +76,37 @@ def setup_hooks(lifedrain):
     """
     mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
 
+    # State hooks
     gui_hooks.state_will_change.append(
         lambda *args: lifedrain.screen_change(args[0]))
+    gui_hooks.state_did_reset.append(
+        lambda *args: lifedrain.status.update({'reviewed': False}))
+
+    # Review hooks
     gui_hooks.reviewer_did_show_question.append(
         lambda card: lifedrain.show_question())
     gui_hooks.reviewer_did_show_answer.append(
         lambda card: lifedrain.show_answer())
+    gui_hooks.reviewer_did_answer_card.append(
+        lambda *args: lifedrain.status.update({'review_response': args[2]}))
     gui_hooks.review_did_undo.append(lambda card_id: lifedrain.undo())
+
+    # Special actions
     hooks.card_did_leech.append(
-        lambda *args: lifedrain.status.update({'card_new_state': True}))
+        lambda *args: lifedrain.status.update({'special_action': True}))
+    hooks.notes_will_be_deleted.append(
+        lambda *args: lifedrain.status.update({'special_action': True}))
+    Scheduler.buryCards = hooks.wrap(
+        Scheduler.buryCards,
+        lambda *args: lifedrain.status.update({'special_action': True}))
+    Scheduler.suspendCards = hooks.wrap(
+        Scheduler.suspendCards,
+        lambda *args: lifedrain.status.update({'special_action': True}))
+
+    # Custom hooks
     hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
 
-    # hack to add Life Drain button into the overview screen
+    # Add Life Drain button into the overview screen
     def bottom_bar_draw(*args, **kwargs):
         if isinstance(kwargs['web_context'], OverviewBottomBar):
 
@@ -120,24 +135,3 @@ def setup_hooks(lifedrain):
 
     default_bottom_bar_draw = BottomBar.draw
     BottomBar.draw = bottom_bar_draw
-    # end-of-hack
-
-    Scheduler.buryNote = wrap(
-        Scheduler.buryNote,
-        lambda *args: lifedrain.status.update({'card_new_state': True}))
-    Scheduler.buryCards = wrap(
-        Scheduler.buryCards,
-        lambda *args: lifedrain.status.update({'card_new_state': True}))
-    Scheduler.suspendCards = wrap(
-        Scheduler.suspendCards,
-        lambda *args: lifedrain.status.update({'card_new_state': True}))
-    _Collection.remCards = wrap(
-        _Collection.remCards,
-        lambda *args: lifedrain.status.update({'card_new_state': True}))
-    EditCurrent.__init__ = wrap(
-        EditCurrent.__init__,
-        lambda *args: lifedrain.status.update({'reviewed': False}))
-    Reviewer._answerCard = wrap(  # pylint: disable=protected-access
-        Reviewer._answerCard,  # pylint: disable=protected-access
-        lambda *args: lifedrain.status.update({'review_response': args[1]}),
-        'before')

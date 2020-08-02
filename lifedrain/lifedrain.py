@@ -25,7 +25,7 @@ class Lifedrain:
     config = None
     deck_manager = None
     status = {
-        'card_new_state': False,
+        'special_action': False,  # Flag for bury, suspend, remove, leech
         'reviewed': False,
         'review_response': 0,
         'screen': None,
@@ -75,7 +75,7 @@ class Lifedrain:
         """
         conf = self._old_global_settings.save_form_data(pref)
 
-        self.status['card_new_state'] = True
+        self.status['special_action'] = True
         self.status['reviewed'] = False
 
         if conf['enable'] is False:
@@ -144,7 +144,7 @@ class Lifedrain:
             else:
                 self.deck_manager.recover_life()
         self.status['reviewed'] = False
-        self.status['card_new_state'] = False
+        self.status['special_action'] = False
 
     @must_be_enabled
     def show_answer(self):
@@ -157,7 +157,7 @@ class Lifedrain:
     def undo(self):
         """Called when an undo event happens on Anki. Not so accurate though."""
         on_review = self.status['screen'] == 'review'
-        if on_review and not self.status['card_new_state']:
+        if on_review and not self.status['special_action']:
             self.status['reviewed'] = False
             self.deck_manager.recover_life(False)
-        self.status['card_new_state'] = False
+        self.status['special_action'] = False
