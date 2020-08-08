@@ -76,11 +76,21 @@ def setup_hooks(lifedrain):
     """
     mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
 
+    def options_menu(menu, did):
+        action = menu.addAction('Life Drain')
+        menu.insertAction(menu.actions()[2], action)
+        qt.qconnect(action.triggered, lambda b: action_deck_settings(did))
+
+    def action_deck_settings(did):
+        mw.col.decks.select(did)
+        lifedrain.deck_settings()
+
     # State hooks
     gui_hooks.state_will_change.append(
         lambda *args: lifedrain.screen_change(args[0]))
     gui_hooks.state_did_reset.append(
         lambda *args: lifedrain.status.update({'reviewed': False}))
+    gui_hooks.deck_browser_will_show_options_menu.append(options_menu)
 
     # Review hooks
     gui_hooks.reviewer_did_show_question.append(
