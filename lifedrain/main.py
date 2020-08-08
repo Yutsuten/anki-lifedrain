@@ -117,21 +117,26 @@ def setup_hooks(lifedrain):
     hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
 
     # Add Life Drain button into the overview screen
+    def button(text, link, shortcut_key=None):
+        attribute_list = [
+            'title="{}"'.format(_('Shortcut key: %s') % shortcut_key),
+            'onclick="pycmd(\'{}\')"'.format(link)]
+        attributes = ' '.join(attribute_list)
+        return '<button {}>{}</button>'.format(attributes, text)
+
     def bottom_bar_draw(*args, **kwargs):
         if isinstance(kwargs['web_context'], OverviewBottomBar):
 
             def update_buf(buf):
-                attribute_list = [
-                    'title="{}"'.format(_('Shortcut key: %s') % 'L'),
-                    'onclick="pycmd(\'lifedrain\')"']
-                attributes = ' '.join(attribute_list)
-                text = 'Life Drain'
-                button = '<button {}>{}</button>'.format(attributes, text)
-                return '{}\n{}'.format(buf, button)
+                buttons = [button('Life Drain', 'lifedrain', 'L'),
+                           button('Recover', 'recover', 'None')]
+                return '{}\n{}'.format(buf, '\n'.join(buttons))
 
             def link_handler(url):
                 if url == 'lifedrain':
                     lifedrain.deck_settings()
+                elif url == 'recover':
+                    lifedrain.deck_manager.recover_life(value=10000)
                 default_link_handler(url=url)
 
             default_link_handler = kwargs['link_handler']
