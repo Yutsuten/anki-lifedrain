@@ -23,7 +23,13 @@ def main():
 
     setup_user_interface(lifedrain)
     setup_shortcuts(lifedrain)
-    setup_hooks(lifedrain)
+    setup_state_change(lifedrain)
+    setup_deck_browser(lifedrain)
+    setup_overview(lifedrain)
+    setup_review(lifedrain)
+
+    mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
+    hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
 
 
 def setup_user_interface(lifedrain):
@@ -31,9 +37,6 @@ def setup_user_interface(lifedrain):
 
     Generates the Preferences (Global Settings) User Interface. It also adds the
     triggers for loading and saving each setting.
-
-    Args:
-        lifedrain: A Lifedrain instance.
     """
     # Global Settings
     forms.preferences.Ui_Preferences.setupUi = hooks.wrap(
@@ -48,11 +51,7 @@ def setup_user_interface(lifedrain):
 
 
 def setup_shortcuts(lifedrain):
-    """Configures the shortcuts provided by the add-on.
-
-    Args:
-        lifedrain: A Lifedrain instance.
-    """
+    """Configures the shortcuts provided by the add-on."""
 
     # Global shortcuts
     mw.applyShortcuts([tuple(['Ctrl+l', lifedrain.global_settings])])
@@ -68,13 +67,16 @@ def setup_shortcuts(lifedrain):
     gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
 
 
-def setup_hooks(lifedrain):
-    """Links events triggered on Anki to Life Drain methods.
+def setup_state_change(lifedrain):
+    """Setup hooks triggered when changing state."""
+    gui_hooks.state_will_change.append(
+        lambda *args: lifedrain.screen_change(args[0]))
+    gui_hooks.state_did_reset.append(
+        lambda *args: lifedrain.status.update({'reviewed': False}))
 
-    Args:
-        lifedrain: A Lifedrain instance.
-    """
-    mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
+
+def setup_deck_browser(lifedrain):
+    """Adds an option to open deck settings from deck browser."""
 
     def options_menu(menu, did):
         action = menu.addAction('Life Drain')
@@ -85,38 +87,12 @@ def setup_hooks(lifedrain):
         mw.col.decks.select(did)
         lifedrain.deck_settings()
 
-    # State hooks
-    gui_hooks.state_will_change.append(
-        lambda *args: lifedrain.screen_change(args[0]))
-    gui_hooks.state_did_reset.append(
-        lambda *args: lifedrain.status.update({'reviewed': False}))
     gui_hooks.deck_browser_will_show_options_menu.append(options_menu)
 
-    # Review hooks
-    gui_hooks.reviewer_did_show_question.append(
-        lambda card: lifedrain.show_question())
-    gui_hooks.reviewer_did_show_answer.append(
-        lambda card: lifedrain.show_answer())
-    gui_hooks.reviewer_did_answer_card.append(
-        lambda *args: lifedrain.status.update({'review_response': args[2]}))
-    gui_hooks.review_did_undo.append(lambda card_id: lifedrain.undo())
 
-    # Special actions
-    hooks.card_did_leech.append(
-        lambda *args: lifedrain.status.update({'special_action': True}))
-    hooks.notes_will_be_deleted.append(
-        lambda *args: lifedrain.status.update({'special_action': True}))
-    Scheduler.buryCards = hooks.wrap(
-        Scheduler.buryCards,
-        lambda *args: lifedrain.status.update({'special_action': True}))
-    Scheduler.suspendCards = hooks.wrap(
-        Scheduler.suspendCards,
-        lambda *args: lifedrain.status.update({'special_action': True}))
+def setup_overview(lifedrain):
+    """Adds a Life Drain button into the overview screen."""
 
-    # Custom hooks
-    hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
-
-    # Add Life Drain button into the overview screen
     def button(text, link, shortcut_key=None):
         attribute_list = [
             'title="{}"'.format(_('Shortcut key: %s') % shortcut_key),
@@ -150,3 +126,26 @@ def setup_hooks(lifedrain):
 
     default_bottom_bar_draw = BottomBar.draw
     BottomBar.draw = bottom_bar_draw
+
+
+def setup_review(lifedrain):
+    """Setup hooks triggered while reviewing."""
+    gui_hooks.reviewer_did_show_question.append(
+        lambda card: lifedrain.show_question())
+    gui_hooks.reviewer_did_show_answer.append(
+        lambda card: lifedrain.show_answer())
+    gui_hooks.reviewer_did_answer_card.append(
+        lambda *args: lifedrain.status.update({'review_response': args[2]}))
+    gui_hooks.review_did_undo.append(lambda card_id: lifedrain.undo())
+
+    # Action on cards
+    hooks.card_did_leech.append(
+        lambda *args: lifedrain.status.update({'special_action': True}))
+    hooks.notes_will_be_deleted.append(
+        lambda *args: lifedrain.status.update({'special_action': True}))
+    Scheduler.buryCards = hooks.wrap(
+        Scheduler.buryCards,
+        lambda *args: lifedrain.status.update({'special_action': True}))
+    Scheduler.suspendCards = hooks.wrap(
+        Scheduler.suspendCards,
+        lambda *args: lifedrain.status.update({'special_action': True}))
