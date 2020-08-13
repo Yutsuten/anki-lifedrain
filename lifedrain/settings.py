@@ -151,6 +151,11 @@ class GlobalSettingsOld(Form):
 
         form.lifedrain_widget = self._qt.QWidget()
         form.lifedrain_layout = self._qt.QGridLayout(form.lifedrain_widget)
+        self.label(
+            'This form has been deprecated and will be removed the next '
+            'release. <b>Open the Add-ons dialog, select Life Drain, then click'
+            ' the Config button</b> to open the new Global Settings. You may '
+            'also open it with the <b>shortcut Ctrl+L</b>.', '#FF0000', 200, 70)
         self.check_box('enableAddon', 'Enable Life Drain')
         self.check_box('stopOnAnswer', 'Stop drain on answer shown')
         self.label('<b>Bar style</b>')
