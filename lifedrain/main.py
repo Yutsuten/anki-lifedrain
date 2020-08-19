@@ -3,9 +3,8 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
-from aqt import forms, mw, qt, gui_hooks
+from aqt import mw, qt, gui_hooks
 from aqt.overview import OverviewBottomBar
-from aqt.preferences import Preferences
 from aqt.progress import ProgressManager
 from aqt.toolbar import BottomBar
 
@@ -21,7 +20,6 @@ def main():
     make_timer = ProgressManager(mw).timer
     lifedrain = Lifedrain(make_timer, mw, qt)
 
-    setup_user_interface(lifedrain)
     setup_shortcuts(lifedrain)
     setup_state_change(lifedrain)
     setup_deck_browser(lifedrain)
@@ -30,24 +28,6 @@ def main():
 
     mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
     hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
-
-
-def setup_user_interface(lifedrain):
-    """Generates the User Interfaces for configurating the add-on.
-
-    Generates the Preferences (Global Settings) User Interface. It also adds the
-    triggers for loading and saving each setting.
-    """
-    # Global Settings
-    forms.preferences.Ui_Preferences.setupUi = hooks.wrap(
-        forms.preferences.Ui_Preferences.setupUi,
-        lambda *args: lifedrain.preferences_ui(args[0]))
-    Preferences.__init__ = hooks.wrap(
-        Preferences.__init__,
-        lambda *args: lifedrain.preferences_load(args[0]))
-    Preferences.accept = hooks.wrap(
-        Preferences.accept, lambda *args: lifedrain.preferences_save(args[0]),
-        'before')
 
 
 def setup_shortcuts(lifedrain):

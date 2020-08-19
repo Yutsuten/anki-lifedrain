@@ -6,7 +6,7 @@ See the LICENCE file in the repository root for full licence text.
 from .config import GlobalConf, DeckConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
-from .settings import GlobalSettings, GlobalSettingsOld, DeckSettings
+from .settings import GlobalSettings, DeckSettings
 
 
 class Lifedrain:
@@ -19,7 +19,6 @@ class Lifedrain:
         config: An instance of GlobalConf.
         deck_manager: An instance of DeckManager.
         status: A dictionary that keeps track the events on Anki.
-        preferences_ui: Function that generates the Global Settings dialog.
     """
 
     config = None
@@ -30,9 +29,7 @@ class Lifedrain:
         'review_response': 0,
         'screen': None,
     }
-    preferences_ui = None
 
-    _old_global_settings = None
     _global_settings = None
     _deck_settings = None
     _timer = None
@@ -49,37 +46,11 @@ class Lifedrain:
         deck_config = DeckConf(mw)
 
         self.deck_manager = DeckManager(mw, qt, self.config, deck_config)
-        self._old_global_settings = GlobalSettingsOld(qt, self.config)
         self._global_settings = GlobalSettings(qt, self.config)
         self._deck_settings = DeckSettings(qt, deck_config)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
-
-        self.preferences_ui = self._old_global_settings.generate_form
-
-    def preferences_load(self, pref):
-        """Loads Life Drain global settings into the Global Settings dialog.
-
-        Args:
-            pref: The instance of the Global Settings dialog.
-        """
-        self._old_global_settings.load_form_data(pref)
-        self.toggle_drain(False)
-
-    def preferences_save(self, pref):
-        """Saves Life Drain global settings.
-
-        Args:
-            pref: The instance of the Global Settings dialog.
-        """
-        conf = self._old_global_settings.save_form_data(pref)
-
-        self.status['special_action'] = True
-        self.status['reviewed'] = False
-
-        if conf['enable'] is False:
-            self.deck_manager.bar_visible(False)
 
     def global_settings(self):
         """Opens a dialog with the Global Settings."""
