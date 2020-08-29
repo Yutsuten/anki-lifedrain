@@ -153,68 +153,18 @@ class Form:
         self._row += 1
 
 
-class GlobalSettings:
-    """Creates the User Interfaces for Global Settings."""
-    _qt = None
-    _global_conf = None
+def global_settings(aqt, config):
+    """Opens a dialog with the Global Settings."""
 
-    def __init__(self, qt, global_conf):
-        self._qt = qt
-        self._global_conf = global_conf
-
-    def open(self):
-        """Opens a dialog with the Global Settings."""
-        conf = self._global_conf.get()
-        dialog = self._qt.QDialog()
-        dialog.setWindowTitle('Life Drain Global Settings')
-
-        basic_tab = self._basic_tab()
-        bar_style_tab = self._bar_style_tab()
-
-        tab_widget = self._qt.QTabWidget()
-        tab_widget.addTab(basic_tab, 'Basic')
-        tab_widget.addTab(bar_style_tab, 'Bar Style')
-
-        self._load_basic(basic_tab, conf)
-        self._load_bar_style(bar_style_tab, conf)
-
-        def save():
-            self._global_conf.set({
-                'enable': basic_tab.enableAddon.get_value(),
-                'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
-                'barPosition': bar_style_tab.positionList.get_value(),
-                'barHeight': bar_style_tab.heightInput.get_value(),
-                'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
-                'barText': bar_style_tab.textList.get_value(),
-                'barStyle': bar_style_tab.styleList.get_value(),
-                'barFgColor': bar_style_tab.fgColorDialog.get_value(),
-                'barTextColor': bar_style_tab.textColorDialog.get_value(),
-                'enableBgColor': bar_style_tab.enableBgColor.get_value(),
-                'barBgColor': bar_style_tab.bgColorDialog.get_value()
-            })
-            return dialog.accept()
-
-        button_box = self._qt.QDialogButtonBox(self._qt.QDialogButtonBox.Ok |
-                                               self._qt.QDialogButtonBox.Cancel)
-        button_box.rejected.connect(dialog.reject)
-        button_box.accepted.connect(save)
-
-        outer_form = Form(self._qt, dialog)
-        outer_form.add_widget(tab_widget)
-        outer_form.add_widget(button_box)
-
-        dialog.setMinimumSize(400, 310)
-        dialog.exec()
-
-    def _basic_tab(self):
-        tab = Form(self._qt)
+    def create_basic_tab():
+        tab = Form(aqt)
         tab.check_box('enableAddon', 'Enable Life Drain')
         tab.check_box('stopOnAnswer', 'Stop drain on answer shown')
         tab.fill_space()
         return tab.widget
 
-    def _bar_style_tab(self):
-        tab = Form(self._qt)
+    def create_bar_style_tab():
+        tab = Form(aqt)
         tab.combo_box('positionList', 'Position', POSITION_OPTIONS)
         tab.spin_box('heightInput', 'Height', [1, 40])
         tab.spin_box('borderRadiusInput', 'Border radius', [0, 20])
@@ -227,13 +177,11 @@ class GlobalSettings:
         tab.fill_space()
         return tab.widget
 
-    @staticmethod
-    def _load_basic(widget, conf):
+    def load_basic_tab(widget, conf):
         widget.enableAddon.set_value(conf['enable'])
         widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
 
-    @staticmethod
-    def _load_bar_style(widget, conf):
+    def load_bar_style_tab(widget, conf):
         widget.positionList.set_value(conf['barPosition'])
         widget.heightInput.set_value(conf['barHeight'])
         widget.borderRadiusInput.set_value(conf['barBorderRadius'])
@@ -244,62 +192,54 @@ class GlobalSettings:
         widget.enableBgColor.set_value(conf['enableBgColor'])
         widget.bgColorDialog.set_value(conf['barBgColor'])
 
+    def save():
+        config.set({
+            'enable': basic_tab.enableAddon.get_value(),
+            'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
+            'barPosition': bar_style_tab.positionList.get_value(),
+            'barHeight': bar_style_tab.heightInput.get_value(),
+            'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
+            'barText': bar_style_tab.textList.get_value(),
+            'barStyle': bar_style_tab.styleList.get_value(),
+            'barFgColor': bar_style_tab.fgColorDialog.get_value(),
+            'barTextColor': bar_style_tab.textColorDialog.get_value(),
+            'enableBgColor': bar_style_tab.enableBgColor.get_value(),
+            'barBgColor': bar_style_tab.bgColorDialog.get_value()
+        })
+        return dialog.accept()
 
-class DeckSettings:
-    """Creates the User Interface for Deck Settings."""
-    _qt = None
-    _deck_conf = None
+    conf = config.get()
+    dialog = aqt.QDialog()
+    dialog.setWindowTitle('Life Drain Global Settings')
 
-    def __init__(self, qt, deck_conf):
-        self._qt = qt
-        self._deck_conf = deck_conf
+    basic_tab = create_basic_tab()
+    bar_style_tab = create_bar_style_tab()
 
-    def open(self, life, set_deck_conf):
-        """Opens a dialog with the Deck Settings."""
-        conf = self._deck_conf.get()
-        dialog = self._qt.QDialog()
-        dialog.setWindowTitle('Life Drain options for {}'.format(conf['name']))
+    tab_widget = aqt.QTabWidget()
+    tab_widget.addTab(basic_tab, 'Basic')
+    tab_widget.addTab(bar_style_tab, 'Bar Style')
 
-        basic_tab = self._basic_tab()
-        damage_tab = self._damage_tab()
+    load_basic_tab(basic_tab, conf)
+    load_bar_style_tab(bar_style_tab, conf)
 
-        tab_widget = self._qt.QTabWidget()
-        tab_widget.addTab(basic_tab, 'Basic')
-        tab_widget.addTab(damage_tab, 'Damage')
+    button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
+                                      aqt.QDialogButtonBox.Cancel)
+    button_box.rejected.connect(dialog.reject)
+    button_box.accepted.connect(save)
 
-        self._load_basic(basic_tab, conf, life)
-        self._load_damage(damage_tab, conf)
+    outer_form = Form(aqt, dialog)
+    outer_form.add_widget(tab_widget)
+    outer_form.add_widget(button_box)
 
-        def save():
-            conf = self._deck_conf.get()
+    dialog.setMinimumSize(400, 310)
+    dialog.exec()
 
-            enable_damage = damage_tab.enableDamageInput.isChecked()
-            damage_value = damage_tab.damageInput.value()
-            conf.update({
-                'maxLife': basic_tab.maxLifeInput.value(),
-                'recover': basic_tab.recoverInput.value(),
-                'damage': damage_value if enable_damage else None,
-                'currentValue': basic_tab.currentValueInput.value()
-            })
 
-            set_deck_conf(conf)
-            self._deck_conf.set(conf)
-            return dialog.accept()
+def deck_settings(aqt, config, deck_manager):
+    """Opens a dialog with the Deck Settings."""
 
-        button_box = self._qt.QDialogButtonBox(self._qt.QDialogButtonBox.Ok |
-                                               self._qt.QDialogButtonBox.Cancel)
-        button_box.rejected.connect(dialog.reject)
-        button_box.accepted.connect(save)
-
-        outer_form = Form(self._qt, dialog)
-        outer_form.add_widget(tab_widget)
-        outer_form.add_widget(button_box)
-
-        dialog.setMinimumSize(300, 210)
-        dialog.exec()
-
-    def _basic_tab(self):
-        tab = Form(self._qt)
+    def create_basic_tab():
+        tab = Form(aqt)
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''The time \
 in seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''The time in \
@@ -309,8 +249,8 @@ current life, in seconds.''')
         tab.fill_space()
         return tab.widget
 
-    def _damage_tab(self):
-        tab = Form(self._qt)
+    def create_damage_tab():
+        tab = Form(aqt)
         tab.check_box('enableDamageInput', 'Enable damage', '''Enable damage \
 if a card is answered with 'Again'.''')
         tab.spin_box('damageInput', 'Damage', [-1000, 1000], '''The damage \
@@ -318,14 +258,12 @@ value to be dealt if answering with 'Again'.''')
         tab.fill_space()
         return tab.widget
 
-    @staticmethod
-    def _load_basic(widget, conf, life):
+    def load_basic_tab(widget, conf, life):
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
         widget.currentValueInput.set_value(life)
 
-    @staticmethod
-    def _load_damage(form, conf):
+    def load_damage_tab(form, conf):
         def update_damageinput():
             damage_enabled = form.enableDamageInput.isChecked()
             form.damageInput.setEnabled(damage_enabled)
@@ -336,3 +274,44 @@ value to be dealt if answering with 'Again'.''')
         form.enableDamageInput.stateChanged.connect(update_damageinput)
         form.damageInput.set_value(damage if damage is not None else 5)
         form.damageInput.setEnabled(conf['damage'] is not None)
+
+    def save():
+        conf = config.get()
+        enable_damage = damage_tab.enableDamageInput.isChecked()
+        damage_value = damage_tab.damageInput.value()
+        conf.update({
+            'maxLife': basic_tab.maxLifeInput.value(),
+            'recover': basic_tab.recoverInput.value(),
+            'damage': damage_value if enable_damage else None,
+            'currentValue': basic_tab.currentValueInput.value()
+        })
+
+        deck_manager.set_deck_conf(conf)
+        config.set(conf)
+        return dialog.accept()
+
+    conf = config.get()
+    dialog = aqt.QDialog()
+    dialog.setWindowTitle('Life Drain options for {}'.format(conf['name']))
+
+    basic_tab = create_basic_tab()
+    damage_tab = create_damage_tab()
+
+    tab_widget = aqt.QTabWidget()
+    tab_widget.addTab(basic_tab, 'Basic')
+    tab_widget.addTab(damage_tab, 'Damage')
+
+    load_basic_tab(basic_tab, conf, deck_manager.get_current_life())
+    load_damage_tab(damage_tab, conf)
+
+    button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
+                                      aqt.QDialogButtonBox.Cancel)
+    button_box.rejected.connect(dialog.reject)
+    button_box.accepted.connect(save)
+
+    outer_form = Form(aqt, dialog)
+    outer_form.add_widget(tab_widget)
+    outer_form.add_widget(button_box)
+
+    dialog.setMinimumSize(300, 210)
+    dialog.exec()

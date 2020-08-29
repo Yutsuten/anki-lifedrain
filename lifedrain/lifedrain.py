@@ -6,7 +6,7 @@ See the LICENCE file in the repository root for full licence text.
 from .config import GlobalConf, DeckConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
-from .settings import GlobalSettings, DeckSettings
+from . import settings
 
 
 class Lifedrain:
@@ -30,8 +30,8 @@ class Lifedrain:
         'screen': None,
     }
 
-    _global_settings = None
-    _deck_settings = None
+    _qt = None
+    _dconfig = None
     _timer = None
 
     def __init__(self, make_timer, mw, qt):
@@ -42,12 +42,11 @@ class Lifedrain:
             mw: Anki's main window.
             qt: The PyQt library.
         """
+        self._qt = qt
         self.config = GlobalConf(mw)
-        deck_config = DeckConf(mw)
+        self._dconfig = DeckConf(mw)
 
-        self.deck_manager = DeckManager(mw, qt, self.config, deck_config)
-        self._global_settings = GlobalSettings(qt, self.config)
-        self._deck_settings = DeckSettings(qt, deck_config)
+        self.deck_manager = DeckManager(mw, qt, self.config, self._dconfig)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
@@ -56,18 +55,15 @@ class Lifedrain:
         """Opens a dialog with the Global Settings."""
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
-        self._global_settings.open()
+        settings.global_settings(self._qt, self.config)
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
     def deck_settings(self):
         """Opens a dialog with the Deck Settings."""
-        life = self.deck_manager.get_current_life()
-        set_deck_conf = self.deck_manager.set_deck_conf
-
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
-        self._deck_settings.open(life, set_deck_conf)
+        settings.deck_settings(self._qt, self._dconfig, self.deck_manager)
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
