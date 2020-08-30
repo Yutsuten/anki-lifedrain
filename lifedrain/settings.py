@@ -41,7 +41,7 @@ class Form:
         self._layout.addWidget(label, self._row, 0, 1, 4)
         self._row += 1
 
-    def combo_box(self, cb_name, label_text, options):
+    def combo_box(self, cb_name, label_text, options, tooltip=None):
         """Creates a combo box in the current row of the form.
 
         Args:
@@ -53,6 +53,9 @@ class Form:
         combo_box = self._qt.QComboBox(self.widget)
         for option in options:
             combo_box.addItem(option)
+        if tooltip is not None:
+            label.setToolTip(tooltip)
+            combo_box.setToolTip(tooltip)
 
         combo_box.get_value = combo_box.currentIndex
         combo_box.set_value = combo_box.setCurrentIndex
@@ -103,7 +106,7 @@ class Form:
         self._layout.addWidget(spin_box, self._row, 2, 1, 2)
         self._row += 1
 
-    def color_select(self, cs_name, label_text):
+    def color_select(self, cs_name, label_text, tooltip=None):
         """Creates a color select in the current row of the form.
 
         Args:
@@ -124,6 +127,10 @@ class Form:
         color_dialog = self._qt.QColorDialog(select_button)
         color_dialog.setOption(self._qt.QColorDialog.DontUseNativeDialog)
         select_button.pressed.connect(choose_color)
+        if tooltip is not None:
+            label.setToolTip(tooltip)
+            select_button.setToolTip(tooltip)
+            preview_label.setToolTip(tooltip)
 
         def set_value(color):
             css = 'QLabel { background-color: %s; }' % color
@@ -158,22 +165,33 @@ def global_settings(aqt, config):
 
     def create_basic_tab():
         tab = Form(aqt)
-        tab.check_box('enableAddon', 'Enable Life Drain')
-        tab.check_box('stopOnAnswer', 'Stop drain on answer shown')
+        tab.check_box('enableAddon', 'Enable Life Drain',
+                      'Enable/disable the add-on without restarting Anki.')
+        tab.check_box('stopOnAnswer', 'Stop drain on answer shown',
+                      'Automatically stops the drain after answering a card.')
         tab.fill_space()
         return tab.widget
 
     def create_bar_style_tab():
         tab = Form(aqt)
-        tab.combo_box('positionList', 'Position', POSITION_OPTIONS)
-        tab.spin_box('heightInput', 'Height', [1, 40])
-        tab.spin_box('borderRadiusInput', 'Border radius', [0, 20])
-        tab.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT))
-        tab.combo_box('styleList', 'Style', STYLE_OPTIONS)
-        tab.color_select('fgColor', 'Bar color')
-        tab.color_select('textColor', 'Text color')
-        tab.check_box('enableBgColor', 'Enable custom background color')
-        tab.color_select('bgColor', 'Background color')
+        tab.combo_box('positionList', 'Position', POSITION_OPTIONS,
+                      'Place to show the life bar.')
+        tab.spin_box('heightInput', 'Height', [1, 40],
+                     'Height of the life bar.')
+        tab.spin_box('borderRadiusInput', 'Border radius', [0, 20],
+                     'Add a rounded border to the life bar.')
+        tab.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT),
+                      'Text shown inside the life bar.')
+        tab.combo_box('styleList', 'Style', STYLE_OPTIONS, '''Style of the \
+life bar (not all options may work on your platform).''')
+        tab.color_select('fgColor', 'Bar color',
+                         "Color of the life bar's foreground.")
+        tab.color_select('textColor', 'Text color',
+                         "Color of the life bar's text.")
+        tab.check_box('enableBgColor', 'Enable custom background color', '''\
+If checked, you can choose a background color on the next field.''')
+        tab.color_select('bgColor', 'Background color',
+                         "Color of the life bar's background.")
         tab.fill_space()
         return tab.widget
 
@@ -240,21 +258,21 @@ def deck_settings(aqt, config, deck_manager):
 
     def create_basic_tab():
         tab = Form(aqt)
-        tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''The time \
-in seconds for the life bar go from full to empty.''')
-        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''The time in \
-seconds that is recovered after answering a card.''')
-        tab.spin_box('currentValueInput', 'Current life', [0, 10000], '''The \
-current life, in seconds.''')
+        tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
+seconds for the life bar go from full to empty.''')
+        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
+that is recovered after answering a card.''')
+        tab.spin_box('currentValueInput', 'Current life', [0, 10000],
+                     'Current life, in seconds.')
         tab.fill_space()
         return tab.widget
 
     def create_damage_tab():
         tab = Form(aqt)
-        tab.check_box('enableDamageInput', 'Enable damage', '''Enable damage \
-if a card is answered with 'Again'.''')
-        tab.spin_box('damageInput', 'Damage', [-1000, 1000], '''The damage \
-value to be dealt if answering with 'Again'.''')
+        tab.check_box('enableDamageInput', 'Enable damage',
+                      "Enable the damage feature.")
+        tab.spin_box('damageInput', 'Damage', [-1000, 1000],
+                     "Damage value to be dealt when answering with 'Again'.")
         tab.fill_space()
         return tab.widget
 
