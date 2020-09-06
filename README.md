@@ -1,8 +1,14 @@
-# anki-lifedrain [![CodeFactor](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain/badge)](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain)
-This Anki add-on adds a life bar during your reviews.
+<p align="center">
+    <img src="images/logo.png" alt="Life Drain">
+</p>
+
+# Life Drain [![CodeFactor](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain/badge)](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain)
+
+An [Anki](https://apps.ankiweb.net/) add-on that adds a life bar to your reviews.
+
 Your life reduces within time, and you must answer the questions in order to recover it.
 
-![Review](screenshots/review_screen.png)
+![Review](images/review_screen.png)
 
 ## Objective
 
