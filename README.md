@@ -20,7 +20,7 @@ If the life is low, it means that you are distracted or taking too much time to 
 - Install from the [AnkiWeb](https://ankiweb.net/shared/info/715575551).
 
 ### Manual
-- Copy the folder `lifedrain` into your add-ons folder. You need at least Anki 2.1.22 for the latest Life Drain.
+- Copy the folder `src` into your add-ons folder. You need at least Anki 2.1.22 for the latest Life Drain.
 
 ## Documentation
 [Click here](https://github.com/Yutsuten/anki-lifedrain/wiki) and access the wiki for this add-on!
