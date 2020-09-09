@@ -41,6 +41,27 @@ class Form:
         self._layout.addWidget(label, self._row, 0, 1, 4)
         self._row += 1
 
+    def text_field(self, tf_name, label_text, placeholder=None, tooltip=None):
+        """Creates a text field in the current row of the form.
+
+        Args:
+            tf_name: The name of the text field. Not visible by the user.
+            label_text: A text that describes what is the text field for.
+            tooltip: The tooltip to be shown.
+        """
+        label = self._qt.QLabel(label_text)
+        text_field = self._qt.QLineEdit(self.widget)
+        if placeholder is not None:
+            text_field.setPlaceholderText(placeholder)
+        if tooltip is not None:
+            label.setToolTip(tooltip)
+            text_field.setToolTip(tooltip)
+
+        setattr(self.widget, tf_name, text_field)
+        self._layout.addWidget(label, self._row, 0)
+        self._layout.addWidget(text_field, self._row, 2, 1, 2)
+        self._row += 1
+
     def combo_box(self, cb_name, label_text, options, tooltip=None):
         """Creates a combo box in the current row of the form.
 
@@ -169,6 +190,16 @@ def global_settings(aqt, config):
                       'Enable/disable the add-on without restarting Anki.')
         tab.check_box('stopOnAnswer', 'Stop drain on answer shown',
                       'Automatically stops the drain after answering a card.')
+        tab.label('<b>Shortcuts</b>')
+        shortcut_tooltip = '''There is no validation for your shortcut \
+string, so edit with care!
+Invalid shortcuts, or already used shortcuts won't work.
+Example of valid shortcuts: 'Ctrl+L', 'Alt+L', 'Shift+L', 'L'.'''
+        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+L',
+                       shortcut_tooltip)
+        tab.text_field('deckShortcut', 'Deck Settings', 'L', shortcut_tooltip)
+        tab.text_field('pauseShortcut', 'Pause', 'P', shortcut_tooltip)
+        tab.text_field('recoverShortcut', 'Recover', None, shortcut_tooltip)
         tab.fill_space()
         return tab.widget
 
