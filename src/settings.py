@@ -51,11 +51,15 @@ class Form:
         """
         label = self._qt.QLabel(label_text)
         text_field = self._qt.QLineEdit(self.widget)
+        text_field.setMaxLength(15)
         if placeholder is not None:
             text_field.setPlaceholderText(placeholder)
         if tooltip is not None:
             label.setToolTip(tooltip)
             text_field.setToolTip(tooltip)
+
+        text_field.get_value = text_field.text
+        text_field.set_value = text_field.setText
 
         setattr(self.widget, tf_name, text_field)
         self._layout.addWidget(label, self._row, 0)
@@ -188,6 +192,10 @@ def global_settings(aqt, config):
         config.set({
             'enable': basic_tab.enableAddon.get_value(),
             'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
+            'globalShortcut': basic_tab.globalShortcut.get_value(),
+            'deckShortcut': basic_tab.deckShortcut.get_value(),
+            'pauseShortcut': basic_tab.pauseShortcut.get_value(),
+            'recoverShortcut': basic_tab.recoverShortcut.get_value(),
             'barPosition': bar_style_tab.positionList.get_value(),
             'barHeight': bar_style_tab.heightInput.get_value(),
             'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
@@ -196,7 +204,7 @@ def global_settings(aqt, config):
             'barFgColor': bar_style_tab.fgColorDialog.get_value(),
             'barTextColor': bar_style_tab.textColorDialog.get_value(),
             'enableBgColor': bar_style_tab.enableBgColor.get_value(),
-            'barBgColor': bar_style_tab.bgColorDialog.get_value()
+            'barBgColor': bar_style_tab.bgColorDialog.get_value(),
         })
         return dialog.accept()
 
@@ -204,15 +212,12 @@ def global_settings(aqt, config):
     dialog = aqt.QDialog()
     dialog.setWindowTitle('Life Drain Global Settings')
 
-    basic_tab = _global_basic_tab(aqt)
-    bar_style_tab = _global_bar_style_tab(aqt)
+    basic_tab = _global_basic_tab(aqt, conf)
+    bar_style_tab = _global_bar_style_tab(aqt, conf)
 
     tab_widget = aqt.QTabWidget()
     tab_widget.addTab(basic_tab, 'Basic')
     tab_widget.addTab(bar_style_tab, 'Bar Style')
-
-    _global_load_basic_tab(basic_tab, conf)
-    _global_load_bar_style_tab(bar_style_tab, conf)
 
     button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
                                       aqt.QDialogButtonBox.Cancel)
@@ -227,65 +232,79 @@ def global_settings(aqt, config):
     dialog.exec()
 
 
-def _global_basic_tab(aqt):
-    tab = Form(aqt)
-    tab.check_box('enableAddon', 'Enable Life Drain',
-                  'Enable/disable the add-on without restarting Anki.')
-    tab.check_box('stopOnAnswer', 'Stop drain on answer shown',
-                  'Automatically stops the drain after answering a card.')
-    tab.label('<b>Shortcuts</b>')
-    shortcut_tooltip = '''There is no validation for your shortcut \
+def _global_basic_tab(aqt, conf):
+
+    def generate_form():
+        tab = Form(aqt)
+        tab.check_box('enableAddon', 'Enable Life Drain',
+                      'Enable/disable the add-on without restarting Anki.')
+        tab.check_box('stopOnAnswer', 'Stop drain on answer shown',
+                      'Automatically stops the drain after answering a card.')
+        tab.label('<b>Shortcuts</b>')
+        shortcut_tooltip = '''There is no validation for your shortcut \
 string, so edit with care!
 Invalid shortcuts, or already used shortcuts won't work.
 Example of valid shortcuts: 'Ctrl+L', 'Alt+L', 'Shift+L', 'L'.'''
-    tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+L',
-                   shortcut_tooltip)
-    tab.text_field('deckShortcut', 'Deck Settings', 'L', shortcut_tooltip)
-    tab.text_field('pauseShortcut', 'Pause', 'P', shortcut_tooltip)
-    tab.text_field('recoverShortcut', 'Recover', None, shortcut_tooltip)
-    tab.fill_space()
-    return tab.widget
+        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+L',
+                       shortcut_tooltip)
+        tab.text_field('deckShortcut', 'Deck Settings', 'L', shortcut_tooltip)
+        tab.text_field('pauseShortcut', 'Pause', 'P', shortcut_tooltip)
+        tab.text_field('recoverShortcut', 'Recover', None, shortcut_tooltip)
+        tab.fill_space()
+        return tab.widget
+
+    def load_data(widget, conf):
+        widget.enableAddon.set_value(conf['enable'])
+        widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
+        widget.globalShortcut.set_value(conf['globalShortcut'])
+        widget.deckShortcut.set_value(conf['deckShortcut'])
+        widget.pauseShortcut.set_value(conf['pauseShortcut'])
+        widget.recoverShortcut.set_value(conf['recoverShortcut'])
+
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
 
 
-def _global_bar_style_tab(aqt):
-    tab = Form(aqt)
-    tab.combo_box('positionList', 'Position', POSITION_OPTIONS,
-                  'Place to show the life bar.')
-    tab.spin_box('heightInput', 'Height', [1, 40],
-                 'Height of the life bar.')
-    tab.spin_box('borderRadiusInput', 'Border radius', [0, 20],
-                 'Add a rounded border to the life bar.')
-    tab.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT),
-                  'Text shown inside the life bar.')
-    tab.combo_box('styleList', 'Style', STYLE_OPTIONS, '''Style of the \
+def _global_bar_style_tab(aqt, conf):
+
+    def generate_form():
+        tab = Form(aqt)
+        tab.combo_box('positionList', 'Position', POSITION_OPTIONS,
+                      'Place to show the life bar.')
+        tab.spin_box('heightInput', 'Height', [1, 40],
+                     'Height of the life bar.')
+        tab.spin_box('borderRadiusInput', 'Border radius', [0, 20],
+                     'Add a rounded border to the life bar.')
+        tab.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT),
+                      'Text shown inside the life bar.')
+        tab.combo_box('styleList', 'Style', STYLE_OPTIONS, '''Style of the \
 life bar (not all options may work on your platform).''')
-    tab.color_select('fgColor', 'Bar color',
-                     "Color of the life bar's foreground.")
-    tab.color_select('textColor', 'Text color',
-                     "Color of the life bar's text.")
-    tab.check_box('enableBgColor', 'Enable custom background color', '''\
+        tab.color_select('fgColor', 'Bar color',
+                         "Color of the life bar's foreground.")
+        tab.color_select('textColor', 'Text color',
+                         "Color of the life bar's text.")
+        tab.check_box('enableBgColor', 'Enable custom background color', '''\
 If checked, you can choose a background color on the next field.''')
-    tab.color_select('bgColor', 'Background color',
-                     "Color of the life bar's background.")
-    tab.fill_space()
-    return tab.widget
+        tab.color_select('bgColor', 'Background color',
+                         "Color of the life bar's background.")
+        tab.fill_space()
+        return tab.widget
 
+    def load_data(widget, conf):
+        widget.positionList.set_value(conf['barPosition'])
+        widget.heightInput.set_value(conf['barHeight'])
+        widget.borderRadiusInput.set_value(conf['barBorderRadius'])
+        widget.textList.set_value(conf['barText'])
+        widget.styleList.set_value(conf['barStyle'])
+        widget.fgColorDialog.set_value(conf['barFgColor'])
+        widget.textColorDialog.set_value(conf['barTextColor'])
+        widget.enableBgColor.set_value(conf['enableBgColor'])
+        widget.bgColorDialog.set_value(conf['barBgColor'])
 
-def _global_load_basic_tab(widget, conf):
-    widget.enableAddon.set_value(conf['enable'])
-    widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
-
-
-def _global_load_bar_style_tab(widget, conf):
-    widget.positionList.set_value(conf['barPosition'])
-    widget.heightInput.set_value(conf['barHeight'])
-    widget.borderRadiusInput.set_value(conf['barBorderRadius'])
-    widget.textList.set_value(conf['barText'])
-    widget.styleList.set_value(conf['barStyle'])
-    widget.fgColorDialog.set_value(conf['barFgColor'])
-    widget.textColorDialog.set_value(conf['barTextColor'])
-    widget.enableBgColor.set_value(conf['enableBgColor'])
-    widget.bgColorDialog.set_value(conf['barBgColor'])
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
 
 
 def deck_settings(aqt, config, deck_manager):
