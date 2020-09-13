@@ -33,10 +33,10 @@ def main():
 def setup_shortcuts(lifedrain):
     """Configures the shortcuts provided by the add-on."""
 
-    # Global shortcuts
-    mw.applyShortcuts([tuple(['Ctrl+l', lifedrain.global_settings])])
+    def global_shortcuts():
+        lifedrain.clear_global_shortcuts()
+        lifedrain.set_global_shortcuts()
 
-    # State shortcuts
     def state_shortcuts(state, shortcuts):
         if state == 'review':
             shortcuts.append(tuple(['p', lifedrain.toggle_drain]))
@@ -44,6 +44,7 @@ def setup_shortcuts(lifedrain):
         elif state == 'overview':
             shortcuts.append(tuple(['l', lifedrain.deck_settings]))
 
+    gui_hooks.collection_did_load.append(lambda col: global_shortcuts())
     gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
 
 

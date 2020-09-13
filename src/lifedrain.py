@@ -28,9 +28,11 @@ class Lifedrain:
         'reviewed': False,
         'review_response': 0,
         'screen': None,
+        'shortcuts': [],
     }
 
     _qt = None
+    _mw = None
     _dconfig = None
     _timer = None
 
@@ -43,6 +45,7 @@ class Lifedrain:
             qt: The PyQt library.
         """
         self._qt = qt
+        self._mw = mw
         self.config = GlobalConf(mw)
         self._dconfig = DeckConf(mw)
 
@@ -56,6 +59,8 @@ class Lifedrain:
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
         settings.global_settings(self._qt, self.config)
+        self.clear_global_shortcuts()
+        self.set_global_shortcuts()
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
@@ -66,6 +71,24 @@ class Lifedrain:
         settings.deck_settings(self._qt, self._dconfig, self.deck_manager)
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
+
+    def clear_global_shortcuts(self):
+        """Clear the global shortcuts."""
+        for shortcut in self.status['shortcuts']:
+            self._qt.sip.delete(shortcut)
+        self.status['shortcuts'] = []
+
+    @must_be_enabled
+    def set_global_shortcuts(self):
+        """Sets the global shortcuts."""
+        config = self.config.get()
+        if not config['globalSettingsShortcut']:
+            return
+
+        shortcuts = [
+            tuple([config['globalSettingsShortcut'], self.global_settings])
+        ]
+        self.status['shortcuts'] = self._mw.applyShortcuts(shortcuts)
 
     @must_be_enabled
     def toggle_drain(self, enable=None):
