@@ -10,8 +10,9 @@ class GlobalConf:
     """Manages lifedrain's global configuration."""
     fields = {'enable', 'stopOnAnswer', 'barPosition', 'barHeight',
               'barBorderRadius', 'barText', 'barStyle', 'barFgColor',
-              'barTextColor', 'enableBgColor', 'barBgColor', 'globalShortcut',
-              'deckShortcut', 'pauseShortcut', 'recoverShortcut'}
+              'barTextColor', 'enableBgColor', 'barBgColor',
+              'globalSettingsShortcut', 'deckSettingsShortcut',
+              'pauseShortcut', 'recoverShortcut'}
     _main_window = None
 
     def __init__(self, mw):

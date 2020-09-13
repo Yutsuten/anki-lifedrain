@@ -42,8 +42,8 @@ DEFAULTS = {
     'stopOnAnswer': False,
     'enable': True,
     'enableBgColor': False,
-    'globalShortcut': 'Ctrl+L',
-    'deckShortcut': 'L',
-    'pauseShortcut': 'P',
+    'globalSettingsShortcut': 'Ctrl+l',
+    'deckSettingsShortcut': 'l',
+    'pauseShortcut': 'p',
     'recoverShortcut': '',
 }

@@ -192,8 +192,8 @@ def global_settings(aqt, config):
         config.set({
             'enable': basic_tab.enableAddon.get_value(),
             'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
-            'globalShortcut': basic_tab.globalShortcut.get_value(),
-            'deckShortcut': basic_tab.deckShortcut.get_value(),
+            'globalSettingsShortcut': basic_tab.globalShortcut.get_value(),
+            'deckSettingsShortcut': basic_tab.deckShortcut.get_value(),
             'pauseShortcut': basic_tab.pauseShortcut.get_value(),
             'recoverShortcut': basic_tab.recoverShortcut.get_value(),
             'barPosition': bar_style_tab.positionList.get_value(),
@@ -241,23 +241,25 @@ def _global_basic_tab(aqt, conf):
         tab.check_box('stopOnAnswer', 'Stop drain on answer shown',
                       'Automatically stops the drain after answering a card.')
         tab.label('<b>Shortcuts</b>')
-        shortcut_tooltip = '''There is no validation for your shortcut \
-string, so edit with care!
-Invalid shortcuts, or already used shortcuts won't work.
-Example of valid shortcuts: 'Ctrl+L', 'Alt+L', 'Shift+L', 'L'.'''
-        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+L',
-                       shortcut_tooltip)
-        tab.text_field('deckShortcut', 'Deck Settings', 'L', shortcut_tooltip)
-        tab.text_field('pauseShortcut', 'Pause', 'P', shortcut_tooltip)
-        tab.text_field('recoverShortcut', 'Recover', None, shortcut_tooltip)
+        shortcut_tooltip = '''
+There is no validation for your shortcut string, so edit with care!
+Invalid shortcuts, or already used shortcuts won't work.'''
+        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+l',
+                       'Shortcut for the Global Settings.' + shortcut_tooltip)
+        tab.text_field('deckShortcut', 'Deck Settings', 'l',
+                       'Shortcut for the Deck Settings.' + shortcut_tooltip)
+        tab.text_field('pauseShortcut', 'Pause', 'p',
+                       'Shortcut for pausing.' + shortcut_tooltip)
+        tab.text_field('recoverShortcut', 'Recover', None,
+                       'Shortcut for recovering.' + shortcut_tooltip)
         tab.fill_space()
         return tab.widget
 
     def load_data(widget, conf):
         widget.enableAddon.set_value(conf['enable'])
         widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
-        widget.globalShortcut.set_value(conf['globalShortcut'])
-        widget.deckShortcut.set_value(conf['deckShortcut'])
+        widget.globalShortcut.set_value(conf['globalSettingsShortcut'])
+        widget.deckShortcut.set_value(conf['deckSettingsShortcut'])
         widget.pauseShortcut.set_value(conf['pauseShortcut'])
         widget.recoverShortcut.set_value(conf['recoverShortcut'])
 
