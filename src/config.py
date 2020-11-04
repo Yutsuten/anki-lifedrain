@@ -8,9 +8,11 @@ from .defaults import DEFAULTS
 
 class GlobalConf:
     """Manages lifedrain's global configuration."""
-    fields = ['stopOnAnswer', 'barPosition', 'barHeight',
+    fields = {'enable', 'stopOnAnswer', 'barPosition', 'barHeight',
               'barBorderRadius', 'barText', 'barStyle', 'barFgColor',
-              'barTextColor', 'enableBgColor', 'barBgColor']
+              'barTextColor', 'enableBgColor', 'barBgColor',
+              'globalSettingsShortcut', 'deckSettingsShortcut',
+              'pauseShortcut', 'recoverShortcut'}
     _main_window = None
 
     def __init__(self, mw):
@@ -19,16 +21,11 @@ class GlobalConf:
     def get(self):
         """Get global configuration from Anki's database."""
         conf = self._main_window.col.conf
-        global_conf = conf.get('lifedrain')
-        if global_conf is None:
-            conf_dict = {}
-            for field in self.fields:
-                conf_dict[field] = conf.get(field, DEFAULTS[field])
-            enable = not conf.get('disable', not DEFAULTS['enable'])
-            conf_dict['enable'] = enable
-            return conf_dict
-
-        return global_conf.copy()
+        global_conf = conf.get('lifedrain', {})
+        for field in self.fields:
+            if field not in global_conf:
+                global_conf[field] = DEFAULTS[field]
+        return global_conf
 
     def set(self, new_conf):
         """Saves global configuration into Anki's database."""
@@ -39,13 +36,12 @@ class GlobalConf:
             conf['lifedrain'] = {}
         for field in self.fields:
             conf['lifedrain'][field] = new_conf[field]
-        conf['lifedrain']['enable'] = new_conf['enable']
         col.setMod()
 
 
 class DeckConf:
     """Manages each lifedrain's deck configuration."""
-    fields = ['maxLife', 'recover', 'damage']
+    fields = {'maxLife', 'recover', 'damage'}
     _main_window = None
 
     def __init__(self, mw):

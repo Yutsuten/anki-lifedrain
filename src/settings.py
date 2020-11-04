@@ -41,6 +41,31 @@ class Form:
         self._layout.addWidget(label, self._row, 0, 1, 4)
         self._row += 1
 
+    def text_field(self, tf_name, label_text, placeholder=None, tooltip=None):
+        """Creates a text field in the current row of the form.
+
+        Args:
+            tf_name: The name of the text field. Not visible by the user.
+            label_text: A text that describes what is the text field for.
+            tooltip: The tooltip to be shown.
+        """
+        label = self._qt.QLabel(label_text)
+        text_field = self._qt.QLineEdit(self.widget)
+        text_field.setMaxLength(15)
+        if placeholder is not None:
+            text_field.setPlaceholderText(placeholder)
+        if tooltip is not None:
+            label.setToolTip(tooltip)
+            text_field.setToolTip(tooltip)
+
+        text_field.get_value = text_field.text
+        text_field.set_value = text_field.setText
+
+        setattr(self.widget, tf_name, text_field)
+        self._layout.addWidget(label, self._row, 0)
+        self._layout.addWidget(text_field, self._row, 2, 1, 2)
+        self._row += 1
+
     def combo_box(self, cb_name, label_text, options, tooltip=None):
         """Creates a combo box in the current row of the form.
 
@@ -163,16 +188,89 @@ class Form:
 def global_settings(aqt, config):
     """Opens a dialog with the Global Settings."""
 
-    def create_basic_tab():
+    def save():
+        config.set({
+            'enable': basic_tab.enableAddon.get_value(),
+            'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
+            'globalSettingsShortcut': basic_tab.globalShortcut.get_value(),
+            'deckSettingsShortcut': basic_tab.deckShortcut.get_value(),
+            'pauseShortcut': basic_tab.pauseShortcut.get_value(),
+            'recoverShortcut': basic_tab.recoverShortcut.get_value(),
+            'barPosition': bar_style_tab.positionList.get_value(),
+            'barHeight': bar_style_tab.heightInput.get_value(),
+            'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
+            'barText': bar_style_tab.textList.get_value(),
+            'barStyle': bar_style_tab.styleList.get_value(),
+            'barFgColor': bar_style_tab.fgColorDialog.get_value(),
+            'barTextColor': bar_style_tab.textColorDialog.get_value(),
+            'enableBgColor': bar_style_tab.enableBgColor.get_value(),
+            'barBgColor': bar_style_tab.bgColorDialog.get_value(),
+        })
+        return dialog.accept()
+
+    conf = config.get()
+    dialog = aqt.QDialog()
+    dialog.setWindowTitle('Life Drain Global Settings')
+
+    basic_tab = _global_basic_tab(aqt, conf)
+    bar_style_tab = _global_bar_style_tab(aqt, conf)
+
+    tab_widget = aqt.QTabWidget()
+    tab_widget.addTab(basic_tab, 'Basic')
+    tab_widget.addTab(bar_style_tab, 'Bar Style')
+
+    button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
+                                      aqt.QDialogButtonBox.Cancel)
+    button_box.rejected.connect(dialog.reject)
+    button_box.accepted.connect(save)
+
+    outer_form = Form(aqt, dialog)
+    outer_form.add_widget(tab_widget)
+    outer_form.add_widget(button_box)
+
+    dialog.setMinimumSize(400, 310)
+    dialog.exec()
+
+
+def _global_basic_tab(aqt, conf):
+
+    def generate_form():
         tab = Form(aqt)
         tab.check_box('enableAddon', 'Enable Life Drain',
                       'Enable/disable the add-on without restarting Anki.')
         tab.check_box('stopOnAnswer', 'Stop drain on answer shown',
                       'Automatically stops the drain after answering a card.')
+        tab.label('<b>Shortcuts</b>')
+        shortcut_tooltip = '''
+There is no validation for your shortcut string, so edit with care!
+Invalid shortcuts, or already used shortcuts won't work.'''
+        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+l',
+                       'Shortcut for the Global Settings.' + shortcut_tooltip)
+        tab.text_field('deckShortcut', 'Deck Settings', 'l',
+                       'Shortcut for the Deck Settings.' + shortcut_tooltip)
+        tab.text_field('pauseShortcut', 'Pause', 'p',
+                       'Shortcut for pausing.' + shortcut_tooltip)
+        tab.text_field('recoverShortcut', 'Recover', None,
+                       'Shortcut for recovering.' + shortcut_tooltip)
         tab.fill_space()
         return tab.widget
 
-    def create_bar_style_tab():
+    def load_data(widget, conf):
+        widget.enableAddon.set_value(conf['enable'])
+        widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
+        widget.globalShortcut.set_value(conf['globalSettingsShortcut'])
+        widget.deckShortcut.set_value(conf['deckSettingsShortcut'])
+        widget.pauseShortcut.set_value(conf['pauseShortcut'])
+        widget.recoverShortcut.set_value(conf['recoverShortcut'])
+
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
+
+
+def _global_bar_style_tab(aqt, conf):
+
+    def generate_form():
         tab = Form(aqt)
         tab.combo_box('positionList', 'Position', POSITION_OPTIONS,
                       'Place to show the life bar.')
@@ -195,11 +293,7 @@ If checked, you can choose a background color on the next field.''')
         tab.fill_space()
         return tab.widget
 
-    def load_basic_tab(widget, conf):
-        widget.enableAddon.set_value(conf['enable'])
-        widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
-
-    def load_bar_style_tab(widget, conf):
+    def load_data(widget, conf):
         widget.positionList.set_value(conf['barPosition'])
         widget.heightInput.set_value(conf['barHeight'])
         widget.borderRadiusInput.set_value(conf['barBorderRadius'])
@@ -210,88 +304,13 @@ If checked, you can choose a background color on the next field.''')
         widget.enableBgColor.set_value(conf['enableBgColor'])
         widget.bgColorDialog.set_value(conf['barBgColor'])
 
-    def save():
-        config.set({
-            'enable': basic_tab.enableAddon.get_value(),
-            'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
-            'barPosition': bar_style_tab.positionList.get_value(),
-            'barHeight': bar_style_tab.heightInput.get_value(),
-            'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
-            'barText': bar_style_tab.textList.get_value(),
-            'barStyle': bar_style_tab.styleList.get_value(),
-            'barFgColor': bar_style_tab.fgColorDialog.get_value(),
-            'barTextColor': bar_style_tab.textColorDialog.get_value(),
-            'enableBgColor': bar_style_tab.enableBgColor.get_value(),
-            'barBgColor': bar_style_tab.bgColorDialog.get_value()
-        })
-        return dialog.accept()
-
-    conf = config.get()
-    dialog = aqt.QDialog()
-    dialog.setWindowTitle('Life Drain Global Settings')
-
-    basic_tab = create_basic_tab()
-    bar_style_tab = create_bar_style_tab()
-
-    tab_widget = aqt.QTabWidget()
-    tab_widget.addTab(basic_tab, 'Basic')
-    tab_widget.addTab(bar_style_tab, 'Bar Style')
-
-    load_basic_tab(basic_tab, conf)
-    load_bar_style_tab(bar_style_tab, conf)
-
-    button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
-                                      aqt.QDialogButtonBox.Cancel)
-    button_box.rejected.connect(dialog.reject)
-    button_box.accepted.connect(save)
-
-    outer_form = Form(aqt, dialog)
-    outer_form.add_widget(tab_widget)
-    outer_form.add_widget(button_box)
-
-    dialog.setMinimumSize(400, 310)
-    dialog.exec()
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
 
 
 def deck_settings(aqt, config, deck_manager):
     """Opens a dialog with the Deck Settings."""
-
-    def create_basic_tab():
-        tab = Form(aqt)
-        tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
-seconds for the life bar go from full to empty.''')
-        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
-that is recovered after answering a card.''')
-        tab.spin_box('currentValueInput', 'Current life', [0, 10000],
-                     'Current life, in seconds.')
-        tab.fill_space()
-        return tab.widget
-
-    def create_damage_tab():
-        tab = Form(aqt)
-        tab.check_box('enableDamageInput', 'Enable damage',
-                      "Enable the damage feature.")
-        tab.spin_box('damageInput', 'Damage', [-1000, 1000],
-                     "Damage value to be dealt when answering with 'Again'.")
-        tab.fill_space()
-        return tab.widget
-
-    def load_basic_tab(widget, conf, life):
-        widget.maxLifeInput.set_value(conf['maxLife'])
-        widget.recoverInput.set_value(conf['recover'])
-        widget.currentValueInput.set_value(life)
-
-    def load_damage_tab(form, conf):
-        def update_damageinput():
-            damage_enabled = form.enableDamageInput.isChecked()
-            form.damageInput.setEnabled(damage_enabled)
-            form.damageInput.setValue(5)
-
-        damage = conf['damage']
-        form.enableDamageInput.set_value(damage is not None)
-        form.enableDamageInput.stateChanged.connect(update_damageinput)
-        form.damageInput.set_value(damage if damage is not None else 5)
-        form.damageInput.setEnabled(conf['damage'] is not None)
 
     def save():
         conf = config.get()
@@ -312,15 +331,12 @@ that is recovered after answering a card.''')
     dialog = aqt.QDialog()
     dialog.setWindowTitle('Life Drain options for {}'.format(conf['name']))
 
-    basic_tab = create_basic_tab()
-    damage_tab = create_damage_tab()
+    basic_tab = _deck_basic_tab(aqt, conf, deck_manager.get_current_life())
+    damage_tab = _deck_damage_tab(aqt, conf)
 
     tab_widget = aqt.QTabWidget()
     tab_widget.addTab(basic_tab, 'Basic')
     tab_widget.addTab(damage_tab, 'Damage')
-
-    load_basic_tab(basic_tab, conf, deck_manager.get_current_life())
-    load_damage_tab(damage_tab, conf)
 
     button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
                                       aqt.QDialogButtonBox.Cancel)
@@ -333,3 +349,54 @@ that is recovered after answering a card.''')
 
     dialog.setMinimumSize(300, 210)
     dialog.exec()
+
+
+def _deck_basic_tab(aqt, conf, life):
+
+    def generate_form():
+        tab = Form(aqt)
+        tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
+    seconds for the life bar go from full to empty.''')
+        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
+    that is recovered after answering a card.''')
+        tab.spin_box('currentValueInput', 'Current life', [0, 10000],
+                     'Current life, in seconds.')
+        tab.fill_space()
+        return tab.widget
+
+    def load_data(widget, conf):
+        widget.maxLifeInput.set_value(conf['maxLife'])
+        widget.recoverInput.set_value(conf['recover'])
+        widget.currentValueInput.set_value(life)
+
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
+
+
+def _deck_damage_tab(aqt, conf):
+
+    def generate_form():
+        tab = Form(aqt)
+        tab.check_box('enableDamageInput', 'Enable damage',
+                      "Enable the damage feature.")
+        tab.spin_box('damageInput', 'Damage', [-1000, 1000],
+                     "Damage value to be dealt when answering with 'Again'.")
+        tab.fill_space()
+        return tab.widget
+
+    def load_data(widget, conf):
+        def update_damageinput():
+            damage_enabled = widget.enableDamageInput.isChecked()
+            widget.damageInput.setEnabled(damage_enabled)
+            widget.damageInput.setValue(5)
+
+        damage = conf['damage']
+        widget.enableDamageInput.set_value(damage is not None)
+        widget.enableDamageInput.stateChanged.connect(update_damageinput)
+        widget.damageInput.set_value(damage if damage is not None else 5)
+        widget.damageInput.setEnabled(conf['damage'] is not None)
+
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab

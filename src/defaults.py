@@ -41,5 +41,9 @@ DEFAULTS = {
     'barStyle': STYLE_OPTIONS.index('Default'),
     'stopOnAnswer': False,
     'enable': True,
-    'enableBgColor': False
+    'enableBgColor': False,
+    'globalSettingsShortcut': 'Ctrl+l',
+    'deckSettingsShortcut': 'l',
+    'pauseShortcut': 'p',
+    'recoverShortcut': '',
 }
