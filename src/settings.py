@@ -312,43 +312,6 @@ If checked, you can choose a background color on the next field.''')
 def deck_settings(aqt, config, deck_manager):
     """Opens a dialog with the Deck Settings."""
 
-    def create_basic_tab():
-        tab = Form(aqt)
-        tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
-seconds for the life bar go from full to empty.''')
-        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
-that is recovered after answering a card.''')
-        tab.spin_box('currentValueInput', 'Current life', [0, 10000],
-                     'Current life, in seconds.')
-        tab.fill_space()
-        return tab.widget
-
-    def create_damage_tab():
-        tab = Form(aqt)
-        tab.check_box('enableDamageInput', 'Enable damage',
-                      "Enable the damage feature.")
-        tab.spin_box('damageInput', 'Damage', [-1000, 1000],
-                     "Damage value to be dealt when answering with 'Again'.")
-        tab.fill_space()
-        return tab.widget
-
-    def load_basic_tab(widget, conf, life):
-        widget.maxLifeInput.set_value(conf['maxLife'])
-        widget.recoverInput.set_value(conf['recover'])
-        widget.currentValueInput.set_value(life)
-
-    def load_damage_tab(form, conf):
-        def update_damageinput():
-            damage_enabled = form.enableDamageInput.isChecked()
-            form.damageInput.setEnabled(damage_enabled)
-            form.damageInput.setValue(5)
-
-        damage = conf['damage']
-        form.enableDamageInput.set_value(damage is not None)
-        form.enableDamageInput.stateChanged.connect(update_damageinput)
-        form.damageInput.set_value(damage if damage is not None else 5)
-        form.damageInput.setEnabled(conf['damage'] is not None)
-
     def save():
         conf = config.get()
         enable_damage = damage_tab.enableDamageInput.isChecked()
@@ -368,15 +331,12 @@ that is recovered after answering a card.''')
     dialog = aqt.QDialog()
     dialog.setWindowTitle('Life Drain options for {}'.format(conf['name']))
 
-    basic_tab = create_basic_tab()
-    damage_tab = create_damage_tab()
+    basic_tab = _deck_basic_tab(aqt, conf, deck_manager.get_current_life())
+    damage_tab = _deck_damage_tab(aqt, conf)
 
     tab_widget = aqt.QTabWidget()
     tab_widget.addTab(basic_tab, 'Basic')
     tab_widget.addTab(damage_tab, 'Damage')
-
-    load_basic_tab(basic_tab, conf, deck_manager.get_current_life())
-    load_damage_tab(damage_tab, conf)
 
     button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
                                       aqt.QDialogButtonBox.Cancel)
@@ -389,3 +349,54 @@ that is recovered after answering a card.''')
 
     dialog.setMinimumSize(300, 210)
     dialog.exec()
+
+
+def _deck_basic_tab(aqt, conf, life):
+
+    def generate_form():
+        tab = Form(aqt)
+        tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
+    seconds for the life bar go from full to empty.''')
+        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
+    that is recovered after answering a card.''')
+        tab.spin_box('currentValueInput', 'Current life', [0, 10000],
+                     'Current life, in seconds.')
+        tab.fill_space()
+        return tab.widget
+
+    def load_data(widget, conf):
+        widget.maxLifeInput.set_value(conf['maxLife'])
+        widget.recoverInput.set_value(conf['recover'])
+        widget.currentValueInput.set_value(life)
+
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
+
+
+def _deck_damage_tab(aqt, conf):
+
+    def generate_form():
+        tab = Form(aqt)
+        tab.check_box('enableDamageInput', 'Enable damage',
+                      "Enable the damage feature.")
+        tab.spin_box('damageInput', 'Damage', [-1000, 1000],
+                     "Damage value to be dealt when answering with 'Again'.")
+        tab.fill_space()
+        return tab.widget
+
+    def load_data(widget, conf):
+        def update_damageinput():
+            damage_enabled = widget.enableDamageInput.isChecked()
+            widget.damageInput.setEnabled(damage_enabled)
+            widget.damageInput.setValue(5)
+
+        damage = conf['damage']
+        widget.enableDamageInput.set_value(damage is not None)
+        widget.enableDamageInput.stateChanged.connect(update_damageinput)
+        widget.damageInput.set_value(damage if damage is not None else 5)
+        widget.damageInput.setEnabled(conf['damage'] is not None)
+
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
