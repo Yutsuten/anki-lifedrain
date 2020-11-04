@@ -90,6 +90,33 @@ class Lifedrain:
         ]
         self.status['shortcuts'] = self._mw.applyShortcuts(shortcuts)
 
+    def review_shortcuts(self, shortcuts):
+        """Generates the review screen shortcuts."""
+        config = self.config.get()
+        if config['pauseShortcut']:
+            shortcuts.append(
+                tuple([config['pauseShortcut'], self.toggle_drain])
+            )
+        if config['deckSettingsShortcut']:
+            shortcuts.append(
+                tuple([config['deckSettingsShortcut'], self.deck_settings])
+            )
+
+    def overview_shortcuts(self, shortcuts):
+        """Generates the overview screen shortcuts."""
+        config = self.config.get()
+        if config['deckSettingsShortcut']:
+            shortcuts.append(
+                tuple([config['deckSettingsShortcut'], self.deck_settings])
+            )
+        if config['recoverShortcut']:
+            def full_recover():
+                self.deck_manager.recover_life(value=10000)
+
+            shortcuts.append(
+                tuple([config['recoverShortcut'], full_recover])
+            )
+
     @must_be_enabled
     def toggle_drain(self, enable=None):
         """Toggles the life drain.

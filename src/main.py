@@ -39,10 +39,9 @@ def setup_shortcuts(lifedrain):
 
     def state_shortcuts(state, shortcuts):
         if state == 'review':
-            shortcuts.append(tuple(['p', lifedrain.toggle_drain]))
-            shortcuts.append(tuple(['l', lifedrain.deck_settings]))
+            lifedrain.review_shortcuts(shortcuts)
         elif state == 'overview':
-            shortcuts.append(tuple(['l', lifedrain.deck_settings]))
+            lifedrain.overview_shortcuts(shortcuts)
 
     gui_hooks.collection_did_load.append(lambda col: global_shortcuts())
     gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
