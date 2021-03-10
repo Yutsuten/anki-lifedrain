@@ -5,7 +5,7 @@ See the LICENCE file in the repository root for full licence text.
 
 from operator import itemgetter
 
-from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
+from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, BEHAVIORS
 
 
 class Form:
@@ -196,6 +196,9 @@ def global_settings(aqt, config):
             'deckSettingsShortcut': basic_tab.deckShortcut.get_value(),
             'pauseShortcut': basic_tab.pauseShortcut.get_value(),
             'recoverShortcut': basic_tab.recoverShortcut.get_value(),
+            'behavUndo': basic_tab.behavUndo.get_value(),
+            'behavBury': basic_tab.behavBury.get_value(),
+            'behavSuspend': basic_tab.behavSuspend.get_value(),
             'barPosition': bar_style_tab.positionList.get_value(),
             'barHeight': bar_style_tab.heightInput.get_value(),
             'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
@@ -240,6 +243,13 @@ def _global_basic_tab(aqt, conf):
                       'Enable/disable the add-on without restarting Anki.')
         tab.check_box('stopOnAnswer', 'Stop drain on answer shown',
                       'Automatically stops the drain after answering a card.')
+        tab.label('<b>Special action behavior</b>')
+        tab.combo_box('behavUndo', 'Undo', BEHAVIORS, '''How should the \
+program behave when undoing?''')
+        tab.combo_box('behavBury', 'Bury', BEHAVIORS, '''How should the \
+program behave when burying a card/note?''')
+        tab.combo_box('behavSuspend', 'Suspend', BEHAVIORS, '''How should the \
+program behave when suspending a card/note?''')
         tab.label('<b>Shortcuts</b>')
         shortcut_tooltip = '''
 There is no validation for your shortcut string, so edit with care!
@@ -258,6 +268,9 @@ Invalid shortcuts, or already used shortcuts won't work.'''
     def load_data(widget, conf):
         widget.enableAddon.set_value(conf['enable'])
         widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
+        widget.behavUndo.set_value(conf['behavUndo'])
+        widget.behavBury.set_value(conf['behavBury'])
+        widget.behavSuspend.set_value(conf['behavSuspend'])
         widget.globalShortcut.set_value(conf['globalSettingsShortcut'])
         widget.deckShortcut.set_value(conf['deckSettingsShortcut'])
         widget.pauseShortcut.set_value(conf['pauseShortcut'])

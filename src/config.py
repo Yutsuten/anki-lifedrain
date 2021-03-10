@@ -12,7 +12,8 @@ class GlobalConf:
               'barBorderRadius', 'barText', 'barStyle', 'barFgColor',
               'barTextColor', 'enableBgColor', 'barBgColor',
               'globalSettingsShortcut', 'deckSettingsShortcut',
-              'pauseShortcut', 'recoverShortcut'}
+              'pauseShortcut', 'recoverShortcut', 'behavUndo', 'behavBury',
+              'behavSuspend'}
     _main_window = None
 
     def __init__(self, mw):

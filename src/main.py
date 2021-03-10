@@ -125,7 +125,7 @@ def setup_review(lifedrain):
         lambda *args: lifedrain.status.update({'special_action': True}))
     Scheduler.buryCards = hooks.wrap(
         Scheduler.buryCards,
-        lambda *args: lifedrain.status.update({'special_action': True}))
+        lambda *args: lifedrain.bury())
     Scheduler.suspendCards = hooks.wrap(
         Scheduler.suspendCards,
-        lambda *args: lifedrain.status.update({'special_action': True}))
+        lambda *args: lifedrain.suspend())

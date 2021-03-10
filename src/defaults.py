@@ -3,6 +3,7 @@ Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 See the LICENCE file in the repository root for full licence text.
 """
 
+BEHAVIORS = ['Drain life', 'Do nothing', 'Recover life']
 POSITION_OPTIONS = ['Top', 'Bottom']
 STYLE_OPTIONS = [
     'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh', 'Motif',
@@ -46,4 +47,7 @@ DEFAULTS = {
     'deckSettingsShortcut': 'l',
     'pauseShortcut': 'p',
     'recoverShortcut': '',
+    'behavUndo': BEHAVIORS.index('Drain life'),
+    'behavBury': BEHAVIORS.index('Do nothing'),
+    'behavSuspend': BEHAVIORS.index('Do nothing'),
 }
