@@ -176,5 +176,26 @@ class Lifedrain:
         on_review = self.status['screen'] == 'review'
         if on_review and not self.status['special_action']:
             self.status['reviewed'] = False
-            self.deck_manager.recover_life(False)
+            conf = self.config.get()
+            self._special_action_behavior(conf['behavUndo'])
         self.status['special_action'] = False
+
+    @must_be_enabled
+    def bury(self):
+        """Called when a card or note is buried."""
+        self.status['special_action'] = True
+        conf = self.config.get()
+        self._special_action_behavior(conf['behavBury'])
+
+    @must_be_enabled
+    def suspend(self):
+        """Called when a card or note is suspended."""
+        self.status['special_action'] = True
+        conf = self.config.get()
+        self._special_action_behavior(conf['behavSuspend'])
+
+    def _special_action_behavior(self, behavior_index):
+        if behavior_index == 0:
+            self.deck_manager.recover_life(False)
+        elif behavior_index == 2:
+            self.deck_manager.recover_life(True)
