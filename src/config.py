@@ -42,7 +42,7 @@ class GlobalConf:
 
 class DeckConf:
     """Manages each lifedrain's deck configuration."""
-    fields = {'maxLife', 'recover', 'damage'}
+    fields = {'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning'}
     _main_window = None
 
     def __init__(self, mw):
