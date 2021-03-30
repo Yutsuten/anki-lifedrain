@@ -29,6 +29,7 @@ class Lifedrain:
         'review_response': 0,
         'screen': None,
         'shortcuts': [],
+        'card_type': None,
     }
 
     _qt = None
@@ -138,6 +139,7 @@ class Lifedrain:
         """
         if state != 'review':
             self.toggle_drain(False)
+            self.status['prev_card'] = None
 
         if self.status['reviewed'] and state in ['overview', 'review']:
             self.deck_manager.recover_life()
@@ -152,16 +154,18 @@ class Lifedrain:
             self.deck_manager.bar_visible(True)
 
     @must_be_enabled
-    def show_question(self):
+    def show_question(self, card):
         """Called when a question is shown."""
         self.toggle_drain(True)
         if self.status['reviewed']:
+            recover_life = self.deck_manager.recover_life
             if self.status['review_response'] == 1:
-                self.deck_manager.recover_life(damage=True)
+                recover_life(damage=True, card_type=self.status['card_type'])
             else:
-                self.deck_manager.recover_life()
+                recover_life()
         self.status['reviewed'] = False
         self.status['special_action'] = False
+        self.status['card_type'] = card.type
 
     @must_be_enabled
     def show_answer(self):
