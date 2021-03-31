@@ -385,9 +385,9 @@ def _deck_basic_tab(aqt, conf, life):
     def generate_form():
         tab = Form(aqt)
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
-    seconds for the life bar go from full to empty.''')
+seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
-    that is recovered after answering a card.''')
+that is recovered after answering a card.''')
         tab.spin_box('currentValueInput', 'Current life', [0, 10000],
                      'Current life, in seconds.')
         tab.fill_space()
@@ -408,13 +408,14 @@ def _deck_damage_tab(aqt, conf):
     def generate_form():
         tab = Form(aqt)
         tab.check_box('enableDamageInput', 'Enable damage',
-                      "Enable the damage feature.")
-        tab.spin_box('damageInput', 'Default damage', [-1000, 1000],
-                     "Damage value to be dealt when answering with 'Again'.")
-        tab.spin_box('damageNewInput', 'Damage (new)', [-1000, 1000],
-                     "Damage value on new cards.")
-        tab.spin_box('damageLearningInput', 'Damage (learning)', [-1000, 1000],
-                     "Damage value on learning cards.")
+                      "Enable the damage feature. It will be triggered when \
+answering with 'Again'.")
+        tab.spin_box('damageNewInput', 'New cards', [-1000, 1000],
+                     'Damage value on new cards.')
+        tab.spin_box('damageLearningInput', 'Learning cards', [-1000, 1000],
+                     'Damage value on learning cards.')
+        tab.spin_box('damageInput', 'Review cards', [-1000, 1000],
+                     'Damage value on review cards.')
         tab.fill_space()
         return tab.widget
 
