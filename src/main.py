@@ -110,8 +110,7 @@ def setup_overview(lifedrain):
 
 def setup_review(lifedrain):
     """Setup hooks triggered while reviewing."""
-    gui_hooks.reviewer_did_show_question.append(
-        lambda card: lifedrain.show_question())
+    gui_hooks.reviewer_did_show_question.append(lifedrain.show_question)
     gui_hooks.reviewer_did_show_answer.append(
         lambda card: lifedrain.show_answer())
     gui_hooks.reviewer_did_answer_card.append(

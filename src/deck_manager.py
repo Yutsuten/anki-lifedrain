@@ -79,9 +79,12 @@ class DeckManager:
         self._bar_info[deck_id]['maxValue'] = conf['maxLife']
         self._bar_info[deck_id]['recoverValue'] = conf['recover']
         self._bar_info[deck_id]['damageValue'] = conf['damage']
+        self._bar_info[deck_id]['damageNew'] = conf['damageNew']
+        self._bar_info[deck_id]['damageLearning'] = conf['damageLearning']
         self._bar_info[deck_id]['currentValue'] = current_value
 
-    def recover_life(self, increment=True, value=None, damage=False):
+    def recover_life(self, increment=True, value=None, damage=False,
+                     card_type=None):
         """Recover life of the currently active deck.
 
         Args:
@@ -89,27 +92,41 @@ class DeckManager:
             value: Optional. The value used to increment or decrement.
             damage: Optional. If this flag is ON, uses the default damage value.
         """
-        deck_id = self._cur_deck_id
+        bar_info = self._bar_info[self._cur_deck_id]
 
         multiplier = 1
         if not increment:
             multiplier = -1
         if value is None:
-            if damage and self._bar_info[deck_id]['damageValue'] is not None:
+            if damage and bar_info['damageValue'] is not None:
                 multiplier = -1
-                value = self._bar_info[deck_id]['damageValue']
+                value = self._calculate_damage(card_type)
             else:
-                value = self._bar_info[deck_id]['recoverValue']
+                value = bar_info['recoverValue']
 
         self._progress_bar.inc_current_value(multiplier * value)
 
         life = self._progress_bar.get_current_value()
-        self._bar_info[deck_id]['currentValue'] = life
+        bar_info['currentValue'] = life
         if life > 0:
             self._game_over = False
         elif not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
+
+    def _calculate_damage(self, card_type):
+        """Calculate damage depending on card type.
+
+        Args:
+            card_type: 0 = New, 1 = Learning, 2 = Review.
+        """
+        bar_info = self._bar_info[self._cur_deck_id]
+        damage = bar_info['damageValue']
+        if card_type == 0 and bar_info['damageNew'] is not None:
+            damage = bar_info['damageNew']
+        elif card_type == 1 and bar_info['damageLearning'] is not None:
+            damage = bar_info['damageLearning']
+        return damage
 
     def _add_deck(self, deck_id):
         """Adds a deck to the list of decks that are being managed.
@@ -122,7 +139,9 @@ class DeckManager:
             'maxValue': conf['maxLife'],
             'currentValue': conf['maxLife'],
             'recoverValue': conf['recover'],
-            'damageValue': conf['damage']
+            'damageValue': conf['damage'],
+            'damageNew': conf['damageNew'],
+            'damageLearning': conf['damageLearning'],
         }
 
     def _update_progress_bar_style(self):

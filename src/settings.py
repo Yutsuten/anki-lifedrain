@@ -328,11 +328,27 @@ def deck_settings(aqt, config, deck_manager):
     def save():
         conf = config.get()
         enable_damage = damage_tab.enableDamageInput.isChecked()
-        damage_value = damage_tab.damageInput.value()
+
+        damage = None
+        damage_new = None
+        damage_learning = None
+        if enable_damage:
+            damage = damage_tab.damageInput.value()
+            damage_new = damage_tab.damageNewInput.value()
+            damage_learning = damage_tab.damageLearningInput.value()
+
+            # When damage_*** is set to None, it defaults to damage
+            if damage_new == damage:
+                damage_new = None
+            if damage_learning == damage:
+                damage_learning = None
+
         conf.update({
             'maxLife': basic_tab.maxLifeInput.value(),
             'recover': basic_tab.recoverInput.value(),
-            'damage': damage_value if enable_damage else None,
+            'damage': damage,
+            'damageNew': damage_new,
+            'damageLearning': damage_learning,
             'currentValue': basic_tab.currentValueInput.value()
         })
 
@@ -369,9 +385,9 @@ def _deck_basic_tab(aqt, conf, life):
     def generate_form():
         tab = Form(aqt)
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
-    seconds for the life bar go from full to empty.''')
+seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
-    that is recovered after answering a card.''')
+that is recovered after answering a card.''')
         tab.spin_box('currentValueInput', 'Current life', [0, 10000],
                      'Current life, in seconds.')
         tab.fill_space()
@@ -392,9 +408,14 @@ def _deck_damage_tab(aqt, conf):
     def generate_form():
         tab = Form(aqt)
         tab.check_box('enableDamageInput', 'Enable damage',
-                      "Enable the damage feature.")
-        tab.spin_box('damageInput', 'Damage', [-1000, 1000],
-                     "Damage value to be dealt when answering with 'Again'.")
+                      "Enable the damage feature. It will be triggered when \
+answering with 'Again'.")
+        tab.spin_box('damageNewInput', 'New cards', [-1000, 1000],
+                     'Damage value on new cards.')
+        tab.spin_box('damageLearningInput', 'Learning cards', [-1000, 1000],
+                     'Damage value on learning cards.')
+        tab.spin_box('damageInput', 'Review cards', [-1000, 1000],
+                     'Damage value on review cards.')
         tab.fill_space()
         return tab.widget
 
@@ -402,13 +423,31 @@ def _deck_damage_tab(aqt, conf):
         def update_damageinput():
             damage_enabled = widget.enableDamageInput.isChecked()
             widget.damageInput.setEnabled(damage_enabled)
-            widget.damageInput.setValue(5)
+            widget.damageNewInput.setEnabled(damage_enabled)
+            widget.damageLearningInput.setEnabled(damage_enabled)
 
-        damage = conf['damage']
-        widget.enableDamageInput.set_value(damage is not None)
+        enable_damage = conf['damage'] is not None
+        damage = conf['damage'] if enable_damage else 5
+
+        if conf['damageNew'] is not None:
+            damage_new = conf['damageNew']
+        else:
+            damage_new = damage
+
+        if conf['damageLearning'] is not None:
+            damage_learning = conf['damageLearning']
+        else:
+            damage_learning = damage
+
+        widget.enableDamageInput.set_value(enable_damage)
         widget.enableDamageInput.stateChanged.connect(update_damageinput)
-        widget.damageInput.set_value(damage if damage is not None else 5)
-        widget.damageInput.setEnabled(conf['damage'] is not None)
+        widget.damageInput.set_value(damage)
+        widget.damageNewInput.set_value(damage_new)
+        widget.damageLearningInput.set_value(damage_learning)
+
+        widget.damageInput.setEnabled(enable_damage)
+        widget.damageNewInput.setEnabled(enable_damage)
+        widget.damageLearningInput.setEnabled(enable_damage)
 
     tab = generate_form()
     load_data(tab, conf)
