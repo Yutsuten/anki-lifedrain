@@ -60,10 +60,19 @@ class Lifedrain:
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
         settings.global_settings(self._qt, self.config)
-        self.clear_global_shortcuts()
-        self.set_global_shortcuts()
-        self.toggle_drain(drain_enabled)
-        self.deck_manager.update()
+        config = self.config.get()
+        if config['enable']:
+            self.clear_global_shortcuts()
+            self.set_global_shortcuts()
+            self.toggle_drain(drain_enabled)
+            if self.status['screen'] == 'deckBrowser':
+                self.deck_manager.bar_visible(False)
+            else:
+                self.deck_manager.update()
+                self.deck_manager.bar_visible(True)
+        else:
+            self.clear_global_shortcuts()
+            self.deck_manager.bar_visible(False)
 
     def deck_settings(self):
         """Opens a dialog with the Deck Settings."""
@@ -80,9 +89,8 @@ class Lifedrain:
         self.status['shortcuts'] = []
 
     @must_be_enabled
-    def set_global_shortcuts(self):
+    def set_global_shortcuts(self, config=None):
         """Sets the global shortcuts."""
-        config = self.config.get()
         if not config['globalSettingsShortcut']:
             return
 
@@ -91,9 +99,9 @@ class Lifedrain:
         ]
         self.status['shortcuts'] = self._mw.applyShortcuts(shortcuts)
 
-    def review_shortcuts(self, shortcuts):
+    @must_be_enabled
+    def review_shortcuts(self, config, shortcuts):
         """Generates the review screen shortcuts."""
-        config = self.config.get()
         if config['pauseShortcut']:
             shortcuts.append(
                 tuple([config['pauseShortcut'], self.toggle_drain])
@@ -103,9 +111,9 @@ class Lifedrain:
                 tuple([config['deckSettingsShortcut'], self.deck_settings])
             )
 
-    def overview_shortcuts(self, shortcuts):
+    @must_be_enabled
+    def overview_shortcuts(self, config, shortcuts):
         """Generates the overview screen shortcuts."""
-        config = self.config.get()
         if config['deckSettingsShortcut']:
             shortcuts.append(
                 tuple([config['deckSettingsShortcut'], self.deck_settings])
@@ -119,7 +127,7 @@ class Lifedrain:
             )
 
     @must_be_enabled
-    def toggle_drain(self, enable=None):
+    def toggle_drain(self, config, enable=None):
         """Toggles the life drain.
 
         Args:
@@ -130,22 +138,28 @@ class Lifedrain:
         elif not self._timer.isActive() and enable is not False:
             self._timer.start()
 
-    @must_be_enabled
     def screen_change(self, state):
         """Updates Life Drain when the screen changes.
 
         Args:
             state: The name of the current screen.
         """
+        self.status['reviewed'] = False
+        self.status['screen'] = state
+
+        try:
+            config = self.config.get()
+        except AttributeError:
+            return
+        if not config['enable']:
+            return
+
         if state != 'review':
             self.toggle_drain(False)
             self.status['prev_card'] = None
 
         if self.status['reviewed'] and state in ['overview', 'review']:
             self.deck_manager.recover_life()
-
-        self.status['reviewed'] = False
-        self.status['screen'] = state
 
         if state == 'deckBrowser':
             self.deck_manager.bar_visible(False)
@@ -154,7 +168,7 @@ class Lifedrain:
             self.deck_manager.bar_visible(True)
 
     @must_be_enabled
-    def show_question(self, card):
+    def show_question(self, config, card):
         """Called when a question is shown."""
         self.toggle_drain(True)
         if self.status['reviewed']:
@@ -168,35 +182,31 @@ class Lifedrain:
         self.status['card_type'] = card.type
 
     @must_be_enabled
-    def show_answer(self):
+    def show_answer(self, config):
         """Called when an answer is shown."""
-        conf = self.config.get()
-        self.toggle_drain(not conf['stopOnAnswer'])
+        self.toggle_drain(not config['stopOnAnswer'])
         self.status['reviewed'] = True
 
     @must_be_enabled
-    def undo(self):
+    def undo(self, config):
         """Called when an undo event happens on Anki. Not so accurate though."""
         on_review = self.status['screen'] == 'review'
         if on_review and not self.status['special_action']:
             self.status['reviewed'] = False
-            conf = self.config.get()
-            self._special_action_behavior(conf['behavUndo'])
+            self._special_action_behavior(config['behavUndo'])
         self.status['special_action'] = False
 
     @must_be_enabled
-    def bury(self):
+    def bury(self, config):
         """Called when a card or note is buried."""
         self.status['special_action'] = True
-        conf = self.config.get()
-        self._special_action_behavior(conf['behavBury'])
+        self._special_action_behavior(config['behavBury'])
 
     @must_be_enabled
-    def suspend(self):
+    def suspend(self, config):
         """Called when a card or note is suspended."""
         self.status['special_action'] = True
-        conf = self.config.get()
-        self._special_action_behavior(conf['behavSuspend'])
+        self._special_action_behavior(config['behavSuspend'])
 
     def _special_action_behavior(self, behavior_index):
         if behavior_index == 0:

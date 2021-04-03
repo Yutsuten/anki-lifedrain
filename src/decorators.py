@@ -14,6 +14,6 @@ def must_be_enabled(func):
 
         if not config['enable']:
             return None
-        return func(self, *args, **kwargs)
+        return func(self, config, *args, **kwargs)
 
     return _wrapper
