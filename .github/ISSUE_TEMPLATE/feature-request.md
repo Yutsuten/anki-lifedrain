@@ -7,4 +7,3 @@ assignees: ''
 
 ---
 
-**Describe the new feature:** 

@@ -1,5 +1,5 @@
 run:
-	anki &
+	anki -p Test
 
 build: prepare
 	(cd src && zip -r ../dist/lifedrain21.zip * -x "*.pyc")
