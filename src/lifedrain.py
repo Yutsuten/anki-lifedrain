@@ -144,7 +144,6 @@ class Lifedrain:
         Args:
             state: The name of the current screen.
         """
-        self.status['reviewed'] = False
         self.status['screen'] = state
 
         try:
@@ -160,6 +159,7 @@ class Lifedrain:
 
         if self.status['reviewed'] and state in ['overview', 'review']:
             self.deck_manager.recover_life()
+            self.status['reviewed'] = False
 
         if state == 'deckBrowser':
             self.deck_manager.bar_visible(False)
