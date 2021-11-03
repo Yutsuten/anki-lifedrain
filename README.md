@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="images/logo.png" alt="Life Drain">
+  <img src="images/logo.png" alt="Life Drain">
 </p>
 
 # Life Drain [![CodeFactor](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain/badge)](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain)
@@ -17,15 +17,19 @@ If the life is low, it means that you are distracted or taking too much time to 
 
 ## Install
 ### Recommended
+
 - Install from the [AnkiWeb](https://ankiweb.net/shared/info/715575551).
 
 ### Manual
+
 - Copy the folder `src` into your add-ons folder. You need at least Anki 2.1.22 for the latest Life Drain.
 
 ## Documentation
+
 [Click here](https://github.com/Yutsuten/anki-lifedrain/wiki) and access the wiki for this add-on!
 
 ## Feedback & Contribution
+
 If you find any bugs, feel free to [open an issue](https://github.com/Yutsuten/anki-lifedrain/issues). I'll try to answer / fix those as soon as I can!
 
 If you have experience with coding, feel free to open a Pull Request!
@@ -33,10 +37,10 @@ If you have experience with coding, feel free to open a Pull Request!
 Any feedback and help is very welcome!
 
 ## Donations
+
 A lot of time is being used to maintain this add-on.
-I'm doing this on my spare time (I have a full-time job!) as a hobby.
+I'm doing this on my spare time (I have a full-time job!).
 
 If you like this add-on, donation of any value will be greatly appreciated!
 
-[![paypal](https://www.paypal.com/en_US/i/btn/x-click-but04.gif)](https://www.paypal.me/mateusetto)
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G61KF5O)
+To donate, use the "Sponsor" button on the top of this page.
