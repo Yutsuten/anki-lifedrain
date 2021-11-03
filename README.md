@@ -33,10 +33,9 @@ If you have experience with coding, feel free to open a Pull Request!
 Any feedback and help is very welcome!
 
 ## Donations
+
 A lot of time is being used to maintain this add-on.
-I'm doing this on my spare time (I have a full-time job!) as a hobby.
+I'm doing this on my spare time (I have a full-time job!).
 
 If you like this add-on, donation of any value will be greatly appreciated!
-
-[![paypal](https://www.paypal.com/en_US/i/btn/x-click-but04.gif)](https://www.paypal.me/mateusetto)
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G61KF5O)
+To donate, use the "Sponsor" button on the top of this page.
