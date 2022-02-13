@@ -63,7 +63,7 @@ class ProgressBar:
         Args:
             current_value: The current value of the bar. Up to 1 decimal place.
         """
-        self._current_value = current_value * 10
+        self._current_value = int(current_value * 10)
         self._validate_current_value()
         self._update_text()
 
@@ -73,7 +73,7 @@ class ProgressBar:
         Args:
             increment: A positive or negative number. Up to 1 decimal place.
         """
-        self._current_value += increment * 10
+        self._current_value += int(increment * 10)
         self._validate_current_value()
         if self._current_value % 10 == 0 or abs(increment) >= 1:
             self._update_text()
