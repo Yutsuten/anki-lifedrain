@@ -170,7 +170,8 @@ class Lifedrain:
     @must_be_enabled
     def opened_window(self, config):
         """Called when a window is opened while reviewing."""
-        self.toggle_drain(False)
+        if config['stopOnLostFocus']:
+            self.toggle_drain(False)
 
     @must_be_enabled
     def show_question(self, config, card):

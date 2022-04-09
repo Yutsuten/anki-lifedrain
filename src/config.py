@@ -13,7 +13,7 @@ class GlobalConf:
               'barTextColor', 'enableBgColor', 'barBgColor',
               'globalSettingsShortcut', 'deckSettingsShortcut',
               'pauseShortcut', 'recoverShortcut', 'behavUndo', 'behavBury',
-              'behavSuspend'}
+              'behavSuspend', 'stopOnLostFocus'}
     _main_window = None
 
     def __init__(self, mw):

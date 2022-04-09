@@ -43,6 +43,7 @@ DEFAULTS = {
     'barTextColor': '#000',
     'barStyle': STYLE_OPTIONS.index('Default'),
     'stopOnAnswer': False,
+    'stopOnLostFocus': True,
     'enable': True,
     'enableBgColor': False,
     'globalSettingsShortcut': 'Ctrl+l',
