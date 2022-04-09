@@ -21,8 +21,7 @@ class GlobalConf:
 
     def get(self):
         """Get global configuration from Anki's database."""
-        conf = self._main_window.col.conf
-        global_conf = conf.get('lifedrain', {})
+        global_conf = self._main_window.col.get_config('lifedrain', {})
         for field in self.fields:
             if field not in global_conf:
                 global_conf[field] = DEFAULTS[field]
@@ -30,14 +29,10 @@ class GlobalConf:
 
     def set(self, new_conf):
         """Saves global configuration into Anki's database."""
-        col = self._main_window.col
-        conf = col.conf
-
-        if 'lifedrain' not in conf:
-            conf['lifedrain'] = {}
+        global_conf = self._main_window.col.get_config('lifedrain', {})
         for field in self.fields:
-            conf['lifedrain'][field] = new_conf[field]
-        col.setMod()
+            global_conf[field] = new_conf[field]
+        self._main_window.col.set_config('lifedrain', global_conf)
 
 
 class DeckConf:
