@@ -117,6 +117,15 @@ def setup_review(lifedrain):
         lambda *args: lifedrain.status.update({'review_response': args[2]}))
     gui_hooks.review_did_undo.append(lambda card_id: lifedrain.undo())
 
+    gui_hooks.browser_will_show.append(
+        lambda browser: lifedrain.opened_window())
+    gui_hooks.editor_did_init.append(
+        lambda editor: lifedrain.opened_window())
+    gui_hooks.deck_options_did_load.append(
+        lambda deck_options: lifedrain.opened_window())
+    gui_hooks.filtered_deck_dialog_did_load_deck.append(
+        lambda *args: lifedrain.opened_window())
+
     # Action on cards
     hooks.card_did_leech.append(
         lambda *args: lifedrain.status.update({'special_action': True}))

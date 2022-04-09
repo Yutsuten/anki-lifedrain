@@ -1,5 +1,5 @@
 run:
-	anki -p Test
+	env QTWEBENGINE_CHROMIUM_FLAGS=--no-sandbox anki -p Test
 
 build: prepare
 	(cd src && zip -r ../dist/lifedrain21.zip * -x "*.pyc")

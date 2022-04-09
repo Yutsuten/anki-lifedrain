@@ -168,6 +168,12 @@ class Lifedrain:
             self.deck_manager.bar_visible(True)
 
     @must_be_enabled
+    def opened_window(self, config):
+        """Called when a window is opened while reviewing."""
+        if config['stopOnLostFocus']:
+            self.toggle_drain(False)
+
+    @must_be_enabled
     def show_question(self, config, card):
         """Called when a question is shown."""
         self.toggle_drain(True)
