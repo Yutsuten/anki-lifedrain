@@ -403,7 +403,7 @@ that is recovered after answering a card.''')
     def load_data(widget, conf):
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
-        widget.currentValueInput.set_value(life)
+        widget.currentValueInput.set_value(int(life))
 
     tab = generate_form()
     load_data(tab, conf)
