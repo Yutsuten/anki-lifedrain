@@ -185,7 +185,7 @@ class Form:
         self._row += 1
 
 
-def global_settings(aqt, config):
+def global_settings(aqt, main_window, config):
     """Opens a dialog with the Global Settings."""
 
     def save():
@@ -213,7 +213,7 @@ def global_settings(aqt, config):
         return dialog.accept()
 
     conf = config.get()
-    dialog = aqt.QDialog()
+    dialog = aqt.QDialog(main_window)
     dialog.setWindowTitle('Life Drain Global Settings')
 
     basic_tab = _global_basic_tab(aqt, conf)
@@ -329,7 +329,7 @@ If checked, you can choose a background color on the next field.''')
     return tab
 
 
-def deck_settings(aqt, config, deck_manager):
+def deck_settings(aqt, main_window, config, deck_manager):
     """Opens a dialog with the Deck Settings."""
 
     def save():
@@ -364,7 +364,7 @@ def deck_settings(aqt, config, deck_manager):
         return dialog.accept()
 
     conf = config.get()
-    dialog = aqt.QDialog()
+    dialog = aqt.QDialog(main_window)
     dialog.setWindowTitle('Life Drain options for {}'.format(conf['name']))
 
     basic_tab = _deck_basic_tab(aqt, conf, deck_manager.get_current_life())
