@@ -185,7 +185,7 @@ class Form:
         self._row += 1
 
 
-def global_settings(aqt, main_window, config):
+def global_settings(aqt, main_window, config, deck_manager):
     """Opens a dialog with the Global Settings."""
 
     def save():
@@ -205,7 +205,7 @@ def global_settings(aqt, main_window, config):
             if damage_learning == damage:
                 damage_learning = None
 
-        config.set({
+        conf = {
             'enable': basic_tab.enableAddon.get_value(),
             'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
             'stopOnLostFocus': basic_tab.stopOnLostFocus.get_value(),
@@ -225,12 +225,18 @@ def global_settings(aqt, main_window, config):
             'barTextColor': bar_style_tab.textColorDialog.get_value(),
             'enableBgColor': bar_style_tab.enableBgColor.get_value(),
             'barBgColor': bar_style_tab.bgColorDialog.get_value(),
+            'shareDrain': deck_defaults.shareDrain.get_value(),
             'maxLife': deck_defaults.maxLifeInput.value(),
             'recover': deck_defaults.recoverInput.value(),
             'damage': damage,
             'damageNew': damage_new,
             'damageLearning': damage_learning,
-        })
+        }
+        config.set(conf)
+        if conf['shareDrain']:
+            conf['id'] = 'shared'
+            deck_manager.set_deck_conf(conf, update_life=False)
+
         return dialog.accept()
 
     conf = config.get()
@@ -356,6 +362,8 @@ def _global_deck_defaults(aqt, conf):
 
     def generate_form():
         tab = Form(aqt)
+        tab.check_box('shareDrain', 'Share drain across all decks',
+                      "Current life will be shared between all decks.")
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
 seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
@@ -373,6 +381,7 @@ answering with 'Again'.")
         return tab.widget
 
     def load_data(widget, conf):
+        widget.shareDrain.set_value(conf['shareDrain'])
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
 
@@ -410,11 +419,10 @@ answering with 'Again'.")
     return tab
 
 
-def deck_settings(aqt, main_window, config, deck_manager):
+def deck_settings(aqt, main_window, config, global_config, deck_manager):
     """Opens a dialog with the Deck Settings."""
 
     def save():
-        conf = config.get()
         enable_damage = damage_tab.enableDamageInput.isChecked()
 
         damage = None
@@ -431,6 +439,7 @@ def deck_settings(aqt, main_window, config, deck_manager):
             if damage_learning == damage:
                 damage_learning = None
 
+        conf = config.get()
         conf.update({
             'maxLife': basic_tab.maxLifeInput.value(),
             'recover': basic_tab.recoverInput.value(),
@@ -440,13 +449,23 @@ def deck_settings(aqt, main_window, config, deck_manager):
             'currentValue': basic_tab.currentValueInput.value(),
         })
 
+        global_conf = global_config.get()
+        if global_conf['shareDrain']:
+            global_config.set(conf)
+            conf['id'] = 'shared'
+        else:
+            config.set(conf)
+
         deck_manager.set_deck_conf(conf)
-        config.set(conf)
         return dialog.accept()
 
     conf = config.get()
     dialog = aqt.QDialog(main_window)
-    dialog.setWindowTitle('Life Drain options for {}'.format(conf['name']))
+    dialog.setWindowTitle(f'Life Drain options for {conf["name"]}')
+
+    global_conf = global_config.get()
+    if global_conf['shareDrain']:
+        conf = global_conf
 
     basic_tab = _deck_basic_tab(aqt, conf, deck_manager.get_current_life())
     damage_tab = _deck_damage_tab(aqt, conf)

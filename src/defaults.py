@@ -53,4 +53,5 @@ DEFAULTS = {
     'behavUndo': BEHAVIORS.index('Drain life'),
     'behavBury': BEHAVIORS.index('Do nothing'),
     'behavSuspend': BEHAVIORS.index('Do nothing'),
+    'shareDrain': False,
 }

@@ -42,34 +42,34 @@ class DeckManager:
 
     def update(self):
         """Updates the current deck's life bar."""
-        conf = self._deck_conf.get()
-        self._cur_deck_id = conf['id']
+        deck_id = self._get_deck_id()
+        self._cur_deck_id = deck_id
 
-        if conf['id'] not in self._bar_info:
-            self._add_deck(conf['id'])
+        if deck_id not in self._bar_info:
+            self._add_deck(deck_id)
 
         self._update_progress_bar_style()
 
-        bar_info = self._bar_info[conf['id']]
+        bar_info = self._bar_info[deck_id]
         self._progress_bar.set_max_value(bar_info['maxValue'])
         self._progress_bar.set_current_value(bar_info['currentValue'])
 
     def get_current_life(self):
         """Get the current deck's current life."""
-        conf = self._deck_conf.get()
-        self._cur_deck_id = conf['id']
-        if conf['id'] not in self._bar_info:
-            self._add_deck(conf['id'])
-        return self._bar_info[conf['id']]['currentValue']
+        deck_id = self._get_deck_id()
+        self._cur_deck_id = deck_id
+        if deck_id not in self._bar_info:
+            self._add_deck(deck_id)
+        return self._bar_info[deck_id]['currentValue']
 
-    def set_deck_conf(self, conf):
+    def set_deck_conf(self, conf, update_life=True):
         """Updates a deck's current settings and state.
 
         Args:
             deck_id: The ID of the deck.
             conf: A dictionary with the deck's configuration and state.
         """
-        current_value = conf['currentValue']
+        current_value = conf.get('currentValue', conf['maxLife'])
         if current_value > conf['maxLife']:
             current_value = conf['maxLife']
         if conf['id'] not in self._bar_info:
@@ -81,7 +81,8 @@ class DeckManager:
         self._bar_info[deck_id]['damageValue'] = conf['damage']
         self._bar_info[deck_id]['damageNew'] = conf['damageNew']
         self._bar_info[deck_id]['damageLearning'] = conf['damageLearning']
-        self._bar_info[deck_id]['currentValue'] = current_value
+        if update_life:
+            self._bar_info[deck_id]['currentValue'] = current_value
 
     def recover_life(self, increment=True, value=None, damage=False,
                      card_type=None):
@@ -113,6 +114,13 @@ class DeckManager:
         elif not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
+
+    def _get_deck_id(self):
+        global_conf = self._global_conf.get()
+        if global_conf['shareDrain']:
+            return 'shared'
+        conf = self._deck_conf.get()
+        return conf['id']
 
     def _calculate_damage(self, card_type):
         """Calculate damage depending on card type.

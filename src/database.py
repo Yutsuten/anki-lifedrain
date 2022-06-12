@@ -13,7 +13,7 @@ class GlobalConf:
               'barTextColor', 'enableBgColor', 'barBgColor',
               'globalSettingsShortcut', 'deckSettingsShortcut',
               'pauseShortcut', 'recoverShortcut', 'behavUndo', 'behavBury',
-              'behavSuspend', 'stopOnLostFocus'}
+              'behavSuspend', 'stopOnLostFocus', 'shareDrain'}
     _main_window = None
 
     def __init__(self, mw):
@@ -34,7 +34,8 @@ class GlobalConf:
         """Saves global configuration into Anki's database."""
         global_conf = self._main_window.col.get_config('lifedrain', {})
         for field in self.fields:
-            global_conf[field] = new_conf[field]
+            if field in new_conf:
+                global_conf[field] = new_conf[field]
         for field in DeckConf.fields:
             global_conf[field] = new_conf[field]
         self._main_window.col.set_config('lifedrain', global_conf)
