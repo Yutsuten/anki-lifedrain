@@ -235,8 +235,7 @@ def global_settings(aqt, main_window, config, deck_manager):
         config.set(conf)
         if conf['shareDrain']:
             conf['id'] = 'shared'
-            conf['currentValue'] = conf['maxLife']
-            deck_manager.set_deck_conf(conf)
+            deck_manager.set_deck_conf(conf, update_life=False)
 
         return dialog.accept()
 

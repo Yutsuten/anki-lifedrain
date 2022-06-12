@@ -62,14 +62,14 @@ class DeckManager:
             self._add_deck(deck_id)
         return self._bar_info[deck_id]['currentValue']
 
-    def set_deck_conf(self, conf):
+    def set_deck_conf(self, conf, update_life=True):
         """Updates a deck's current settings and state.
 
         Args:
             deck_id: The ID of the deck.
             conf: A dictionary with the deck's configuration and state.
         """
-        current_value = conf['currentValue']
+        current_value = conf.get('currentValue', conf['maxLife'])
         if current_value > conf['maxLife']:
             current_value = conf['maxLife']
         if conf['id'] not in self._bar_info:
@@ -81,7 +81,8 @@ class DeckManager:
         self._bar_info[deck_id]['damageValue'] = conf['damage']
         self._bar_info[deck_id]['damageNew'] = conf['damageNew']
         self._bar_info[deck_id]['damageLearning'] = conf['damageLearning']
-        self._bar_info[deck_id]['currentValue'] = current_value
+        if update_life:
+            self._bar_info[deck_id]['currentValue'] = current_value
 
     def recover_life(self, increment=True, value=None, damage=False,
                      card_type=None):
