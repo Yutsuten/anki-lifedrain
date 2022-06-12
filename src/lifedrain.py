@@ -59,7 +59,8 @@ class Lifedrain:
         """Opens a dialog with the Global Settings."""
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
-        settings.global_settings(self._qt, self._mw, self.config)
+        settings.global_settings(
+            self._qt, self._mw, self.config, self.deck_manager)
         config = self.config.get()
         if config['enable']:
             self.clear_global_shortcuts()
@@ -79,7 +80,7 @@ class Lifedrain:
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
         settings.deck_settings(
-            self._qt, self._mw, self._dconfig, self.deck_manager)
+            self._qt, self._mw, self._dconfig, self.config, self.deck_manager)
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 

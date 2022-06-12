@@ -42,25 +42,25 @@ class DeckManager:
 
     def update(self):
         """Updates the current deck's life bar."""
-        conf = self._deck_conf.get()
-        self._cur_deck_id = conf['id']
+        deck_id = self._get_deck_id()
+        self._cur_deck_id = deck_id
 
-        if conf['id'] not in self._bar_info:
-            self._add_deck(conf['id'])
+        if deck_id not in self._bar_info:
+            self._add_deck(deck_id)
 
         self._update_progress_bar_style()
 
-        bar_info = self._bar_info[conf['id']]
+        bar_info = self._bar_info[deck_id]
         self._progress_bar.set_max_value(bar_info['maxValue'])
         self._progress_bar.set_current_value(bar_info['currentValue'])
 
     def get_current_life(self):
         """Get the current deck's current life."""
-        conf = self._deck_conf.get()
-        self._cur_deck_id = conf['id']
-        if conf['id'] not in self._bar_info:
-            self._add_deck(conf['id'])
-        return self._bar_info[conf['id']]['currentValue']
+        deck_id = self._get_deck_id()
+        self._cur_deck_id = deck_id
+        if deck_id not in self._bar_info:
+            self._add_deck(deck_id)
+        return self._bar_info[deck_id]['currentValue']
 
     def set_deck_conf(self, conf):
         """Updates a deck's current settings and state.
@@ -113,6 +113,13 @@ class DeckManager:
         elif not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
+
+    def _get_deck_id(self):
+        global_conf = self._global_conf.get()
+        if global_conf['shareDrain']:
+            return 'shared'
+        conf = self._deck_conf.get()
+        return conf['id']
 
     def _calculate_damage(self, card_type):
         """Calculate damage depending on card type.
