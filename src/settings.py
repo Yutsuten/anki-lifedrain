@@ -363,7 +363,7 @@ def _global_deck_defaults(aqt, conf):
 
     def generate_form():
         tab = Form(aqt)
-        tab.check_box('shareDrain', 'Share drain across multiple decks',
+        tab.check_box('shareDrain', 'Share drain across all decks',
                       "Current life will be shared between all decks.")
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
 seconds for the life bar go from full to empty.''')
