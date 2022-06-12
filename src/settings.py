@@ -225,6 +225,7 @@ def global_settings(aqt, main_window, config):
             'barTextColor': bar_style_tab.textColorDialog.get_value(),
             'enableBgColor': bar_style_tab.enableBgColor.get_value(),
             'barBgColor': bar_style_tab.bgColorDialog.get_value(),
+            'shareDrain': deck_defaults.shareDrain.get_value(),
             'maxLife': deck_defaults.maxLifeInput.value(),
             'recover': deck_defaults.recoverInput.value(),
             'damage': damage,
@@ -356,6 +357,8 @@ def _global_deck_defaults(aqt, conf):
 
     def generate_form():
         tab = Form(aqt)
+        tab.check_box('shareDrain', 'Share drain across multiple decks',
+                      "Current life will be shared between all decks.")
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
 seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
@@ -373,6 +376,7 @@ answering with 'Again'.")
         return tab.widget
 
     def load_data(widget, conf):
+        widget.shareDrain.set_value(conf['shareDrain'])
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
 
