@@ -25,12 +25,17 @@ class GlobalConf:
         for field in self.fields:
             if field not in global_conf:
                 global_conf[field] = DEFAULTS[field]
+        for field in DeckConf.fields:
+            if field not in global_conf:
+                global_conf[field] = DEFAULTS[field]
         return global_conf
 
     def set(self, new_conf):
         """Saves global configuration into Anki's database."""
         global_conf = self._main_window.col.get_config('lifedrain', {})
         for field in self.fields:
+            global_conf[field] = new_conf[field]
+        for field in DeckConf.fields:
             global_conf[field] = new_conf[field]
         self._main_window.col.set_config('lifedrain', global_conf)
 
@@ -42,9 +47,11 @@ class DeckConf:
 
     def __init__(self, mw):
         self._main_window = mw
+        self._global_conf = GlobalConf(mw)
 
     def get(self):
         """Get current deck configuration from Anki's database."""
+        global_conf = self._global_conf.get()
         deck = self._main_window.col.decks.current()
         conf = deck.get('lifedrain', {})
         conf_dict = {
@@ -52,7 +59,7 @@ class DeckConf:
             'name': deck['name'],
         }
         for field in self.fields:
-            conf_dict[field] = conf.get(field, DEFAULTS[field])
+            conf_dict[field] = conf.get(field, global_conf[field])
         return conf_dict
 
     def set(self, new_conf):
