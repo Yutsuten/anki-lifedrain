@@ -189,6 +189,22 @@ def global_settings(aqt, main_window, config):
     """Opens a dialog with the Global Settings."""
 
     def save():
+        enable_damage = deck_defaults.enableDamageInput.isChecked()
+
+        damage = None
+        damage_new = None
+        damage_learning = None
+        if enable_damage:
+            damage = deck_defaults.damageInput.value()
+            damage_new = deck_defaults.damageNewInput.value()
+            damage_learning = deck_defaults.damageLearningInput.value()
+
+            # When damage_*** is set to None, it defaults to damage
+            if damage_new == damage:
+                damage_new = None
+            if damage_learning == damage:
+                damage_learning = None
+
         config.set({
             'enable': basic_tab.enableAddon.get_value(),
             'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
@@ -209,6 +225,11 @@ def global_settings(aqt, main_window, config):
             'barTextColor': bar_style_tab.textColorDialog.get_value(),
             'enableBgColor': bar_style_tab.enableBgColor.get_value(),
             'barBgColor': bar_style_tab.bgColorDialog.get_value(),
+            'maxLife': deck_defaults.maxLifeInput.value(),
+            'recover': deck_defaults.recoverInput.value(),
+            'damage': damage,
+            'damageNew': damage_new,
+            'damageLearning': damage_learning,
         })
         return dialog.accept()
 
@@ -218,10 +239,12 @@ def global_settings(aqt, main_window, config):
 
     basic_tab = _global_basic_tab(aqt, conf)
     bar_style_tab = _global_bar_style_tab(aqt, conf)
+    deck_defaults = _global_deck_defaults(aqt, conf)
 
     tab_widget = aqt.QTabWidget()
     tab_widget.addTab(basic_tab, 'Basic')
     tab_widget.addTab(bar_style_tab, 'Bar Style')
+    tab_widget.addTab(deck_defaults, 'Deck Defaults')
 
     button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
                                       aqt.QDialogButtonBox.Cancel)
@@ -329,6 +352,64 @@ If checked, you can choose a background color on the next field.''')
     return tab
 
 
+def _global_deck_defaults(aqt, conf):
+
+    def generate_form():
+        tab = Form(aqt)
+        tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
+seconds for the life bar go from full to empty.''')
+        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
+that is recovered after answering a card.''')
+        tab.check_box('enableDamageInput', 'Enable damage',
+                      "Enable the damage feature. It will be triggered when \
+answering with 'Again'.")
+        tab.spin_box('damageNewInput', 'New cards', [-1000, 1000],
+                     'Damage value on new cards.')
+        tab.spin_box('damageLearningInput', 'Learning cards', [-1000, 1000],
+                     'Damage value on learning cards.')
+        tab.spin_box('damageInput', 'Review cards', [-1000, 1000],
+                     'Damage value on review cards.')
+        tab.fill_space()
+        return tab.widget
+
+    def load_data(widget, conf):
+        widget.maxLifeInput.set_value(conf['maxLife'])
+        widget.recoverInput.set_value(conf['recover'])
+
+        def update_damageinput():
+            damage_enabled = widget.enableDamageInput.isChecked()
+            widget.damageInput.setEnabled(damage_enabled)
+            widget.damageNewInput.setEnabled(damage_enabled)
+            widget.damageLearningInput.setEnabled(damage_enabled)
+
+        enable_damage = conf['damage'] is not None
+        damage = conf['damage'] if enable_damage else 5
+
+        if conf['damageNew'] is not None:
+            damage_new = conf['damageNew']
+        else:
+            damage_new = damage
+
+        if conf['damageLearning'] is not None:
+            damage_learning = conf['damageLearning']
+        else:
+            damage_learning = damage
+
+        widget.enableDamageInput.set_value(enable_damage)
+        widget.enableDamageInput.stateChanged.connect(update_damageinput)
+        widget.damageInput.set_value(damage)
+        widget.damageNewInput.set_value(damage_new)
+        widget.damageLearningInput.set_value(damage_learning)
+
+        widget.damageInput.setEnabled(enable_damage)
+        widget.damageNewInput.setEnabled(enable_damage)
+        widget.damageLearningInput.setEnabled(enable_damage)
+
+    tab = generate_form()
+    load_data(tab, conf)
+    return tab
+
+
 def deck_settings(aqt, main_window, config, deck_manager):
     """Opens a dialog with the Deck Settings."""
 
@@ -356,7 +437,7 @@ def deck_settings(aqt, main_window, config, deck_manager):
             'damage': damage,
             'damageNew': damage_new,
             'damageLearning': damage_learning,
-            'currentValue': basic_tab.currentValueInput.value()
+            'currentValue': basic_tab.currentValueInput.value(),
         })
 
         deck_manager.set_deck_conf(conf)
