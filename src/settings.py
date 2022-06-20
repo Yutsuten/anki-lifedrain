@@ -140,7 +140,7 @@ class Form:
         """
 
         def choose_color():
-            if not color_dialog.exec_():
+            if not color_dialog.exec():
                 return
             color = color_dialog.currentColor().name()
             css = 'QLabel { background-color: %s; }' % color
@@ -150,7 +150,8 @@ class Form:
         select_button = self._qt.QPushButton('Select')
         preview_label = self._qt.QLabel('')
         color_dialog = self._qt.QColorDialog(select_button)
-        color_dialog.setOption(self._qt.QColorDialog.DontUseNativeDialog)
+        color_dialog.setOption(
+            self._qt.QColorDialog.ColorDialogOption.DontUseNativeDialog)
         select_button.pressed.connect(choose_color)
         if tooltip is not None:
             label.setToolTip(tooltip)
@@ -252,8 +253,9 @@ def global_settings(aqt, main_window, config, deck_manager):
     tab_widget.addTab(bar_style_tab, 'Bar Style')
     tab_widget.addTab(deck_defaults, 'Deck Defaults')
 
-    button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
-                                      aqt.QDialogButtonBox.Cancel)
+    button_box = aqt.QDialogButtonBox(
+        aqt.QDialogButtonBox.StandardButton.Ok |
+        aqt.QDialogButtonBox.StandardButton.Cancel)
     button_box.rejected.connect(dialog.reject)
     button_box.accepted.connect(save)
 
@@ -474,8 +476,9 @@ def deck_settings(aqt, main_window, config, global_config, deck_manager):
     tab_widget.addTab(basic_tab, 'Basic')
     tab_widget.addTab(damage_tab, 'Damage')
 
-    button_box = aqt.QDialogButtonBox(aqt.QDialogButtonBox.Ok |
-                                      aqt.QDialogButtonBox.Cancel)
+    button_box = aqt.QDialogButtonBox(
+        aqt.QDialogButtonBox.StandardButton.Ok |
+        aqt.QDialogButtonBox.StandardButton.Cancel)
     button_box.rejected.connect(dialog.reject)
     button_box.accepted.connect(save)
 
