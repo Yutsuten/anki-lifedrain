@@ -153,9 +153,9 @@ class ProgressBar:
 
         position = POSITION_OPTIONS[position]
         if position == 'Top':
-            dock_area = self._qt.Qt.TopDockWidgetArea
+            dock_area = self._qt.Qt.DockWidgetArea.TopDockWidgetArea
         elif position == 'Bottom':
-            dock_area = self._qt.Qt.BottomDockWidgetArea
+            dock_area = self._qt.Qt.DockWidgetArea.BottomDockWidgetArea
 
         self._dock['widget'] = self._qt.QDockWidget()
         self._dock['widget'].setWidget(self._qprogressbar)
