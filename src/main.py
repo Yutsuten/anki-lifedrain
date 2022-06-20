@@ -9,7 +9,6 @@ from aqt.progress import ProgressManager
 from aqt.toolbar import BottomBar
 
 from anki import hooks
-from anki.lang import _
 from anki.sched import Scheduler
 
 from .lifedrain import Lifedrain
@@ -75,10 +74,10 @@ def setup_overview(lifedrain):
 
     def button(text, link, shortcut_key=None):
         attribute_list = [
-            'title="{}"'.format(_('Shortcut key: %s') % shortcut_key),
-            'onclick="pycmd(\'{}\')"'.format(link)]
+            f'''title="Shortcut key: {shortcut_key}"''',
+            f'onclick="pycmd(\'{link}\')"']
         attributes = ' '.join(attribute_list)
-        return '<button {}>{}</button>'.format(attributes, text)
+        return f'<button {attributes}>{text}</button>'
 
     def bottom_bar_draw(*args, **kwargs):
         if isinstance(kwargs['web_context'], OverviewBottomBar):

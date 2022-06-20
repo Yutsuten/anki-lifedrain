@@ -142,7 +142,9 @@ class DeckManager:
         Args:
             deck_id: The ID of the deck.
         """
-        conf = self._deck_conf.get()
+        conf = self._global_conf.get()
+        if not conf['shareDrain']:
+            conf = self._deck_conf.get()
         self._bar_info[deck_id] = {
             'maxValue': conf['maxLife'],
             'currentValue': conf['maxLife'],
