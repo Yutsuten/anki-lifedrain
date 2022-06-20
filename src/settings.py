@@ -174,8 +174,8 @@ class Form:
 
     def fill_space(self):
         """Creates a spacer that will vertically fill all the free space."""
-        spacer = self._qt.QSpacerItem(1, 1, self._qt.QSizePolicy.Minimum,
-                                      self._qt.QSizePolicy.Expanding)
+        spacer = self._qt.QSpacerItem(1, 1, self._qt.QSizePolicy.Policy.Minimum,
+                                      self._qt.QSizePolicy.Policy.Expanding)
         self._layout.addItem(spacer, self._row, 0)
         self._row += 1
 
