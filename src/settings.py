@@ -291,11 +291,11 @@ program behave when suspending a card/note?''')
         shortcut_tooltip = '''
 There is no validation for your shortcut string, so edit with care!
 Invalid shortcuts, or already used shortcuts won't work.'''
-        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+l',
+        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+L',
                        'Shortcut for the Global Settings.' + shortcut_tooltip)
-        tab.text_field('deckShortcut', 'Deck Settings', 'l',
+        tab.text_field('deckShortcut', 'Deck Settings', 'L',
                        'Shortcut for the Deck Settings.' + shortcut_tooltip)
-        tab.text_field('pauseShortcut', 'Pause', 'p',
+        tab.text_field('pauseShortcut', 'Pause', 'P',
                        'Shortcut for pausing.' + shortcut_tooltip)
         tab.text_field('recoverShortcut', 'Recover', None,
                        'Shortcut for recovering.' + shortcut_tooltip)

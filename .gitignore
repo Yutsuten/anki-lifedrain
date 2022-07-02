@@ -1,10 +1,7 @@
 # Cache files
 __pycache__
 tmp/
+meta.json
 
 # Dist files
 dist/
-
-# Anki
-anki/
-anki-2.0.*/
