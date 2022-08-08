@@ -53,6 +53,8 @@ class DeckManager:
         bar_info = self._bar_info[deck_id]
         self._progress_bar.set_max_value(bar_info['maxValue'])
         self._progress_bar.set_current_value(bar_info['currentValue'])
+        history = bar_info['history']
+        history[bar_info['currentReview']] = bar_info['currentValue']
 
     def get_current_life(self):
         """Get the current deck's current life."""
