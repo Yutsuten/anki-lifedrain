@@ -66,7 +66,6 @@ class DeckManager:
         """Updates a deck's current settings and state.
 
         Args:
-            deck_id: The ID of the deck.
             conf: A dictionary with the deck's configuration and state.
         """
         current_value = conf.get('currentValue', conf['maxLife'])
@@ -115,6 +114,40 @@ class DeckManager:
             self._game_over = True
             runHook('LifeDrain.gameOver')
 
+    def answer(self, review_response, card_type):
+        """Restores or drains life after an answer."""
+        if review_response == 1:
+            self.recover_life(damage=True, card_type=card_type)
+        else:
+            self.recover_life()
+        self._next()
+
+    def action(self, behavior_index):
+        """Bury/suspend handling."""
+        if behavior_index == 0:
+            self.recover_life(False)
+        elif behavior_index == 2:
+            self.recover_life(True)
+        self._next()
+
+    def undo(self):
+        """Restore the life to how it was in the previous card."""
+        bar_info = self._bar_info[self._cur_deck_id]
+        history = bar_info['history']
+        bar_info['currentReview'] -= 1
+        bar_info['currentValue'] = history[bar_info['currentReview']]
+        self._progress_bar.set_current_value(bar_info['currentValue'])
+
+    def _next(self):
+        """Remembers the current life and advances to the next card."""
+        bar_info = self._bar_info[self._cur_deck_id]
+        bar_info['currentReview'] += 1
+        history = bar_info['history']
+        if len(history) == bar_info['currentReview']:
+            history.append(bar_info['currentValue'])
+        else:
+            history[bar_info['currentReview']] = bar_info['currentValue']
+
     def _get_deck_id(self):
         global_conf = self._global_conf.get()
         if global_conf['shareDrain']:
@@ -152,6 +185,8 @@ class DeckManager:
             'damageValue': conf['damage'],
             'damageNew': conf['damageNew'],
             'damageLearning': conf['damageLearning'],
+            'history': [conf['maxLife']],
+            'currentReview': 0,
         }
 
     def _update_progress_bar_style(self):

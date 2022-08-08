@@ -114,8 +114,10 @@ def setup_review(lifedrain):
         lambda card: lifedrain.show_answer())
     gui_hooks.reviewer_did_answer_card.append(
         lambda *args: lifedrain.status.update({'review_response': args[2]}))
-    gui_hooks.review_did_undo.append(lambda card_id: lifedrain.undo())
-    gui_hooks.state_did_undo.append(lambda out: lifedrain.undo())
+    gui_hooks.review_did_undo.append(
+        lambda card_id: lifedrain.status.update({'action': 'undo'}))
+    gui_hooks.state_did_undo.append(
+        lambda out: lifedrain.status.update({'action': 'undo'}))
 
     gui_hooks.browser_will_show.append(
         lambda browser: lifedrain.opened_window())
@@ -127,24 +129,22 @@ def setup_review(lifedrain):
         lambda *args: lifedrain.opened_window())
 
     # Action on cards
-    hooks.card_did_leech.append(
-        lambda *args: lifedrain.status.update({'special_action': True}))
     hooks.notes_will_be_deleted.append(
-        lambda *args: lifedrain.status.update({'special_action': True}))
+        lambda *args: lifedrain.status.update({'action': 'delete'}))
 
     Reviewer.suspend_current_note = hooks.wrap(
         Reviewer.suspend_current_note,
-        lambda *args: lifedrain.suspend(),
+        lambda *args: lifedrain.status.update({'action': 'suspend'}),
     )
     Reviewer.suspend_current_card = hooks.wrap(
         Reviewer.suspend_current_card,
-        lambda *args: lifedrain.suspend(),
+        lambda *args: lifedrain.status.update({'action': 'suspend'}),
     )
     Reviewer.bury_current_note = hooks.wrap(
         Reviewer.bury_current_note,
-        lambda *args: lifedrain.bury(),
+        lambda *args: lifedrain.status.update({'action': 'bury'}),
     )
     Reviewer.bury_current_card = hooks.wrap(
         Reviewer.bury_current_card,
-        lambda *args: lifedrain.bury(),
+        lambda *args: lifedrain.status.update({'action': 'bury'}),
     )
