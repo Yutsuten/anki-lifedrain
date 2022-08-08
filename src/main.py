@@ -6,10 +6,10 @@ See the LICENCE file in the repository root for full licence text.
 from aqt import mw, qt, gui_hooks
 from aqt.overview import OverviewBottomBar
 from aqt.progress import ProgressManager
+from aqt.reviewer import Reviewer
 from aqt.toolbar import BottomBar
 
 from anki import hooks
-from anki.sched import Scheduler
 
 from .lifedrain import Lifedrain
 
@@ -115,6 +115,7 @@ def setup_review(lifedrain):
     gui_hooks.reviewer_did_answer_card.append(
         lambda *args: lifedrain.status.update({'review_response': args[2]}))
     gui_hooks.review_did_undo.append(lambda card_id: lifedrain.undo())
+    gui_hooks.state_did_undo.append(lambda out: lifedrain.undo())
 
     gui_hooks.browser_will_show.append(
         lambda browser: lifedrain.opened_window())
@@ -130,9 +131,20 @@ def setup_review(lifedrain):
         lambda *args: lifedrain.status.update({'special_action': True}))
     hooks.notes_will_be_deleted.append(
         lambda *args: lifedrain.status.update({'special_action': True}))
-    Scheduler.buryCards = hooks.wrap(
-        Scheduler.buryCards,
-        lambda *args: lifedrain.bury())
-    Scheduler.suspendCards = hooks.wrap(
-        Scheduler.suspendCards,
-        lambda *args: lifedrain.suspend())
+
+    Reviewer.suspend_current_note = hooks.wrap(
+        Reviewer.suspend_current_note,
+        lambda *args: lifedrain.suspend(),
+    )
+    Reviewer.suspend_current_card = hooks.wrap(
+        Reviewer.suspend_current_card,
+        lambda *args: lifedrain.suspend(),
+    )
+    Reviewer.bury_current_note = hooks.wrap(
+        Reviewer.bury_current_note,
+        lambda *args: lifedrain.bury(),
+    )
+    Reviewer.bury_current_card = hooks.wrap(
+        Reviewer.bury_current_card,
+        lambda *args: lifedrain.bury(),
+    )
