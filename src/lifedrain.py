@@ -189,7 +189,7 @@ class Lifedrain:
         elif self.status['action'] == 'suspend':
             self.deck_manager.action(config['behavSuspend'])
         elif self.status['action'] == 'delete':
-            pass
+            self.deck_manager.action(config['behavUndo'])
         elif self.status['reviewed']:
             self.deck_manager.answer(
                 self.status['review_response'],
