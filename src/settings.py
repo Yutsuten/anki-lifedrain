@@ -281,8 +281,8 @@ def _global_basic_tab(aqt, conf):
 editor or browser.
 May not resume the drain automatically when closing it.''')
         tab.label('<b>Special action behavior</b>')
-        tab.combo_box('behavUndo', 'Undo', BEHAVIORS, '''How should the \
-program behave when undoing?''')
+        tab.combo_box('behavUndo', 'Delete', BEHAVIORS, '''How should the \
+program behave when deleting a card/note?''')
         tab.combo_box('behavBury', 'Bury', BEHAVIORS, '''How should the \
 program behave when burying a card/note?''')
         tab.combo_box('behavSuspend', 'Suspend', BEHAVIORS, '''How should the \

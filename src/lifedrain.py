@@ -24,7 +24,7 @@ class Lifedrain:
     config = None
     deck_manager = None
     status = {
-        'special_action': False,  # Flag for bury, suspend, remove, leech
+        'action': None,  # Flag for bury, suspend, delete
         'reviewed': False,
         'review_response': 0,
         'screen': None,
@@ -160,7 +160,10 @@ class Lifedrain:
             self.status['prev_card'] = None
 
         if self.status['reviewed'] and state in ['overview', 'review']:
-            self.deck_manager.recover_life()
+            self.deck_manager.answer(
+                self.status['review_response'],
+                self.status['card_type'],
+            )
             self.status['reviewed'] = False
 
         if state == 'deckBrowser':
@@ -179,14 +182,21 @@ class Lifedrain:
     def show_question(self, config, card):
         """Called when a question is shown."""
         self.toggle_drain(True)
-        if self.status['reviewed']:
-            recover_life = self.deck_manager.recover_life
-            if self.status['review_response'] == 1:
-                recover_life(damage=True, card_type=self.status['card_type'])
-            else:
-                recover_life()
+        if self.status['action'] == 'undo':
+            self.deck_manager.undo()
+        elif self.status['action'] == 'bury':
+            self.deck_manager.action(config['behavBury'])
+        elif self.status['action'] == 'suspend':
+            self.deck_manager.action(config['behavSuspend'])
+        elif self.status['action'] == 'delete':
+            self.deck_manager.action(config['behavUndo'])
+        elif self.status['reviewed']:
+            self.deck_manager.answer(
+                self.status['review_response'],
+                self.status['card_type'],
+            )
         self.status['reviewed'] = False
-        self.status['special_action'] = False
+        self.status['action'] = None
         self.status['card_type'] = card.type
 
     @must_be_enabled
@@ -194,30 +204,3 @@ class Lifedrain:
         """Called when an answer is shown."""
         self.toggle_drain(not config['stopOnAnswer'])
         self.status['reviewed'] = True
-
-    @must_be_enabled
-    def undo(self, config):
-        """Called when an undo event happens on Anki. Not so accurate though."""
-        on_review = self.status['screen'] == 'review'
-        if on_review and not self.status['special_action']:
-            self.status['reviewed'] = False
-            self._special_action_behavior(config['behavUndo'])
-        self.status['special_action'] = False
-
-    @must_be_enabled
-    def bury(self, config):
-        """Called when a card or note is buried."""
-        self.status['special_action'] = True
-        self._special_action_behavior(config['behavBury'])
-
-    @must_be_enabled
-    def suspend(self, config):
-        """Called when a card or note is suspended."""
-        self.status['special_action'] = True
-        self._special_action_behavior(config['behavSuspend'])
-
-    def _special_action_behavior(self, behavior_index):
-        if behavior_index == 0:
-            self.deck_manager.recover_life(False)
-        elif behavior_index == 2:
-            self.deck_manager.recover_life(True)
