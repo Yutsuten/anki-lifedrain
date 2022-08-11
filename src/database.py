@@ -21,24 +21,26 @@ class GlobalConf:
 
     def get(self):
         """Get global configuration from Anki's database."""
-        global_conf = self._main_window.col.get_config('lifedrain', {})
+        conf = self._main_window.addonManager.getConfig(__name__)
+        if not conf:
+            conf = self._main_window.col.get_config('lifedrain', {})
         for field in self.fields:
-            if field not in global_conf:
-                global_conf[field] = DEFAULTS[field]
+            if field not in conf:
+                conf[field] = DEFAULTS[field]
         for field in DeckConf.fields:
-            if field not in global_conf:
-                global_conf[field] = DEFAULTS[field]
-        return global_conf
+            if field not in conf:
+                conf[field] = DEFAULTS[field]
+        return conf
 
     def set(self, new_conf):
         """Saves global configuration into Anki's database."""
-        global_conf = self._main_window.col.get_config('lifedrain', {})
+        conf = self._main_window.addonManager.getConfig(__name__)
         for field in self.fields:
             if field in new_conf:
-                global_conf[field] = new_conf[field]
+                conf[field] = new_conf[field]
         for field in DeckConf.fields:
-            global_conf[field] = new_conf[field]
-        self._main_window.col.set_config('lifedrain', global_conf)
+            conf[field] = new_conf[field]
+        self._main_window.addonManager.writeConfig(__name__, conf)
 
 
 class DeckConf:
@@ -52,24 +54,28 @@ class DeckConf:
 
     def get(self):
         """Get current deck configuration from Anki's database."""
-        global_conf = self._global_conf.get()
+        conf = self._global_conf.get()
         deck = self._main_window.col.decks.current()
-        conf = deck.get('lifedrain', {})
+        decks = conf.get('decks', {})
+        deck_conf = decks.get(str(deck['id']), {})
+        if not deck_conf:
+            deck_conf = deck.get('lifedrain', {})
         conf_dict = {
             'id': deck['id'],
             'name': deck['name'],
         }
         for field in self.fields:
-            conf_dict[field] = conf.get(field, global_conf[field])
+            conf_dict[field] = deck_conf.get(field, conf[field])
         return conf_dict
 
     def set(self, new_conf):
         """Saves deck configuration into Anki's database."""
-        col = self._main_window.col
-        deck = col.decks.current()
-
-        if 'lifedrain' not in deck:
-            deck['lifedrain'] = {}
+        conf = self._global_conf.get()
+        deck = self._main_window.col.decks.current()
+        if 'decks' not in conf:
+            conf['decks'] = {}
+        deck_conf = {}
         for field in self.fields:
-            deck['lifedrain'][field] = new_conf[field]
-        col.decks.save(deck)
+            deck_conf[field] = new_conf[field]
+        conf['decks'][str(deck['id'])] = deck_conf
+        self._main_window.addonManager.writeConfig(__name__, conf)
