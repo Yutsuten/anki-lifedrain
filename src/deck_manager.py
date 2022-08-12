@@ -136,6 +136,8 @@ class DeckManager:
         """Restore the life to how it was in the previous card."""
         bar_info = self._bar_info[self._cur_deck_id]
         history = bar_info['history']
+        if bar_info['currentReview'] == 0:
+            return
         bar_info['currentReview'] -= 1
         bar_info['currentValue'] = history[bar_info['currentReview']]
         self._progress_bar.set_current_value(bar_info['currentValue'])
