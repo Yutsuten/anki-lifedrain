@@ -6,6 +6,7 @@ See the LICENCE file in the repository root for full licence text.
 from operator import itemgetter
 
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, BEHAVIORS
+from .version import VERSION
 
 
 class Form:
@@ -242,7 +243,7 @@ def global_settings(aqt, main_window, config, deck_manager):
 
     conf = config.get()
     dialog = aqt.QDialog(main_window)
-    dialog.setWindowTitle('Life Drain Global Settings')
+    dialog.setWindowTitle(f'Life Drain Global Settings (v{VERSION})')
 
     basic_tab = _global_basic_tab(aqt, conf)
     bar_style_tab = _global_bar_style_tab(aqt, conf)
