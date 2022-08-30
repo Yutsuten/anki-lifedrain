@@ -9,6 +9,7 @@ def must_be_enabled(func):
     def _wrapper(self, *args, **kwargs):
         try:
             config = self.config.get()
+            self.deck_config.get()
         except AttributeError:
             return None
 

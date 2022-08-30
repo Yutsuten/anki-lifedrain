@@ -22,6 +22,7 @@ class Lifedrain:
     """
 
     config = None
+    deck_config = None
     deck_manager = None
     status = {
         'action': None,  # Flag for bury, suspend, delete
@@ -34,7 +35,6 @@ class Lifedrain:
 
     _qt = None
     _mw = None
-    _dconfig = None
     _timer = None
 
     def __init__(self, make_timer, mw, qt):
@@ -48,9 +48,9 @@ class Lifedrain:
         self._qt = qt
         self._mw = mw
         self.config = GlobalConf(mw)
-        self._dconfig = DeckConf(mw)
+        self.deck_config = DeckConf(mw)
 
-        self.deck_manager = DeckManager(mw, qt, self.config, self._dconfig)
+        self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
         self._timer = make_timer(
             100, lambda: self.deck_manager.recover_life(False, 0.1), True)
         self._timer.stop()
@@ -80,7 +80,12 @@ class Lifedrain:
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
         settings.deck_settings(
-            self._qt, self._mw, self._dconfig, self.config, self.deck_manager)
+            self._qt,
+            self._mw,
+            self.deck_config,
+            self.config,
+            self.deck_manager,
+        )
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
@@ -150,6 +155,7 @@ class Lifedrain:
 
         try:
             config = self.config.get()
+            self.deck_config.get()
         except AttributeError:
             return
         if not config['enable']:
