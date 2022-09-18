@@ -132,19 +132,25 @@ def setup_review(lifedrain):
     hooks.notes_will_be_deleted.append(
         lambda *args: lifedrain.status.update({'action': 'delete'}))
 
-    Reviewer.suspend_current_note = hooks.wrap(
+    def reviewer_wrap(old_method, action):
+        def new_method(reviewer, *args):
+            old_method(reviewer)
+            lifedrain.status.update({'action': action})
+        return new_method
+
+    Reviewer.suspend_current_note = reviewer_wrap(
         Reviewer.suspend_current_note,
-        lambda *args: lifedrain.status.update({'action': 'suspend'}),
+        'suspend',
     )
-    Reviewer.suspend_current_card = hooks.wrap(
+    Reviewer.suspend_current_card = reviewer_wrap(
         Reviewer.suspend_current_card,
-        lambda *args: lifedrain.status.update({'action': 'suspend'}),
+        'suspend',
     )
-    Reviewer.bury_current_note = hooks.wrap(
+    Reviewer.bury_current_note = reviewer_wrap(
         Reviewer.bury_current_note,
-        lambda *args: lifedrain.status.update({'action': 'bury'}),
+        'bury',
     )
-    Reviewer.bury_current_card = hooks.wrap(
+    Reviewer.bury_current_card = reviewer_wrap(
         Reviewer.bury_current_card,
-        lambda *args: lifedrain.status.update({'action': 'bury'}),
+        'bury',
     )
