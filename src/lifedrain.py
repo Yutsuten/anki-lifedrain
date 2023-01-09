@@ -52,7 +52,11 @@ class Lifedrain:
 
         self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
         self._timer = make_timer(
-            100, lambda: self.deck_manager.recover_life(False, 0.1), True)
+            100,
+            lambda: self.deck_manager.recover_life(False, 0.1),
+            True,
+            parent=mw,
+        )
         self._timer.stop()
 
     def global_settings(self):
