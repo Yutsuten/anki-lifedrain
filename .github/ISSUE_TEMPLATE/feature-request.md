@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Features you would like to see in the add-on!
+about: I don't accept new feature requests anymore. Don't use this.
 title: ''
 labels: ''
 assignees: ''
