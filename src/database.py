@@ -1,7 +1,5 @@
-"""
-Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
-See the LICENCE file in the repository root for full licence text.
-"""
+# Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
+# See the LICENCE file in the repository root for full licence text.
 
 from .defaults import DEFAULTS
 
@@ -19,7 +17,7 @@ class GlobalConf:
     def __init__(self, mw):
         self._main_window = mw
 
-    def get(self):
+    def get(self) -> dict:
         """Get global configuration from Anki's database."""
         conf = self._main_window.addonManager.getConfig(__name__)
         if not conf:
@@ -32,7 +30,7 @@ class GlobalConf:
                 conf[field] = DEFAULTS[field]
         return conf
 
-    def set(self, new_conf):
+    def set(self, new_conf) -> None:
         """Saves global configuration into Anki's database."""
         conf = self._main_window.addonManager.getConfig(__name__)
         for field in self.fields:
@@ -52,7 +50,7 @@ class DeckConf:
         self._main_window = mw
         self._global_conf = GlobalConf(mw)
 
-    def get(self):
+    def get(self) -> dict:
         """Get current deck configuration from Anki's database."""
         conf = self._global_conf.get()
         deck = self._main_window.col.decks.current()
@@ -68,7 +66,7 @@ class DeckConf:
             conf_dict[field] = deck_conf.get(field, conf[field])
         return conf_dict
 
-    def set(self, new_conf):
+    def set(self, new_conf) -> None:
         """Saves deck configuration into Anki's database."""
         conf = self._global_conf.get()
         deck = self._main_window.col.decks.current()

@@ -1,12 +1,10 @@
-"""
-Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
-See the LICENCE file in the repository root for full licence text.
-"""
+# Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
+# See the LICENCE file in the repository root for full licence text.
 
-from .database import GlobalConf, DeckConf
+from . import settings
+from .database import DeckConf, GlobalConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
-from . import settings
 
 
 class Lifedrain:
@@ -59,7 +57,7 @@ class Lifedrain:
         )
         self._timer.stop()
 
-    def global_settings(self):
+    def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
@@ -79,7 +77,7 @@ class Lifedrain:
             self.clear_global_shortcuts()
             self.deck_manager.bar_visible(False)
 
-    def deck_settings(self):
+    def deck_settings(self) -> None:
         """Opens a dialog with the Deck Settings."""
         drain_enabled = self._timer.isActive()
         self.toggle_drain(False)
@@ -93,52 +91,52 @@ class Lifedrain:
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
-    def clear_global_shortcuts(self):
+    def clear_global_shortcuts(self) -> None:
         """Clear the global shortcuts."""
         for shortcut in self.status['shortcuts']:
             self._qt.sip.delete(shortcut)
         self.status['shortcuts'] = []
 
     @must_be_enabled
-    def set_global_shortcuts(self, config=None):
+    def set_global_shortcuts(self, config=None) -> None:
         """Sets the global shortcuts."""
         if not config['globalSettingsShortcut']:
             return
 
         shortcuts = [
-            tuple([config['globalSettingsShortcut'], self.global_settings])
+            (config['globalSettingsShortcut'], self.global_settings),
         ]
         self.status['shortcuts'] = self._mw.applyShortcuts(shortcuts)
 
     @must_be_enabled
-    def review_shortcuts(self, config, shortcuts):
+    def review_shortcuts(self, config, shortcuts) -> None:
         """Generates the review screen shortcuts."""
         if config['pauseShortcut']:
             shortcuts.append(
-                tuple([config['pauseShortcut'], self.toggle_drain])
+                (config['pauseShortcut'], self.toggle_drain),
             )
         if config['deckSettingsShortcut']:
             shortcuts.append(
-                tuple([config['deckSettingsShortcut'], self.deck_settings])
+                (config['deckSettingsShortcut'], self.deck_settings),
             )
 
     @must_be_enabled
-    def overview_shortcuts(self, config, shortcuts):
+    def overview_shortcuts(self, config, shortcuts) -> None:
         """Generates the overview screen shortcuts."""
         if config['deckSettingsShortcut']:
             shortcuts.append(
-                tuple([config['deckSettingsShortcut'], self.deck_settings])
+                (config['deckSettingsShortcut'], self.deck_settings),
             )
         if config['recoverShortcut']:
             def full_recover():
                 self.deck_manager.recover_life(value=10000)
 
             shortcuts.append(
-                tuple([config['recoverShortcut'], full_recover])
+                (config['recoverShortcut'], full_recover),
             )
 
     @must_be_enabled
-    def toggle_drain(self, config, enable=None):
+    def toggle_drain(self, config, enable=None) -> None:  # noqa: ARG
         """Toggles the life drain.
 
         Args:
@@ -149,7 +147,7 @@ class Lifedrain:
         elif not self._timer.isActive() and enable is not False:
             self._timer.start()
 
-    def screen_change(self, state):
+    def screen_change(self, state) -> None:
         """Updates Life Drain when the screen changes.
 
         Args:
@@ -183,13 +181,13 @@ class Lifedrain:
             self.deck_manager.bar_visible(True)
 
     @must_be_enabled
-    def opened_window(self, config):
+    def opened_window(self, config) -> None:
         """Called when a window is opened while reviewing."""
         if config['stopOnLostFocus']:
             self.toggle_drain(False)
 
     @must_be_enabled
-    def show_question(self, config, card):
+    def show_question(self, config, card) -> None:
         """Called when a question is shown."""
         self.toggle_drain(True)
         if self.status['action'] == 'undo':
@@ -210,7 +208,7 @@ class Lifedrain:
         self.status['card_type'] = card.type
 
     @must_be_enabled
-    def show_answer(self, config):
+    def show_answer(self, config) -> None:
         """Called when an answer is shown."""
         self.toggle_drain(not config['stopOnAnswer'])
         self.status['reviewed'] = True

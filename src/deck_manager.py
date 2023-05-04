@@ -1,7 +1,5 @@
-"""
-Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
-See the LICENCE file in the repository root for full licence text.
-"""
+# Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
+# See the LICENCE file in the repository root for full licence text.
 
 from anki.hooks import runHook
 
@@ -40,7 +38,7 @@ class DeckManager:
         self._deck_conf = deck_conf
         self.bar_visible = self._progress_bar.set_visible
 
-    def update(self):
+    def update(self) -> None:
         """Updates the current deck's life bar."""
         deck_id = self._get_deck_id()
         self._cur_deck_id = deck_id
@@ -56,7 +54,7 @@ class DeckManager:
         history = bar_info['history']
         history[bar_info['currentReview']] = bar_info['currentValue']
 
-    def get_current_life(self):
+    def get_current_life(self) -> int:
         """Get the current deck's current life."""
         deck_id = self._get_deck_id()
         self._cur_deck_id = deck_id
@@ -64,7 +62,7 @@ class DeckManager:
             self._add_deck(deck_id)
         return self._bar_info[deck_id]['currentValue']
 
-    def set_deck_conf(self, conf, update_life=True):
+    def set_deck_conf(self, conf, update_life=True) -> None:
         """Updates a deck's current settings and state.
 
         Args:
@@ -86,7 +84,7 @@ class DeckManager:
             self._bar_info[deck_id]['currentValue'] = current_value
 
     def recover_life(self, increment=True, value=None, damage=False,
-                     card_type=None):
+                     card_type=None) -> None:
         """Recover life of the currently active deck.
 
         Args:
@@ -116,7 +114,7 @@ class DeckManager:
             self._game_over = True
             runHook('LifeDrain.gameOver')
 
-    def answer(self, review_response, card_type):
+    def answer(self, review_response, card_type) -> None:
         """Restores or drains life after an answer."""
         if review_response == 1:
             self.recover_life(damage=True, card_type=card_type)
@@ -124,7 +122,7 @@ class DeckManager:
             self.recover_life()
         self._next()
 
-    def action(self, behavior_index):
+    def action(self, behavior_index) -> None:
         """Bury/suspend handling."""
         if behavior_index == 0:
             self.recover_life(False)
@@ -132,7 +130,7 @@ class DeckManager:
             self.recover_life(True)
         self._next()
 
-    def undo(self):
+    def undo(self) -> None:
         """Restore the life to how it was in the previous card."""
         bar_info = self._bar_info[self._cur_deck_id]
         history = bar_info['history']
@@ -142,7 +140,7 @@ class DeckManager:
         bar_info['currentValue'] = history[bar_info['currentReview']]
         self._progress_bar.set_current_value(bar_info['currentValue'])
 
-    def _next(self):
+    def _next(self) -> None:
         """Remembers the current life and advances to the next card."""
         bar_info = self._bar_info[self._cur_deck_id]
         bar_info['currentReview'] += 1
@@ -152,14 +150,14 @@ class DeckManager:
         else:
             history[bar_info['currentReview']] = bar_info['currentValue']
 
-    def _get_deck_id(self):
+    def _get_deck_id(self) -> str:
         global_conf = self._global_conf.get()
         if global_conf['shareDrain']:
             return 'shared'
         conf = self._deck_conf.get()
         return conf['id']
 
-    def _calculate_damage(self, card_type):
+    def _calculate_damage(self, card_type) -> int:
         """Calculate damage depending on card type.
 
         Args:
@@ -173,7 +171,7 @@ class DeckManager:
             damage = bar_info['damageLearning']
         return damage
 
-    def _add_deck(self, deck_id):
+    def _add_deck(self, deck_id) -> None:
         """Adds a deck to the list of decks that are being managed.
 
         Args:
@@ -193,7 +191,7 @@ class DeckManager:
             'currentReview': 0,
         }
 
-    def _update_progress_bar_style(self):
+    def _update_progress_bar_style(self) -> None:
         """Synchronizes the Progress Bar styling with the Global Settings."""
         conf = self._global_conf.get()
         self._progress_bar.dock_at(conf['barPosition'])

@@ -1,11 +1,9 @@
-"""
-Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
-See the LICENCE file in the repository root for full licence text.
-"""
+# Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
+# See the LICENCE file in the repository root for full licence text.
 
 from operator import itemgetter
 
-from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT, BEHAVIORS
+from .defaults import BEHAVIORS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 from .version import VERSION
 
 
@@ -27,7 +25,7 @@ class Form:
         self.widget = widget if widget is not None else qt.QWidget()
         self._layout = qt.QGridLayout(self.widget)
 
-    def label(self, text, color=None):
+    def label(self, text, color=None) -> None:
         """Creates a label in the current row of the form.
 
         Args:
@@ -35,14 +33,14 @@ class Form:
             color: Optional. The color of the text in hex format.
         """
         label = self._qt.QLabel(text)
-        label.setWordWrap(True)
+        label.setWordWrap(on=True)
         if color:
-            label.setStyleSheet('color: {}'.format(color))
+            label.setStyleSheet(f'color: {color}')
 
         self._layout.addWidget(label, self._row, 0, 1, 4)
         self._row += 1
 
-    def text_field(self, tf_name, label_text, placeholder=None, tooltip=None):
+    def text_field(self, tf_name, label_text, placeholder=None, tooltip=None) -> None:
         """Creates a text field in the current row of the form.
 
         Args:
@@ -67,7 +65,7 @@ class Form:
         self._layout.addWidget(text_field, self._row, 2, 1, 2)
         self._row += 1
 
-    def combo_box(self, cb_name, label_text, options, tooltip=None):
+    def combo_box(self, cb_name, label_text, options, tooltip=None) -> None:
         """Creates a combo box in the current row of the form.
 
         Args:
@@ -91,7 +89,7 @@ class Form:
         self._layout.addWidget(combo_box, self._row, 2, 1, 2)
         self._row += 1
 
-    def check_box(self, cb_name, label_text, tooltip=None):
+    def check_box(self, cb_name, label_text, tooltip=None) -> None:
         """Creates a check box in the current row of the form.
 
         Args:
@@ -109,7 +107,7 @@ class Form:
         self._layout.addWidget(check_box, self._row, 0, 1, 4)
         self._row += 1
 
-    def spin_box(self, sb_name, label_text, val_range, tooltip=None):
+    def spin_box(self, sb_name, label_text, val_range, tooltip=None) -> None:
         """Creates a spin box in the current row of the form.
 
         Args:
@@ -132,7 +130,7 @@ class Form:
         self._layout.addWidget(spin_box, self._row, 2, 1, 2)
         self._row += 1
 
-    def color_select(self, cs_name, label_text, tooltip=None):
+    def color_select(self, cs_name, label_text, tooltip=None) -> None:
         """Creates a color select in the current row of the form.
 
         Args:
@@ -140,7 +138,7 @@ class Form:
             label_text: A text that describes what is the color select for.
         """
 
-        def choose_color():
+        def choose_color() -> None:
             if not color_dialog.exec():
                 return
             color = color_dialog.currentColor().name()
@@ -159,7 +157,7 @@ class Form:
             select_button.setToolTip(tooltip)
             preview_label.setToolTip(tooltip)
 
-        def set_value(color):
+        def set_value(color) -> None:
             css = 'QLabel { background-color: %s; }' % color
             color_dialog.setCurrentColor(self._qt.QColor(color))
             preview_label.setStyleSheet(css)
@@ -174,20 +172,20 @@ class Form:
         self._layout.addWidget(preview_label, self._row, 3)
         self._row += 1
 
-    def fill_space(self):
+    def fill_space(self) -> None:
         """Creates a spacer that will vertically fill all the free space."""
         spacer = self._qt.QSpacerItem(1, 1, self._qt.QSizePolicy.Policy.Minimum,
                                       self._qt.QSizePolicy.Policy.Expanding)
         self._layout.addItem(spacer, self._row, 0)
         self._row += 1
 
-    def add_widget(self, widget):
+    def add_widget(self, widget) -> None:
         """Adds a widget to the form."""
         self._layout.addWidget(widget, self._row, 0, 1, 4)
         self._row += 1
 
 
-def global_settings(aqt, main_window, config, deck_manager):
+def global_settings(aqt, main_window, config, deck_manager) -> None:
     """Opens a dialog with the Global Settings."""
 
     def save():
@@ -303,7 +301,7 @@ Invalid shortcuts, or already used shortcuts won't work.'''
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget, conf):
+    def load_data(widget, conf) -> None:
         widget.enableAddon.set_value(conf['enable'])
         widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
         widget.stopOnLostFocus.set_value(conf['stopOnLostFocus'])
@@ -345,7 +343,7 @@ If checked, you can choose a background color on the next field.''')
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget, conf):
+    def load_data(widget, conf) -> None:
         widget.positionList.set_value(conf['barPosition'])
         widget.heightInput.set_value(conf['barHeight'])
         widget.borderRadiusInput.set_value(conf['barBorderRadius'])
@@ -366,7 +364,7 @@ def _global_deck_defaults(aqt, conf):
     def generate_form():
         tab = Form(aqt)
         tab.check_box('shareDrain', 'Share drain across all decks',
-                      "Current life will be shared between all decks.")
+                      'Current life will be shared between all decks.')
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
 seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
@@ -383,12 +381,12 @@ answering with 'Again'.")
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget, conf):
+    def load_data(widget, conf) -> None:
         widget.shareDrain.set_value(conf['shareDrain'])
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
 
-        def update_damageinput():
+        def update_damageinput() -> None:
             damage_enabled = widget.enableDamageInput.isChecked()
             widget.damageInput.setEnabled(damage_enabled)
             widget.damageNewInput.setEnabled(damage_enabled)
@@ -397,10 +395,7 @@ answering with 'Again'.")
         enable_damage = conf['damage'] is not None
         damage = conf['damage'] if enable_damage else 5
 
-        if conf['damageNew'] is not None:
-            damage_new = conf['damageNew']
-        else:
-            damage_new = damage
+        damage_new = conf['damageNew'] if conf['damageNew'] is not None else damage
 
         if conf['damageLearning'] is not None:
             damage_learning = conf['damageLearning']
@@ -422,7 +417,7 @@ answering with 'Again'.")
     return tab
 
 
-def deck_settings(aqt, main_window, config, global_config, deck_manager):
+def deck_settings(aqt, main_window, config, global_config, deck_manager) -> None:
     """Opens a dialog with the Deck Settings."""
 
     def save():
@@ -504,7 +499,7 @@ that is recovered after answering a card.''')
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget, conf):
+    def load_data(widget, conf) -> None:
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
         widget.currentValueInput.set_value(int(life))
@@ -530,8 +525,8 @@ answering with 'Again'.")
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget, conf):
-        def update_damageinput():
+    def load_data(widget, conf) -> None:
+        def update_damageinput() -> None:
             damage_enabled = widget.enableDamageInput.isChecked()
             widget.damageInput.setEnabled(damage_enabled)
             widget.damageNewInput.setEnabled(damage_enabled)
@@ -540,10 +535,7 @@ answering with 'Again'.")
         enable_damage = conf['damage'] is not None
         damage = conf['damage'] if enable_damage else 5
 
-        if conf['damageNew'] is not None:
-            damage_new = conf['damageNew']
-        else:
-            damage_new = damage
+        damage_new = conf['damageNew'] if conf['damageNew'] is not None else damage
 
         if conf['damageLearning'] is not None:
             damage_learning = conf['damageLearning']
