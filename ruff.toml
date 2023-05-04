@@ -8,6 +8,7 @@ ignore = [
   "ANN003",  # Missing type annotation for `**kwargs`
   "ANN101",  # Missing type annotation for `self` in method
   "ANN204",  # Missing return type annotation for special method
+  "UP035",   # Deprecated import
 ]
 
 [pydocstyle]

@@ -1,7 +1,7 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from collections.abc import Callable
+from typing import Callable
 
 from anki import hooks
 from aqt import gui_hooks, mw, qt
