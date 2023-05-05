@@ -8,6 +8,8 @@ ignore = [
   "ANN003",  # Missing type annotation for `**kwargs`
   "ANN101",  # Missing type annotation for `self` in method
   "ANN204",  # Missing return type annotation for special method
+  "ANN401",  # Disallow typing.Any (qt modules aren't discovered by pyright)
+  "UP007",   # Use X | Y for type annotations (only available in python 3.10+)
   "UP035",   # Deprecated import
 ]
 
