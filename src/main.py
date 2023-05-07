@@ -68,7 +68,9 @@ def setup_deck_browser(lifedrain: Lifedrain) -> None:
         qt.qconnect(action.triggered, lambda b: action_deck_settings(DeckId(did)))  # noqa: ARG
 
     def action_deck_settings(did: DeckId) -> None:
-        if mw is None or mw.col is None:
+        if mw is None:
+            raise RuntimeError
+        if mw.col is None:
             raise RuntimeError
         mw.col.decks.select(did)
         lifedrain.deck_settings()

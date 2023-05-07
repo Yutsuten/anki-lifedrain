@@ -1,4 +1,5 @@
 # Rules
+line-length = 100
 select = ["ALL"]
 ignore = [
   "D100",    # Missing docstring in public module

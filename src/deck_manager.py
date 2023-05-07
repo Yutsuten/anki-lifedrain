@@ -1,6 +1,8 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
+from typing import Callable, Optional
+
 from anki.hooks import runHook
 
 from .progress_bar import ProgressBar
@@ -16,7 +18,7 @@ class DeckManager:
         bar_visible: Function that toggles the Progress Bar visibility.
     """
 
-    bar_visible = None
+    bar_visible: Optional[Callable] = None
 
     _bar_info = {}
     _conf = None
