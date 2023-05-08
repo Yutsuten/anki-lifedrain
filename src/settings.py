@@ -33,7 +33,7 @@ class Form:
             color: Optional. The color of the text in hex format.
         """
         label = self._qt.QLabel(text)
-        label.setWordWrap(on=True)
+        label.setWordWrap(True)  # noqa: FBT003
         if color:
             label.setStyleSheet(f'color: {color}')
 
@@ -232,7 +232,7 @@ def global_settings(aqt, main_window, config, deck_manager) -> None:
             'damageNew': damage_new,
             'damageLearning': damage_learning,
         }
-        config.set(conf)
+        config.update(conf)
         if conf['shareDrain']:
             conf['id'] = 'shared'
             deck_manager.set_deck_conf(conf, update_life=False)
@@ -449,10 +449,10 @@ def deck_settings(aqt, main_window, config, global_config, deck_manager) -> None
 
         global_conf = global_config.get()
         if global_conf['shareDrain']:
-            global_config.set(conf)
+            global_config.update(conf)
             conf['id'] = 'shared'
         else:
-            config.set(conf)
+            config.update(conf)
 
         deck_manager.set_deck_conf(conf)
         return dialog.accept()
