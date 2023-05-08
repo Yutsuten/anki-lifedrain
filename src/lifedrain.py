@@ -183,6 +183,9 @@ class Lifedrain:
         Args:
             state: The name of the current screen.
         """
+        if state not in ['deckBrowser', 'overview', 'review']:
+            return
+
         if self.config is None:
             raise RuntimeError
         if self.deck_config is None:
@@ -193,11 +196,8 @@ class Lifedrain:
             raise RuntimeError
 
         self.status['screen'] = state
-        try:
-            config = self.config.get()
-            self.deck_config.get()
-        except AttributeError:
-            return
+        config = self.config.get()
+        self.deck_config.get()
         if not config['enable']:
             return
 
