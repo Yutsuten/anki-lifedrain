@@ -1,10 +1,14 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Callable, Optional
+from typing import Any, Literal, Optional
 
+from anki.consts import CardType
 from anki.hooks import runHook
+from aqt.main import AnkiQt
 
+from .database import DeckConf, GlobalConf
+from .defaults import BEHAVIORS
 from .progress_bar import ProgressBar
 
 
@@ -13,27 +17,20 @@ class DeckManager:
 
     Users may configure each deck with different settings, and the current
     status of the life bar (e.g. current life) will likely differ for each deck.
-
-    Attributes:
-        bar_visible: Function that toggles the Progress Bar visibility.
     """
 
-    bar_visible: Optional[Callable] = None
-
     _bar_info = {}
-    _conf = None
-    _global_conf = None
-    _deck_conf = None
     _game_over = False
-    _progress_bar = None
     _cur_deck_id = None
 
-    def __init__(self, mw, qt, global_conf, deck_conf):
+    def __init__(self, mw: AnkiQt, qt: Any, global_conf: GlobalConf, deck_conf: DeckConf):
         """Initializes a Progress Bar, and keeps Anki's main window reference.
 
         Args:
             mw: Anki's main window.
             qt: The PyQt library.
+            global_conf: An instance of GlobalConf.
+            deck_conf: An instance of DeckConf.
         """
         self._progress_bar = ProgressBar(mw, qt)
         self._global_conf = global_conf
@@ -64,11 +61,12 @@ class DeckManager:
             self._add_deck(deck_id)
         return self._bar_info[deck_id]['currentValue']
 
-    def set_deck_conf(self, conf, update_life=True) -> None:
+    def set_deck_conf(self, conf: dict, *, update_life: bool) -> None:
         """Updates a deck's current settings and state.
 
         Args:
             conf: A dictionary with the deck's configuration and state.
+            update_life: Update the current life?
         """
         current_value = conf.get('currentValue', conf['maxLife'])
         if current_value > conf['maxLife']:
@@ -85,14 +83,15 @@ class DeckManager:
         if update_life:
             self._bar_info[deck_id]['currentValue'] = current_value
 
-    def recover_life(self, increment=True, value=None, damage=False,
-                     card_type=None) -> None:
+    def recover_life(self, value:Optional[float]=None, card_type:Optional[CardType]=None, *,
+                     increment:bool=True, damage:bool=False) -> None:
         """Recover life of the currently active deck.
 
         Args:
             increment: Optional. A flag that indicates increment or decrement.
             value: Optional. The value used to increment or decrement.
             damage: Optional. If this flag is ON, uses the default damage value.
+            card_type: Optional. Applies different damage depending on card type.
         """
         bar_info = self._bar_info[self._cur_deck_id]
 
@@ -104,7 +103,7 @@ class DeckManager:
                 multiplier = -1
                 value = self._calculate_damage(card_type)
             else:
-                value = bar_info['recoverValue']
+                value = int(bar_info['recoverValue'])
 
         self._progress_bar.inc_current_value(multiplier * value)
 
@@ -116,7 +115,7 @@ class DeckManager:
             self._game_over = True
             runHook('LifeDrain.gameOver')
 
-    def answer(self, review_response, card_type) -> None:
+    def answer(self, review_response: Literal[1, 2, 3, 4], card_type: CardType) -> None:
         """Restores or drains life after an answer."""
         if review_response == 1:
             self.recover_life(damage=True, card_type=card_type)
@@ -124,12 +123,12 @@ class DeckManager:
             self.recover_life()
         self._next()
 
-    def action(self, behavior_index) -> None:
+    def action(self, behavior_index: Literal[0, 1, 2]) -> None:
         """Bury/suspend handling."""
-        if behavior_index == 0:
-            self.recover_life(False)
-        elif behavior_index == 2:
-            self.recover_life(True)
+        if behavior_index == BEHAVIORS.index('Drain life'):
+            self.recover_life(increment=False)
+        elif behavior_index == BEHAVIORS.index('Recover life'):
+            self.recover_life(increment=True)
         self._next()
 
     def undo(self) -> None:
@@ -159,7 +158,7 @@ class DeckManager:
         conf = self._deck_conf.get()
         return conf['id']
 
-    def _calculate_damage(self, card_type) -> int:
+    def _calculate_damage(self, card_type: CardType) -> int:
         """Calculate damage depending on card type.
 
         Args:
@@ -173,7 +172,7 @@ class DeckManager:
             damage = bar_info['damageLearning']
         return damage
 
-    def _add_deck(self, deck_id) -> None:
+    def _add_deck(self, deck_id:str) -> None:
         """Adds a deck to the list of decks that are being managed.
 
         Args:

@@ -454,7 +454,7 @@ def deck_settings(aqt, main_window, config, global_config, deck_manager) -> None
         else:
             config.update(conf)
 
-        deck_manager.set_deck_conf(conf)
+        deck_manager.set_deck_conf(conf, update_life=True)
         return dialog.accept()
 
     conf = config.get()

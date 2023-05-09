@@ -1,7 +1,7 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from anki.cards import Card
 from aqt.main import AnkiQt, MainWindowState
@@ -23,10 +23,6 @@ class Lifedrain:
         deck_manager: An instance of DeckManager.
         status: A dictionary that keeps track the events on Anki.
     """
-
-    config: Optional[GlobalConf] = None
-    deck_config: Optional[DeckConf] = None
-    deck_manager: Optional[DeckManager] = None
     status = {
         'action': None,  # Flag for bury, suspend, delete
         'reviewed': False,
@@ -35,10 +31,6 @@ class Lifedrain:
         'shortcuts': [],
         'card_type': None,
     }
-
-    _qt: Any = None
-    _mw: Optional[AnkiQt] = None
-    _timer: Optional[Callable] = None
 
     def __init__(self, make_timer: Callable, mw: AnkiQt, qt: Any):
         """Initializes DeckManager and Settings, and add-on initial setup.
@@ -52,12 +44,10 @@ class Lifedrain:
         self._mw = mw
         self.config = GlobalConf(mw)
         self.deck_config = DeckConf(mw)
-        deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
-
-        self.deck_manager = deck_manager
+        self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
         self._timer = make_timer(
             100,
-            lambda: deck_manager.recover_life(increment=False, value=0.1),
+            lambda: self.deck_manager.recover_life(increment=False, value=0.1),
             repeat=True,
             parent=mw,
         )
@@ -65,15 +55,6 @@ class Lifedrain:
 
     def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
-        if self._timer is None:
-            raise RuntimeError
-        if self.config is None:
-            raise RuntimeError
-        if self.deck_manager is None:
-            raise RuntimeError
-        if self.deck_manager.bar_visible is None:
-            raise RuntimeError
-
         drain_enabled = self._timer.isActive()
         self.toggle_drain(enable=False)
         settings.global_settings(
@@ -94,11 +75,6 @@ class Lifedrain:
 
     def deck_settings(self) -> None:
         """Opens a dialog with the Deck Settings."""
-        if self._timer is None:
-            raise RuntimeError
-        if self.deck_manager is None:
-            raise RuntimeError
-
         drain_enabled = self._timer.isActive()
         self.toggle_drain(enable=False)
         settings.deck_settings(
@@ -113,9 +89,6 @@ class Lifedrain:
 
     def clear_global_shortcuts(self) -> None:
         """Clear the global shortcuts."""
-        if self._qt is None:
-            raise RuntimeError
-
         for shortcut in self.status['shortcuts']:
             self._qt.sip.delete(shortcut)
         self.status['shortcuts'] = []
@@ -125,8 +98,6 @@ class Lifedrain:
         """Sets the global shortcuts."""
         if not config['globalSettingsShortcut']:
             return
-        if self._mw is None:
-            raise RuntimeError
 
         shortcuts = [
             (config['globalSettingsShortcut'], self.global_settings),
@@ -154,8 +125,6 @@ class Lifedrain:
             )
         if config['recoverShortcut']:
             def full_recover() -> None:
-                if self.deck_manager is None:
-                    raise RuntimeError
                 self.deck_manager.recover_life(value=10000)
 
             shortcuts.append(
@@ -169,9 +138,6 @@ class Lifedrain:
         Args:
             enable: Optional. Enables the drain if True.
         """
-        if self._timer is None:
-            raise RuntimeError
-
         if self._timer.isActive() and enable is not True:
             self._timer.stop()
         elif not self._timer.isActive() and enable is not False:
@@ -185,15 +151,6 @@ class Lifedrain:
         """
         if state not in ['deckBrowser', 'overview', 'review']:
             return
-
-        if self.config is None:
-            raise RuntimeError
-        if self.deck_config is None:
-            raise RuntimeError
-        if self.deck_manager is None:
-            raise RuntimeError
-        if self.deck_manager.bar_visible is None:
-            raise RuntimeError
 
         self.status['screen'] = state
         config = self.config.get()
@@ -227,9 +184,6 @@ class Lifedrain:
     @must_be_enabled
     def show_question(self, config: dict[str, Any], card: Card) -> None:
         """Called when a question is shown."""
-        if self.deck_manager is None:
-            raise RuntimeError
-
         self.toggle_drain(enable=True)
         if self.status['action'] == 'undo':
             self.deck_manager.undo()
