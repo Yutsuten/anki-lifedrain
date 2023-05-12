@@ -1,6 +1,10 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
+from typing import Any, Literal
+
+from aqt.main import AnkiQt
+
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 
 
@@ -14,12 +18,9 @@ class ProgressBar:
     _current_value = 1
     _dock = {}
     _max_value = 1
-    _mw = None
-    _qprogressbar = None
-    _qt = None
     _text_format = ''
 
-    def __init__(self, mw, qt):
+    def __init__(self, mw: AnkiQt, qt: Any):
         """Initializes a QProgressBar and keeps main window and PyQt references.
 
         Args:
@@ -30,7 +31,7 @@ class ProgressBar:
         self._qt = qt
         self._qprogressbar = qt.QProgressBar()
 
-    def set_visible(self, visible) -> None:
+    def set_visible(self, *, visible: bool) -> None:
         """Sets the visibility of the Progress Bar.
 
         Args:
@@ -44,7 +45,7 @@ class ProgressBar:
         self._validate_current_value()
         self._update_text()
 
-    def set_max_value(self, max_value) -> None:
+    def set_max_value(self, max_value: float) -> None:
         """Sets the maximum value for the bar.
 
         Args:
@@ -55,7 +56,7 @@ class ProgressBar:
             self._max_value = 1
         self._qprogressbar.setRange(0, self._max_value)
 
-    def set_current_value(self, current_value) -> None:
+    def set_current_value(self, current_value: float) -> None:
         """Sets the current value for the bar.
 
         Args:
@@ -65,7 +66,7 @@ class ProgressBar:
         self._validate_current_value()
         self._update_text()
 
-    def inc_current_value(self, increment) -> None:
+    def inc_current_value(self, increment: float) -> None:
         """Increments the current value of the bar.
 
         Args:
@@ -80,7 +81,7 @@ class ProgressBar:
         """Gets the current value of the bar."""
         return float(self._current_value) / 10
 
-    def set_style(self, options) -> None:
+    def set_style(self, options: dict) -> None:
         """Sets the styling of the Progress Bar.
 
         Args:
@@ -133,26 +134,26 @@ class ProgressBar:
                 'QProgressBar {{ {} }}'
                 'QProgressBar::chunk {{ {} }}'.format(bar_elem, bar_chunk))
 
-    def dock_at(self, position) -> None:
+    def dock_at(self, position_index: Literal[0, 1]) -> None:
         """Docks the bar at the specified position in the Anki window.
 
         Args:
-            position: The position where the Progress Bar will be placed.
+            position_index: The position where the Progress Bar will be placed.
         """
-        if 'position' in self._dock and self._dock['position'] == position:
+        if 'position' in self._dock and self._dock['position'] == position_index:
             return
 
-        self._dock['position'] = position
+        self._dock['position'] = position_index
         bar_visible = self._qprogressbar.isVisible()
 
         if 'widget' in self._dock:
             self._dock['widget'].close()
             self._dock['widget'].deleteLater()
 
-        position = POSITION_OPTIONS[position]
+        position = POSITION_OPTIONS[position_index]
         if position == 'Top':
             dock_area = self._qt.Qt.DockWidgetArea.TopDockWidgetArea
-        elif position == 'Bottom':
+        else:  # position == 'Bottom':
             dock_area = self._qt.Qt.DockWidgetArea.BottomDockWidgetArea
 
         self._dock['widget'] = self._qt.QDockWidget()
@@ -201,7 +202,7 @@ class ProgressBar:
             self._qprogressbar.setFormat(text)
 
     @staticmethod
-    def _dict_to_css(dictionary) -> str:
+    def _dict_to_css(dictionary: dict) -> str:
         """Convert a python dict to a stylesheet."""
         css = ''
         for key, value in dictionary.items():

@@ -1,7 +1,7 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Union
 
 from anki.consts import CardType
 from anki.hooks import runHook
@@ -53,7 +53,7 @@ class DeckManager:
         history = bar_info['history']
         history[bar_info['currentReview']] = bar_info['currentValue']
 
-    def get_current_life(self) -> int:
+    def get_current_life(self) -> Union[int, float]:
         """Get the current deck's current life."""
         deck_id = self._get_deck_id()
         self._cur_deck_id = deck_id

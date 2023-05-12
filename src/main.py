@@ -22,9 +22,6 @@ def main() -> None:
     make_timer = ProgressManager(mw).timer
     lifedrain = Lifedrain(make_timer, mw, qt)
 
-    if lifedrain.deck_manager is None:
-        raise RuntimeError
-
     setup_shortcuts(lifedrain)
     setup_state_change(lifedrain)
     setup_deck_browser(lifedrain)
@@ -100,8 +97,6 @@ def setup_overview(lifedrain: Lifedrain) -> None:
                 if url == 'lifedrain':
                     lifedrain.deck_settings()
                 elif url == 'recover':
-                    if lifedrain.deck_manager is None:
-                        raise RuntimeError
                     lifedrain.deck_manager.recover_life(value=10000)
                 return default_link_handler(url=url)
 

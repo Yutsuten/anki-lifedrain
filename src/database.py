@@ -1,8 +1,6 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Optional
-
 from aqt.main import AnkiQt
 
 from .defaults import DEFAULTS
@@ -16,16 +14,12 @@ class GlobalConf:
               'globalSettingsShortcut', 'deckSettingsShortcut',
               'pauseShortcut', 'recoverShortcut', 'behavUndo', 'behavBury',
               'behavSuspend', 'stopOnLostFocus', 'shareDrain'}
-    _mw: Optional[AnkiQt] = None
 
     def __init__(self, mw: AnkiQt):
         self._mw = mw
 
     def get(self) -> dict:
         """Get global configuration from Anki's database."""
-        if self._mw is None:
-            raise RuntimeError
-
         conf = self._mw.addonManager.getConfig(__name__)
         if not conf:
             raise RuntimeError
@@ -40,9 +34,6 @@ class GlobalConf:
 
     def update(self, new_conf: dict) -> None:
         """Saves global configuration into Anki's database."""
-        if self._mw is None:
-            raise RuntimeError
-
         conf = self._mw.addonManager.getConfig(__name__)
         if not conf:
             raise RuntimeError
@@ -62,7 +53,6 @@ class GlobalConf:
 class DeckConf:
     """Manages each lifedrain's deck configuration."""
     fields = {'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning'}
-    _mw: Optional[AnkiQt] = None
 
     def __init__(self, mw: AnkiQt):
         self._mw = mw
@@ -70,8 +60,6 @@ class DeckConf:
 
     def get(self) -> dict:
         """Get current deck configuration from Anki's database."""
-        if self._mw is None:
-            raise RuntimeError
         if self._mw.col is None:
             raise RuntimeError
 
@@ -89,8 +77,6 @@ class DeckConf:
 
     def update(self, new_conf: dict) -> None:
         """Saves deck configuration into Anki's database."""
-        if self._mw is None:
-            raise RuntimeError
         if self._mw.col is None:
             raise RuntimeError
 
