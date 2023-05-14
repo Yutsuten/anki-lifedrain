@@ -29,7 +29,7 @@ def main() -> None:
     setup_review(lifedrain)
 
     mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
-    hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover_life)
+    hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover)
 
 
 def setup_shortcuts(lifedrain: Lifedrain) -> None:
@@ -97,7 +97,7 @@ def setup_overview(lifedrain: Lifedrain) -> None:
                 if url == 'lifedrain':
                     lifedrain.deck_settings()
                 elif url == 'recover':
-                    lifedrain.deck_manager.recover_life(value=10000)
+                    lifedrain.deck_manager.recover(10000)
                 return default_link_handler(url=url)
 
             default_link_handler = kwargs['link_handler']

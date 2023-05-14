@@ -47,7 +47,7 @@ class Lifedrain:
         self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
         self._timer = make_timer(
             100,
-            lambda: self.deck_manager.recover_life(increment=False, value=0.1),
+            lambda: self.deck_manager.drain(),
             repeat=True,
             parent=mw,
         )
@@ -125,7 +125,7 @@ class Lifedrain:
             )
         if config['recoverShortcut']:
             def full_recover() -> None:
-                self.deck_manager.recover_life(value=10000)
+                self.deck_manager.recover(10000)
 
             shortcuts.append(
                 (config['recoverShortcut'], full_recover),
