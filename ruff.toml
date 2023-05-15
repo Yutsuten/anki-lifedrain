@@ -1,0 +1,23 @@
+# Rules
+line-length = 100
+select = ["ALL"]
+ignore = [
+  "D100",    # Missing docstring in public module
+  "D104",    # Missing docstring in public package
+  "D107",    # Missing docstring in `__init__`
+  "ANN002",  # Missing type annotation for `*args`
+  "ANN003",  # Missing type annotation for `**kwargs`
+  "ANN101",  # Missing type annotation for `self` in method
+  "ANN204",  # Missing return type annotation for special method
+  "ANN401",  # Disallow typing.Any (qt modules aren't discovered by pyright)
+  "UP007",   # Use X | Y for type annotations (only available in python 3.10+)
+  "UP035",   # Deprecated import
+]
+
+[pydocstyle]
+convention = "google"
+
+[flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "single"
+multiline-quotes = "single"

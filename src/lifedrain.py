@@ -1,12 +1,15 @@
-"""
-Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
-See the LICENCE file in the repository root for full licence text.
-"""
+# Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
+# See the LICENCE file in the repository root for full licence text.
 
-from .database import GlobalConf, DeckConf
+from typing import Any, Callable
+
+from anki.cards import Card
+from aqt.main import AnkiQt, MainWindowState
+
+from . import settings
+from .database import DeckConf, GlobalConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
-from . import settings
 
 
 class Lifedrain:
@@ -20,10 +23,6 @@ class Lifedrain:
         deck_manager: An instance of DeckManager.
         status: A dictionary that keeps track the events on Anki.
     """
-
-    config = None
-    deck_config = None
-    deck_manager = None
     status = {
         'action': None,  # Flag for bury, suspend, delete
         'reviewed': False,
@@ -33,11 +32,7 @@ class Lifedrain:
         'card_type': None,
     }
 
-    _qt = None
-    _mw = None
-    _timer = None
-
-    def __init__(self, make_timer, mw, qt):
+    def __init__(self, make_timer: Callable, mw: AnkiQt, qt: Any):
         """Initializes DeckManager and Settings, and add-on initial setup.
 
         Args:
@@ -49,20 +44,19 @@ class Lifedrain:
         self._mw = mw
         self.config = GlobalConf(mw)
         self.deck_config = DeckConf(mw)
-
         self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
         self._timer = make_timer(
             100,
-            lambda: self.deck_manager.recover_life(False, 0.1),
-            True,
+            lambda: self.deck_manager.drain(),
+            repeat=True,
             parent=mw,
         )
         self._timer.stop()
 
-    def global_settings(self):
+    def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
         drain_enabled = self._timer.isActive()
-        self.toggle_drain(False)
+        self.toggle_drain(enable=False)
         settings.global_settings(
             self._qt, self._mw, self.config, self.deck_manager)
         config = self.config.get()
@@ -71,18 +65,18 @@ class Lifedrain:
             self.set_global_shortcuts()
             self.toggle_drain(drain_enabled)
             if self.status['screen'] == 'deckBrowser':
-                self.deck_manager.bar_visible(False)
+                self.deck_manager.bar_visible(visible=False)
             else:
                 self.deck_manager.update()
-                self.deck_manager.bar_visible(True)
+                self.deck_manager.bar_visible(visible=True)
         else:
             self.clear_global_shortcuts()
-            self.deck_manager.bar_visible(False)
+            self.deck_manager.bar_visible(visible=False)
 
-    def deck_settings(self):
+    def deck_settings(self) -> None:
         """Opens a dialog with the Deck Settings."""
         drain_enabled = self._timer.isActive()
-        self.toggle_drain(False)
+        self.toggle_drain(enable=False)
         settings.deck_settings(
             self._qt,
             self._mw,
@@ -93,52 +87,52 @@ class Lifedrain:
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
-    def clear_global_shortcuts(self):
+    def clear_global_shortcuts(self) -> None:
         """Clear the global shortcuts."""
         for shortcut in self.status['shortcuts']:
             self._qt.sip.delete(shortcut)
         self.status['shortcuts'] = []
 
     @must_be_enabled
-    def set_global_shortcuts(self, config=None):
+    def set_global_shortcuts(self, config: dict[str, Any]) -> None:
         """Sets the global shortcuts."""
         if not config['globalSettingsShortcut']:
             return
 
         shortcuts = [
-            tuple([config['globalSettingsShortcut'], self.global_settings])
+            (config['globalSettingsShortcut'], self.global_settings),
         ]
         self.status['shortcuts'] = self._mw.applyShortcuts(shortcuts)
 
     @must_be_enabled
-    def review_shortcuts(self, config, shortcuts):
+    def review_shortcuts(self, config: dict[str, Any], shortcuts: list[tuple]) -> None:
         """Generates the review screen shortcuts."""
         if config['pauseShortcut']:
             shortcuts.append(
-                tuple([config['pauseShortcut'], self.toggle_drain])
+                (config['pauseShortcut'], self.toggle_drain),
             )
         if config['deckSettingsShortcut']:
             shortcuts.append(
-                tuple([config['deckSettingsShortcut'], self.deck_settings])
+                (config['deckSettingsShortcut'], self.deck_settings),
             )
 
     @must_be_enabled
-    def overview_shortcuts(self, config, shortcuts):
+    def overview_shortcuts(self, config: dict[str, Any], shortcuts: list[tuple]) -> None:
         """Generates the overview screen shortcuts."""
         if config['deckSettingsShortcut']:
             shortcuts.append(
-                tuple([config['deckSettingsShortcut'], self.deck_settings])
+                (config['deckSettingsShortcut'], self.deck_settings),
             )
         if config['recoverShortcut']:
-            def full_recover():
-                self.deck_manager.recover_life(value=10000)
+            def full_recover() -> None:
+                self.deck_manager.recover(10000)
 
             shortcuts.append(
-                tuple([config['recoverShortcut'], full_recover])
+                (config['recoverShortcut'], full_recover),
             )
 
     @must_be_enabled
-    def toggle_drain(self, config, enable=None):
+    def toggle_drain(self, config: dict[str, Any], enable=None) -> None:  # noqa: ARG
         """Toggles the life drain.
 
         Args:
@@ -149,24 +143,23 @@ class Lifedrain:
         elif not self._timer.isActive() and enable is not False:
             self._timer.start()
 
-    def screen_change(self, state):
+    def screen_change(self, state: MainWindowState) -> None:
         """Updates Life Drain when the screen changes.
 
         Args:
             state: The name of the current screen.
         """
-        self.status['screen'] = state
-
-        try:
-            config = self.config.get()
-            self.deck_config.get()
-        except AttributeError:
+        if state not in ['deckBrowser', 'overview', 'review']:
             return
+
+        self.status['screen'] = state
+        config = self.config.get()
+        self.deck_config.get()
         if not config['enable']:
             return
 
         if state != 'review':
-            self.toggle_drain(False)
+            self.toggle_drain(enable=False)
             self.status['prev_card'] = None
 
         if self.status['reviewed'] and state in ['overview', 'review']:
@@ -177,21 +170,21 @@ class Lifedrain:
             self.status['reviewed'] = False
 
         if state == 'deckBrowser':
-            self.deck_manager.bar_visible(False)
+            self.deck_manager.bar_visible(visible=False)
         else:
             self.deck_manager.update()
-            self.deck_manager.bar_visible(True)
+            self.deck_manager.bar_visible(visible=True)
 
     @must_be_enabled
-    def opened_window(self, config):
+    def opened_window(self, config: dict[str, Any]) -> None:
         """Called when a window is opened while reviewing."""
         if config['stopOnLostFocus']:
-            self.toggle_drain(False)
+            self.toggle_drain(enable=False)
 
     @must_be_enabled
-    def show_question(self, config, card):
+    def show_question(self, config: dict[str, Any], card: Card) -> None:
         """Called when a question is shown."""
-        self.toggle_drain(True)
+        self.toggle_drain(enable=True)
         if self.status['action'] == 'undo':
             self.deck_manager.undo()
         elif self.status['action'] == 'bury':
@@ -210,7 +203,7 @@ class Lifedrain:
         self.status['card_type'] = card.type
 
     @must_be_enabled
-    def show_answer(self, config):
+    def show_answer(self, config: dict[str, Any]) -> None:
         """Called when an answer is shown."""
         self.toggle_drain(not config['stopOnAnswer'])
         self.status['reviewed'] = True
