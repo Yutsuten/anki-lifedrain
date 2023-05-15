@@ -1,4 +1,4 @@
-# Life Drain [![CodeFactor](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain/badge)](https://www.codefactor.io/repository/github/yutsuten/anki-lifedrain)
+# Life Drain
 
 MAINTENANCE NOTICE:
 
