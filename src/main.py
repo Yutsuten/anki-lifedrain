@@ -1,15 +1,12 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from anki import hooks
 from anki.decks import DeckId
 from aqt import gui_hooks, mw, qt
-from aqt.overview import OverviewBottomBar
 from aqt.progress import ProgressManager
-from aqt.reviewer import Reviewer
-from aqt.toolbar import BottomBar
 
 from .lifedrain import Lifedrain
 
@@ -51,8 +48,7 @@ def setup_shortcuts(lifedrain: Lifedrain) -> None:
 
 def setup_state_change(lifedrain: Lifedrain) -> None:
     """Set hooks triggered when changing state."""
-    gui_hooks.state_will_change.append(
-        lambda *args: lifedrain.screen_change(args[0]))
+    gui_hooks.state_will_change.append(lambda *args: lifedrain.screen_change(args[0]))
     gui_hooks.state_did_reset.append(
         lambda *args: lifedrain.status.update({'reviewed': False}))  # noqa: ARG
 
@@ -62,7 +58,10 @@ def setup_deck_browser(lifedrain: Lifedrain) -> None:
     def options_menu(menu: Any, did: int) -> None:
         action = menu.addAction('Life Drain')
         menu.insertAction(menu.actions()[2], action)
-        qt.qconnect(action.triggered, lambda b: action_deck_settings(DeckId(did)))  # noqa: ARG
+        qt.qconnect(
+            action.triggered,
+            lambda b: action_deck_settings(DeckId(did))  # noqa: ARG
+        )
 
     def action_deck_settings(did: DeckId) -> None:
         if mw is None:
@@ -78,39 +77,20 @@ def setup_deck_browser(lifedrain: Lifedrain) -> None:
 def setup_overview(lifedrain: Lifedrain) -> None:
     """Add a Life Drain button into the overview screen."""
 
-    def button(text: str, link: str, shortcut_key: Optional[str]) -> str:
-        attribute_list = [
-            f'''title="Shortcut key: {shortcut_key}"''',
-            f'onclick="pycmd(\'{link}\')"']
-        attributes = ' '.join(attribute_list)
-        return f'<button {attributes}>{text}</button>'
+    def bottom_bar_draw(link_handler: Callable[..., bool], links: list[list]) -> Callable:
+        links.append(['L', 'lifedrain', 'Life Drain'])
+        links.append(['None', 'recover', 'Recover'])
 
-    def bottom_bar_draw(*args, **kwargs) -> None:
-        if isinstance(kwargs['web_context'], OverviewBottomBar):
+        def custom_link_handler(url: str) -> bool:
+            if url == 'lifedrain':
+                lifedrain.deck_settings()
+            elif url == 'recover':
+                lifedrain.deck_manager.recover(10000)
+            return link_handler(url=url)
 
-            def update_buf(buf: str) -> str:
-                buttons = [button('Life Drain', 'lifedrain', 'L'),
-                           button('Recover', 'recover', 'None')]
-                return '{}\n{}'.format(buf, '\n'.join(buttons))
+        return custom_link_handler
 
-            def link_handler(url: str) -> Any:
-                if url == 'lifedrain':
-                    lifedrain.deck_settings()
-                elif url == 'recover':
-                    lifedrain.deck_manager.recover(10000)
-                return default_link_handler(url=url)
-
-            default_link_handler = kwargs['link_handler']
-
-            new_kwargs = dict(kwargs)
-            new_kwargs['buf'] = update_buf(kwargs['buf'])
-            new_kwargs['link_handler'] = link_handler
-            return default_bottom_bar_draw(*args, **new_kwargs)
-
-        return default_bottom_bar_draw(*args, **kwargs)
-
-    default_bottom_bar_draw = BottomBar.draw
-    BottomBar.draw = bottom_bar_draw
+    gui_hooks.overview_will_render_bottom.append(bottom_bar_draw)
 
 
 def setup_review(lifedrain: Lifedrain) -> None:
@@ -137,26 +117,11 @@ def setup_review(lifedrain: Lifedrain) -> None:
     # Action on cards
     hooks.notes_will_be_deleted.append(
         lambda *args: lifedrain.status.update({'action': 'delete'}))  # noqa: ARG
-
-    def reviewer_wrap(old_method: Callable, action: str) -> Callable:
-        def new_method(reviewer, *args):  # noqa: ARG
-            old_method(reviewer)
-            lifedrain.status.update({'action': action})
-        return new_method
-
-    Reviewer.suspend_current_note = reviewer_wrap(
-        Reviewer.suspend_current_note,
-        'suspend',
-    )
-    Reviewer.suspend_current_card = reviewer_wrap(
-        Reviewer.suspend_current_card,
-        'suspend',
-    )
-    Reviewer.bury_current_note = reviewer_wrap(
-        Reviewer.bury_current_note,
-        'bury',
-    )
-    Reviewer.bury_current_card = reviewer_wrap(
-        Reviewer.bury_current_card,
-        'bury',
-    )
+    gui_hooks.reviewer_will_suspend_note.append(
+        lambda *args: lifedrain.status.update({'action': 'suspend'}))  # noqa: ARG
+    gui_hooks.reviewer_will_suspend_card.append(
+        lambda *args: lifedrain.status.update({'action': 'suspend'}))  # noqa: ARG
+    gui_hooks.reviewer_will_bury_note.append(
+        lambda *args: lifedrain.status.update({'action': 'bury'}))  # noqa: ARG
+    gui_hooks.reviewer_will_bury_card.append(
+        lambda *args: lifedrain.status.update({'action': 'bury'}))  # noqa: ARG
