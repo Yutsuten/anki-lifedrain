@@ -42,7 +42,7 @@ def setup_shortcuts(lifedrain: Lifedrain) -> None:
         elif state == 'overview':
             lifedrain.overview_shortcuts(shortcuts)
 
-    gui_hooks.collection_did_load.append(lambda col: global_shortcuts())
+    gui_hooks.collection_did_load.append(lambda col: global_shortcuts())  # noqa: ARG
     gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
 
 
