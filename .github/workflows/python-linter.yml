@@ -1,7 +1,7 @@
 name: Python Linter
 on:
   push:
-    branches: ["master", "ruff"]
+    branches: ["master"]
   pull_request:
     branches: ["master"]
 jobs:
@@ -21,6 +21,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install ruff
-    - name: Test with ruff
+    - name: Lint with ruff
       run: |
         ruff src/
