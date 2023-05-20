@@ -1,0 +1,4 @@
+aqt
+pyqt6
+pyqt6-webengine
+ruff-lsp
