@@ -13,7 +13,8 @@ class GlobalConf:
               'barTextColor', 'enableBgColor', 'barBgColor',
               'globalSettingsShortcut', 'deckSettingsShortcut',
               'pauseShortcut', 'recoverShortcut', 'behavUndo', 'behavBury',
-              'behavSuspend', 'stopOnLostFocus', 'shareDrain'}
+              'behavSuspend', 'stopOnLostFocus', 'shareDrain', 'barThresholdWarn',
+              'barFgColorWarn', 'barThresholdDanger', 'barFgColorDanger'}
 
     def __init__(self, mw: AnkiQt):
         self._mw = mw
