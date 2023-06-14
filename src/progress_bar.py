@@ -19,6 +19,7 @@ class ProgressBar:
     _dock = {}
     _max_value = 1
     _text_format = ''
+    _bar_options = {}
 
     def __init__(self, mw: AnkiQt, qt: Any):
         """Initializes a QProgressBar and keeps main window and PyQt references.
@@ -44,6 +45,7 @@ class ProgressBar:
         self._current_value = self._max_value
         self._validate_current_value()
         self._update_text()
+        self._update_bar_color()
 
     def set_max_value(self, max_value: float) -> None:
         """Sets the maximum value for the bar.
@@ -65,6 +67,7 @@ class ProgressBar:
         self._current_value = int(current_value * 10)
         self._validate_current_value()
         self._update_text()
+        self._update_bar_color()
 
     def inc_current_value(self, increment: float) -> None:
         """Increments the current value of the bar.
@@ -76,6 +79,7 @@ class ProgressBar:
         self._validate_current_value()
         if self._current_value % 10 == 0 or abs(increment) >= 1:
             self._update_text()
+            self._update_bar_color()
 
     def get_current_value(self) -> float:
         """Gets the current value of the bar."""
@@ -87,52 +91,13 @@ class ProgressBar:
         Args:
             options: A dictionary with bar styling information.
         """
+        self._bar_options = options
         self._qprogressbar.setTextVisible(options['text'] != 0)  # 0 = No text
         text_format = TEXT_FORMAT[options['text']]
         if 'format' in text_format:
             self._text_format = text_format['format']
             self._qprogressbar.setFormat(text_format['format'])
-
-        custom_style = STYLE_OPTIONS[options['customStyle']] \
-            .replace(' ', '').lower()
-        if custom_style != 'default':
-            qstyle = self._qt.QStyleFactory.create(custom_style)
-            self._qprogressbar.setStyle(qstyle)
-
-            palette = self._qt.QPalette()
-            fg_color = self._qt.QColor(options['fgColor'])
-            palette.setColor(self._qt.QPalette.Highlight, fg_color)
-
-            if 'bgColor' in options:
-                bg_color = self._qt.QColor(options['bgColor'])
-                palette.setColor(self._qt.QPalette.Base, bg_color)
-                palette.setColor(self._qt.QPalette.Window, bg_color)
-
-            self._qprogressbar.setPalette(palette)
-
-            bar_elem_dict = {'max-height': f'{options["height"]}px'}
-            bar_elem = self._dict_to_css(bar_elem_dict)
-            self._qprogressbar.setStyleSheet(
-                f'QProgressBar {{ {bar_elem} }}')
-        else:
-            bar_elem_dict = {
-                'text-align': 'center',
-                'border-radius': f'{options["borderRadius"]}px',
-                'max-height': f'{options["height"]}px',
-                'color': options['textColor']}
-
-            if 'bgColor' in options:
-                bar_elem_dict['background-color'] = options['bgColor']
-
-            bar_elem = self._dict_to_css(bar_elem_dict)
-            bar_chunk = self._dict_to_css({
-                'background-color': options['fgColor'],
-                'margin': '0px',
-                'border-radius': f'{options["borderRadius"]}px'})
-
-            self._qprogressbar.setStyleSheet(
-                f'QProgressBar {{ {bar_elem} }}'
-                f'QProgressBar::chunk {{ {bar_chunk} }}')
+        self._update_bar_color()
 
     def dock_at(self, position_index: Literal[0, 1]) -> None:
         """Docks the bar at the specified position in the Anki window.
@@ -199,6 +164,57 @@ class ProgressBar:
                 '%m', str(max_value)).replace(
                     '%p', str(int(100 * current_value / max_value)))
             self._qprogressbar.setFormat(text)
+
+    def _update_bar_color(self) -> None:
+        options = self._bar_options
+
+        life_percentage = self._current_value / self._max_value * 100
+        bar_color = options['fgColor']
+        if life_percentage <= options['thresholdDanger']:
+            bar_color = options['fgColorDanger']
+        elif life_percentage <= options['thresholdWarn']:
+            bar_color = options['fgColorWarn']
+
+        custom_style = STYLE_OPTIONS[options['customStyle']] \
+            .replace(' ', '').lower()
+        if custom_style != 'default':
+            qstyle = self._qt.QStyleFactory.create(custom_style)
+            self._qprogressbar.setStyle(qstyle)
+
+            palette = self._qt.QPalette()
+            fg_color = self._qt.QColor(bar_color)
+            palette.setColor(self._qt.QPalette.Highlight, fg_color)
+
+            if 'bgColor' in options:
+                bg_color = self._qt.QColor(options['bgColor'])
+                palette.setColor(self._qt.QPalette.Base, bg_color)
+                palette.setColor(self._qt.QPalette.Window, bg_color)
+
+            self._qprogressbar.setPalette(palette)
+
+            bar_elem_dict = {'max-height': f'{options["height"]}px'}
+            bar_elem = self._dict_to_css(bar_elem_dict)
+            self._qprogressbar.setStyleSheet(
+                f'QProgressBar {{ {bar_elem} }}')
+        else:
+            bar_elem_dict = {
+                'text-align': 'center',
+                'border-radius': f'{options["borderRadius"]}px',
+                'max-height': f'{options["height"]}px',
+                'color': options['textColor']}
+
+            if 'bgColor' in options:
+                bar_elem_dict['background-color'] = options['bgColor']
+
+            bar_elem = self._dict_to_css(bar_elem_dict)
+            bar_chunk = self._dict_to_css({
+                'background-color': bar_color,
+                'margin': '0px',
+                'border-radius': f'{options["borderRadius"]}px'})
+
+            self._qprogressbar.setStyleSheet(
+                f'QProgressBar {{ {bar_elem} }}'
+                f'QProgressBar::chunk {{ {bar_chunk} }}')
 
     @staticmethod
     def _dict_to_css(dictionary: dict) -> str:
