@@ -110,15 +110,15 @@ class ProgressBar:
 
             self._qprogressbar.setPalette(palette)
 
-            bar_elem_dict = {'max-height': '{}px'.format(options['height'])}
+            bar_elem_dict = {'max-height': f'{options["height"]}px'}
             bar_elem = self._dict_to_css(bar_elem_dict)
             self._qprogressbar.setStyleSheet(
                 f'QProgressBar {{ {bar_elem} }}')
         else:
             bar_elem_dict = {
                 'text-align': 'center',
-                'border-radius': '{}px'.format(options['borderRadius']),
-                'max-height': '{}px'.format(options['height']),
+                'border-radius': f'{options["borderRadius"]}px',
+                'max-height': f'{options["height"]}px',
                 'color': options['textColor']}
 
             if 'bgColor' in options:
@@ -128,11 +128,11 @@ class ProgressBar:
             bar_chunk = self._dict_to_css({
                 'background-color': options['fgColor'],
                 'margin': '0px',
-                'border-radius': '{}px'.format(options['borderRadius'])})
+                'border-radius': f'{options["borderRadius"]}px'})
 
             self._qprogressbar.setStyleSheet(
-                'QProgressBar {{ {} }}'
-                'QProgressBar::chunk {{ {} }}'.format(bar_elem, bar_chunk))
+                f'QProgressBar {{ {bar_elem} }}'
+                f'QProgressBar::chunk {{ {bar_chunk} }}')
 
     def dock_at(self, position_index: Literal[0, 1]) -> None:
         """Docks the bar at the specified position in the Anki window.
@@ -189,8 +189,7 @@ class ProgressBar:
         if self._text_format == 'mm:ss':
             minutes = int(self._current_value / 600)
             seconds = int((self._current_value / 10) % 60)
-            self._qprogressbar.setFormat('{:01d}:{:02d}'.format(
-                minutes, seconds))
+            self._qprogressbar.setFormat(f'{minutes:01d}:{seconds:02d}')
         else:
             current_value = int(self._current_value / 10)
             if self._current_value % 10 != 0:
