@@ -98,6 +98,7 @@ class ProgressBar:
         if 'format' in text_format:
             self._text_format = text_format['format']
             self._qprogressbar.setFormat(text_format['format'])
+        self._current_bar_color = ''
         self._update_bar_color()
 
     def dock_at(self, position_index: Literal[0, 1]) -> None:
