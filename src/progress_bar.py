@@ -19,6 +19,7 @@ class ProgressBar:
     _dock = {}
     _max_value = 1
     _text_format = ''
+    _current_bar_color = ''
     _bar_options = {}
 
     def __init__(self, mw: AnkiQt, qt: Any):
@@ -175,6 +176,10 @@ class ProgressBar:
         elif life_percentage <= options['thresholdWarn']:
             bar_color = options['fgColorWarn']
 
+        if self._current_bar_color == bar_color:
+            return
+
+        self._current_bar_color = bar_color
         custom_style = STYLE_OPTIONS[options['customStyle']] \
             .replace(' ', '').lower()
         if custom_style != 'default':
