@@ -8,7 +8,7 @@ from aqt.main import AnkiQt
 
 from .database import DeckConf, GlobalConf
 from .deck_manager import DeckManager
-from .defaults import BEHAVIORS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
+from .defaults import BEHAVIORS, DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 from .version import VERSION
 
 
@@ -302,11 +302,11 @@ program behave when suspending a card/note?''')
         shortcut_tooltip = '''
 There is no validation for your shortcut string, so edit with care!
 Invalid shortcuts, or already used shortcuts won't work.'''
-        tab.text_field('globalShortcut', 'Global Settings', 'Ctrl+L',
+        tab.text_field('globalShortcut', 'Global Settings', DEFAULTS['globalSettingsShortcut'],
                        'Shortcut for the Global Settings.' + shortcut_tooltip)
-        tab.text_field('deckShortcut', 'Deck Settings', 'L',
+        tab.text_field('deckShortcut', 'Deck Settings', DEFAULTS['deckSettingsShortcut'],
                        'Shortcut for the Deck Settings.' + shortcut_tooltip)
-        tab.text_field('pauseShortcut', 'Pause', 'P',
+        tab.text_field('pauseShortcut', 'Pause', DEFAULTS['pauseShortcut'],
                        'Shortcut for pausing.' + shortcut_tooltip)
         tab.text_field('recoverShortcut', 'Recover', None,
                        'Shortcut for recovering.' + shortcut_tooltip)
