@@ -8,6 +8,7 @@ from anki.decks import DeckId
 from aqt import gui_hooks, mw, qt
 from aqt.progress import ProgressManager
 
+from .defaults import DEFAULTS
 from .lifedrain import Lifedrain
 
 
@@ -78,7 +79,7 @@ def setup_overview(lifedrain: Lifedrain) -> None:
     """Add a Life Drain button into the overview screen."""
 
     def bottom_bar_draw(link_handler: Callable[..., bool], links: list[list]) -> Callable:
-        links.append(['L', 'lifedrain', 'Life Drain'])
+        links.append([DEFAULTS['deckSettingsShortcut'], 'lifedrain', 'Life Drain'])
         links.append(['None', 'recover', 'Recover'])
 
         def custom_link_handler(url: str) -> bool:
