@@ -227,9 +227,13 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
             'barPosition': bar_style_tab.positionList.get_value(),
             'barHeight': bar_style_tab.heightInput.get_value(),
             'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
-            'barText': bar_style_tab.textList.get_value(),
             'barStyle': bar_style_tab.styleList.get_value(),
             'barFgColor': bar_style_tab.fgColorDialog.get_value(),
+            'barThresholdWarn': bar_style_tab.thresholdWarn.get_value(),
+            'barFgColorWarn': bar_style_tab.fgColorWarnDialog.get_value(),
+            'barThresholdDanger': bar_style_tab.thresholdDanger.get_value(),
+            'barFgColorDanger': bar_style_tab.fgColorDangerDialog.get_value(),
+            'barText': bar_style_tab.textList.get_value(),
             'barTextColor': bar_style_tab.textColorDialog.get_value(),
             'enableBgColor': bar_style_tab.enableBgColor.get_value(),
             'barBgColor': bar_style_tab.bgColorDialog.get_value(),
@@ -336,12 +340,20 @@ def _global_bar_style_tab(aqt: Any, conf: dict) -> Any:
                      'Height of the life bar.')
         tab.spin_box('borderRadiusInput', 'Border radius', [0, 20],
                      'Add a rounded border to the life bar.')
-        tab.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT),
-                      'Text shown inside the life bar.')
         tab.combo_box('styleList', 'Style', STYLE_OPTIONS, '''Style of the \
 life bar (not all options may work on your platform).''')
-        tab.color_select('fgColor', 'Bar color',
+        tab.color_select('fgColor', 'Bar color (default)',
                          "Color of the life bar's foreground.")
+        tab.spin_box('thresholdWarn', 'Warn threshold (%)', [0, 99],
+                     'Threshold % to show the life bar with the warn color')
+        tab.color_select('fgColorWarn', 'Bar color (warn)',
+                         "Color of the life bar's foreground (warn).")
+        tab.spin_box('thresholdDanger', 'Danger threshold (%)', [0, 99],
+                     'Threshold % to show the life bar with the danger color')
+        tab.color_select('fgColorDanger', 'Bar color (danger)',
+                         "Color of the life bar's foreground (danger).")
+        tab.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT),
+                      'Text shown inside the life bar.')
         tab.color_select('textColor', 'Text color',
                          "Color of the life bar's text.")
         tab.check_box('enableBgColor', 'Enable custom background color', '''\
@@ -355,9 +367,13 @@ If checked, you can choose a background color on the next field.''')
         widget.positionList.set_value(conf['barPosition'])
         widget.heightInput.set_value(conf['barHeight'])
         widget.borderRadiusInput.set_value(conf['barBorderRadius'])
-        widget.textList.set_value(conf['barText'])
         widget.styleList.set_value(conf['barStyle'])
         widget.fgColorDialog.set_value(conf['barFgColor'])
+        widget.thresholdWarn.set_value(conf['barThresholdWarn'])
+        widget.fgColorWarnDialog.set_value(conf['barFgColorWarn'])
+        widget.thresholdDanger.set_value(conf['barThresholdDanger'])
+        widget.fgColorDangerDialog.set_value(conf['barFgColorDanger'])
+        widget.textList.set_value(conf['barText'])
         widget.textColorDialog.set_value(conf['barTextColor'])
         widget.enableBgColor.set_value(conf['enableBgColor'])
         widget.bgColorDialog.set_value(conf['barBgColor'])

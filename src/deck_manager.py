@@ -198,6 +198,10 @@ class DeckManager:
         progress_bar_style = {
             'height': conf['barHeight'],
             'fgColor': conf['barFgColor'],
+            'thresholdWarn': conf['barThresholdWarn'],
+            'fgColorWarn': conf['barFgColorWarn'],
+            'thresholdDanger': conf['barThresholdDanger'],
+            'fgColorDanger': conf['barFgColorDanger'],
             'borderRadius': conf['barBorderRadius'],
             'text': conf['barText'],
             'textColor': conf['barTextColor'],
