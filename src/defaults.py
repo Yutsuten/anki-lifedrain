@@ -46,6 +46,7 @@ DEFAULTS = {
     'barStyle': STYLE_OPTIONS.index('Default'),
     'stopOnAnswer': False,
     'stopOnLostFocus': True,
+    'startEmpty': False,
     'enable': True,
     'enableBgColor': False,
     'globalSettingsShortcut': 'Ctrl+Shift+L',

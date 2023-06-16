@@ -217,6 +217,7 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
             'enable': basic_tab.enableAddon.get_value(),
             'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
             'stopOnLostFocus': basic_tab.stopOnLostFocus.get_value(),
+            'startEmpty': basic_tab.startEmpty.get_value(),
             'globalSettingsShortcut': basic_tab.globalShortcut.get_value(),
             'deckSettingsShortcut': basic_tab.deckShortcut.get_value(),
             'pauseShortcut': basic_tab.pauseShortcut.get_value(),
@@ -291,6 +292,8 @@ def _global_basic_tab(aqt: Any, conf: dict) -> Any:
                       '''Automatically stops the drain when opening the \
 editor or browser.
 May not resume the drain automatically when closing it.''')
+        tab.check_box('startEmpty', 'Default initial life is 0',
+                      'Life will begin at 0 instead of full. Also affects Recover.')
         tab.label('<b>Special action behavior</b>')
         tab.combo_box('behavUndo', 'Delete', BEHAVIORS, '''How should the \
 program behave when deleting a card/note?''')
@@ -317,6 +320,7 @@ Invalid shortcuts, or already used shortcuts won't work.'''
         widget.enableAddon.set_value(conf['enable'])
         widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
         widget.stopOnLostFocus.set_value(conf['stopOnLostFocus'])
+        widget.startEmpty.set_value(conf['startEmpty'])
         widget.behavUndo.set_value(conf['behavUndo'])
         widget.behavBury.set_value(conf['behavBury'])
         widget.behavSuspend.set_value(conf['behavSuspend'])
