@@ -53,7 +53,7 @@ DEFAULTS = {
     'deckSettingsShortcut': 'Ctrl+L',
     'pauseShortcut': 'P',
     'recoverShortcut': '',
-    'behavUndo': BEHAVIORS.index('Drain life'),
+    'behavUndo': BEHAVIORS.index('Do nothing'),
     'behavBury': BEHAVIORS.index('Do nothing'),
     'behavSuspend': BEHAVIORS.index('Do nothing'),
     'shareDrain': False,
