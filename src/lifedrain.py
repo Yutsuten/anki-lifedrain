@@ -125,7 +125,7 @@ class Lifedrain:
             )
         if config['recoverShortcut']:
             def full_recover() -> None:
-                self.deck_manager.recover(10000)
+                self.deck_manager.recover()
 
             shortcuts.append(
                 (config['recoverShortcut'], full_recover),

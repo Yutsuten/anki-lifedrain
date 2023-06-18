@@ -68,9 +68,6 @@ class DeckManager:
             conf: A dictionary with the deck's configuration and state.
             update_life: Update the current life?
         """
-        current_value = conf.get('currentValue', conf['maxLife'])
-        if current_value > conf['maxLife']:
-            current_value = conf['maxLife']
         if conf['id'] not in self._bar_info:
             self._add_deck(conf['id'])
 
@@ -80,15 +77,19 @@ class DeckManager:
         self._bar_info[deck_id]['damageValue'] = conf['damage']
         self._bar_info[deck_id]['damageNew'] = conf['damageNew']
         self._bar_info[deck_id]['damageLearning'] = conf['damageLearning']
+
         if update_life:
+            current_value = conf.get('currentValue', conf['maxLife'])
+            if current_value > conf['maxLife']:
+                current_value = conf['maxLife']
             self._bar_info[deck_id]['currentValue'] = current_value
 
     def drain(self) -> None:
         """Life loss due to drain."""
         self._update_life(-0.1)
 
-    def recover(self, value:Optional[Union[int, float]]=None, *, increment:bool=True) -> None:
-        """Recover life of the currently active deck.
+    def heal(self, value:Optional[Union[int, float]]=None, *, increment:bool=True) -> None:
+        """Partially heal life of the currently active deck.
 
         Args:
             increment: Optional. A flag that indicates increment or decrement.
@@ -98,6 +99,17 @@ class DeckManager:
         if value is None:
             value = int(self._bar_info[self._cur_deck_id]['recoverValue'])
         self._update_life(multiplier * value)
+
+    def recover(self) -> None:
+        """Resets the life bar of the currently active deck to the initial value."""
+        conf = self._global_conf.get()
+        start_empty = conf['startEmpty']
+        if not conf['shareDrain']:
+            conf = self._deck_conf.get()
+
+        life = 0 if start_empty else conf['maxLife']
+        self._bar_info[self._cur_deck_id]['currentValue'] = life
+        self._progress_bar.set_current_value(life)
 
     def damage(self, card_type: CardType) -> None:
         """Apply damage.
@@ -118,15 +130,15 @@ class DeckManager:
         if review_response == 1 and self._bar_info[self._cur_deck_id]['damageValue'] is not None:
             self.damage(card_type=card_type)
         else:
-            self.recover()
+            self.heal()
         self._next()
 
     def action(self, behavior_index: Literal[0, 1, 2]) -> None:
         """Bury/suspend handling."""
         if behavior_index == BEHAVIORS.index('Drain life'):
-            self.recover(increment=False)
+            self.heal(increment=False)
         elif behavior_index == BEHAVIORS.index('Recover life'):
-            self.recover(increment=True)
+            self.heal(increment=True)
         self._next()
 
     def undo(self) -> None:
@@ -178,11 +190,12 @@ class DeckManager:
             deck_id: The ID of the deck.
         """
         conf = self._global_conf.get()
+        start_empty = conf['startEmpty']
         if not conf['shareDrain']:
             conf = self._deck_conf.get()
+
         self._bar_info[deck_id] = {
             'maxValue': conf['maxLife'],
-            'currentValue': conf['maxLife'],
             'recoverValue': conf['recover'],
             'damageValue': conf['damage'],
             'damageNew': conf['damageNew'],
@@ -190,6 +203,10 @@ class DeckManager:
             'history': [conf['maxLife']],
             'currentReview': 0,
         }
+        if start_empty:
+            self._bar_info[deck_id]['currentValue'] = 0
+        else:
+            self._bar_info[deck_id]['currentValue'] = conf['maxLife']
 
     def _update_progress_bar_style(self) -> None:
         """Synchronizes the Progress Bar styling with the Global Settings."""
