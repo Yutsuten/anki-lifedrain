@@ -8,13 +8,14 @@ from .defaults import DEFAULTS
 
 class GlobalConf:
     """Manages lifedrain's global configuration."""
-    fields = {'enable', 'stopOnAnswer', 'barPosition', 'barHeight',
-              'barBorderRadius', 'barText', 'barStyle', 'barFgColor',
-              'barTextColor', 'enableBgColor', 'barBgColor',
-              'globalSettingsShortcut', 'deckSettingsShortcut',
-              'pauseShortcut', 'recoverShortcut', 'behavUndo', 'behavBury',
-              'behavSuspend', 'stopOnLostFocus', 'shareDrain', 'barThresholdWarn',
-              'barFgColorWarn', 'barThresholdDanger', 'barFgColorDanger'}
+    fields = {
+        'enable', 'stopOnAnswer', 'barPosition', 'barHeight', 'barBorderRadius', 'barText',
+        'barStyle', 'barFgColor', 'barTextColor', 'enableBgColor', 'barBgColor',
+        'globalSettingsShortcut', 'deckSettingsShortcut', 'pauseShortcut', 'recoverShortcut',
+        'behavUndo', 'behavBury', 'behavSuspend', 'stopOnLostFocus', 'shareDrain',
+        'barThresholdWarn', 'barFgColorWarn', 'barThresholdDanger', 'barFgColorDanger',
+        'startEmpty',
+    }
 
     def __init__(self, mw: AnkiQt):
         self._mw = mw
