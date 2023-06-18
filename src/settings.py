@@ -485,7 +485,7 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
 
     conf = config.get()
     dialog = aqt.QDialog(mw)
-    dialog.setWindowTitle(f'Life Drain options for {conf["name"]}')
+    dialog.setWindowTitle(f'Life Drain Deck Settings for {conf["name"]}')
 
     global_conf = global_config.get()
     if global_conf['shareDrain']:
