@@ -2,7 +2,7 @@ run:
 	env DISABLE_QT5_COMPAT=1 anki -p Test
 
 build: prepare
-	(cd src && zip -r ../dist/lifedrain21.zip * -x "*.pyc")
+	(cd src && zip -r ../dist/lifedrain21.zip * -x "*.pyc" -x "meta.json")
 
 prepare:
 	mkdir -p dist

@@ -349,11 +349,11 @@ life bar (not all options may work on your platform).''')
         tab.color_select('fgColor', 'Bar color (default)',
                          "Color of the life bar's foreground.")
         tab.spin_box('thresholdWarn', 'Warn threshold (%)', [0, 99],
-                     'Threshold % to show the life bar with the warn color')
+                     'Threshold % to show the life bar with the warn color.')
         tab.color_select('fgColorWarn', 'Bar color (warn)',
                          "Color of the life bar's foreground (warn).")
         tab.spin_box('thresholdDanger', 'Danger threshold (%)', [0, 99],
-                     'Threshold % to show the life bar with the danger color')
+                     'Threshold % to show the life bar with the danger color.')
         tab.color_select('fgColorDanger', 'Bar color (danger)',
                          "Color of the life bar's foreground (danger).")
         tab.combo_box('textList', 'Text', map(itemgetter('text'), TEXT_FORMAT),
