@@ -23,7 +23,7 @@ class GlobalConf:
     def get(self) -> dict:
         """Get global configuration from Anki's database."""
         conf = self._mw.addonManager.getConfig(__name__)
-        if not conf:
+        if conf is None:
             raise RuntimeError
 
         for field in self.fields:
@@ -37,7 +37,7 @@ class GlobalConf:
     def update(self, new_conf: dict) -> None:
         """Saves global configuration into Anki's database."""
         conf = self._mw.addonManager.getConfig(__name__)
-        if not conf:
+        if conf is None:
             raise RuntimeError
 
         for field in self.fields:
