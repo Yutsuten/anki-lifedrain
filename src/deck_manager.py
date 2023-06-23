@@ -110,6 +110,7 @@ class DeckManager:
         life = 0 if start_empty else conf['maxLife']
         self._bar_info[self._cur_deck_id]['currentValue'] = life
         self._progress_bar.set_current_value(life)
+        self._game_over = start_empty
 
     def damage(self, card_type: CardType) -> None:
         """Apply damage.
