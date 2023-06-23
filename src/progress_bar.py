@@ -93,8 +93,8 @@ class ProgressBar:
             options: A dictionary with bar styling information.
         """
         self._bar_options = options
-        self._qprogressbar.setTextVisible(options['text'] != 0)  # 0 = No text
         text_format = TEXT_FORMAT[options['text']]
+        self._qprogressbar.setTextVisible('format' in text_format)
         if 'format' in text_format:
             self._text_format = text_format['format']
             self._qprogressbar.setFormat(text_format['format'])
@@ -129,14 +129,17 @@ class ProgressBar:
 
         existing_widgets = [
             widget for widget in self._mw.findChildren(self._qt.QDockWidget)
-            if self._mw.dockWidgetArea(widget) == dock_area
+            if self._mw.dockWidgetArea(widget) == dock_area  # pyright: ignore [reportGeneralTypeIssues] # noqa: E501
         ]
         if not existing_widgets:
             self._mw.addDockWidget(dock_area, self._dock['widget'])
         else:
             self._mw.setDockNestingEnabled(enabled=True)
-            self._mw.splitDockWidget(existing_widgets[0], self._dock['widget'],
-                                     self._qt.Qt.Vertical)
+            self._mw.splitDockWidget(
+                existing_widgets[0],  # pyright: ignore [reportGeneralTypeIssues]
+                self._dock['widget'],
+                self._qt.Qt.Vertical,
+            )
         self._mw.web.setFocus()
         self._qprogressbar.setVisible(bar_visible)
 
@@ -162,9 +165,10 @@ class ProgressBar:
             if self._current_value % 10 != 0:
                 current_value += 1
             max_value = int(self._max_value / 10)
-            text = self._text_format.replace('%v', str(current_value)).replace(
-                '%m', str(max_value)).replace(
-                    '%p', str(int(100 * current_value / max_value)))
+            text = self._text_format
+            text = text.replace('%v', str(current_value))
+            text = text.replace('%m', str(max_value))
+            text = text.replace('%p', str(int(100 * current_value / max_value)))
             self._qprogressbar.setFormat(text)
 
     def _update_bar_color(self) -> None:
