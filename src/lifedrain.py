@@ -154,7 +154,6 @@ class Lifedrain:
 
         self.status['screen'] = state
         config = self.config.get()
-        self.deck_config.get()
         if not config['enable']:
             return
 
