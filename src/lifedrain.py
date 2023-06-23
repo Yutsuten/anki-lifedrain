@@ -45,12 +45,7 @@ class Lifedrain:
         self.config = GlobalConf(mw)
         self.deck_config = DeckConf(mw)
         self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
-        self._timer = make_timer(
-            100,
-            lambda: self.deck_manager.drain(),
-            repeat=True,
-            parent=mw,
-        )
+        self._timer = make_timer(100, lambda: self.deck_manager.drain(), repeat=True, parent=mw)
         self._timer.stop()
 
     def global_settings(self) -> None:
@@ -61,8 +56,7 @@ class Lifedrain:
             self._qt, self._mw, self.config, self.deck_manager)
         config = self.config.get()
         if config['enable']:
-            self.clear_global_shortcuts()
-            self.set_global_shortcuts()
+            self.update_global_shortcuts()
             self.toggle_drain(drain_enabled)
             if self.status['screen'] == 'deckBrowser':
                 self.deck_manager.bar_visible(visible=False)
@@ -70,7 +64,7 @@ class Lifedrain:
                 self.deck_manager.update()
                 self.deck_manager.bar_visible(visible=True)
         else:
-            self.clear_global_shortcuts()
+            self.update_global_shortcuts()
             self.deck_manager.bar_visible(visible=False)
 
     def deck_settings(self) -> None:
@@ -87,49 +81,35 @@ class Lifedrain:
         self.toggle_drain(drain_enabled)
         self.deck_manager.update()
 
-    def clear_global_shortcuts(self) -> None:
-        """Clear the global shortcuts."""
+    def update_global_shortcuts(self) -> None:
+        """Update the global shortcuts."""
         for shortcut in self.status['shortcuts']:
             self._qt.sip.delete(shortcut)
         self.status['shortcuts'] = []
 
-    @must_be_enabled
-    def set_global_shortcuts(self, config: dict[str, Any]) -> None:
-        """Sets the global shortcuts."""
-        if not config['globalSettingsShortcut']:
-            return
+        config = self.config.get()
+        if config['globalSettingsShortcut']:
+            self.status['shortcuts'] = self._mw.applyShortcuts([
+                (config['globalSettingsShortcut'], self.global_settings),
+            ])
 
-        shortcuts = [
-            (config['globalSettingsShortcut'], self.global_settings),
-        ]
-        self.status['shortcuts'] = self._mw.applyShortcuts(shortcuts)
-
-    @must_be_enabled
-    def review_shortcuts(self, config: dict[str, Any], shortcuts: list[tuple]) -> None:
+    def review_shortcuts(self, shortcuts: list[tuple]) -> None:
         """Generates the review screen shortcuts."""
-        if config['pauseShortcut']:
-            shortcuts.append(
-                (config['pauseShortcut'], self.toggle_drain),
-            )
+        config = self.config.get()
         if config['deckSettingsShortcut']:
-            shortcuts.append(
-                (config['deckSettingsShortcut'], self.deck_settings),
-            )
+            shortcuts.append((config['deckSettingsShortcut'], self.deck_settings))
+        if config['enable'] and config['pauseShortcut']:
+            shortcuts.append((config['pauseShortcut'], self.toggle_drain))
 
-    @must_be_enabled
-    def overview_shortcuts(self, config: dict[str, Any], shortcuts: list[tuple]) -> None:
+    def overview_shortcuts(self, shortcuts: list[tuple]) -> None:
         """Generates the overview screen shortcuts."""
+        config = self.config.get()
         if config['deckSettingsShortcut']:
-            shortcuts.append(
-                (config['deckSettingsShortcut'], self.deck_settings),
-            )
-        if config['recoverShortcut']:
+            shortcuts.append((config['deckSettingsShortcut'], self.deck_settings))
+        if config['enable'] and config['recoverShortcut']:
             def full_recover() -> None:
                 self.deck_manager.recover()
-
-            shortcuts.append(
-                (config['recoverShortcut'], full_recover),
-            )
+            shortcuts.append((config['recoverShortcut'], full_recover))
 
     @must_be_enabled
     def toggle_drain(self, config: dict[str, Any], enable=None) -> None:  # noqa: ARG

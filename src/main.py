@@ -34,17 +34,13 @@ def main() -> None:
 def setup_shortcuts(lifedrain: Lifedrain) -> None:
     """Configure the shortcuts provided by the add-on."""
 
-    def global_shortcuts() -> None:
-        lifedrain.clear_global_shortcuts()
-        lifedrain.set_global_shortcuts()
-
     def state_shortcuts(state: str, shortcuts: list[tuple]) -> None:
         if state == 'review':
             lifedrain.review_shortcuts(shortcuts)
         elif state == 'overview':
             lifedrain.overview_shortcuts(shortcuts)
 
-    gui_hooks.collection_did_load.append(lambda col: global_shortcuts())  # noqa: ARG
+    gui_hooks.collection_did_load.append(lambda col: lifedrain.update_global_shortcuts())  # noqa: ARG
     gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
 
 
