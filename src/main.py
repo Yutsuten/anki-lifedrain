@@ -28,7 +28,6 @@ def main() -> None:
     setup_review(lifedrain)
 
     mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
-    hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover)
 
 
 def setup_shortcuts(lifedrain: Lifedrain) -> None:
