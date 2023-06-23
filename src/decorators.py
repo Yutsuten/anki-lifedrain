@@ -7,12 +7,7 @@ from typing import Any, Callable
 def must_be_enabled(func: Callable) -> Callable:
     """Runs the method only if the add-on is enabled."""
     def _wrapper(self: Any, *args, **kwargs) -> Any:
-        try:
-            config: dict = self.config.get()
-            self.deck_config.get()
-        except AttributeError:
-            return None
-
+        config: dict = self.config.get()
         if not config['enable']:
             return None
         return func(self, config, *args, **kwargs)
