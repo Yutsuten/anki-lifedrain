@@ -16,7 +16,7 @@ class Lifedrain:
     """The main class of the Life Drain add-on.
 
     Implements some basic functions of the Life Drain. Also intermediates some
-    complex functionalities implemented in another classes.
+    complex functionalities implemented in other classes.
 
     Attributes:
         config: An instance of GlobalConf.
@@ -51,13 +51,12 @@ class Lifedrain:
     def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
         drain_enabled = self._timer.isActive()
-        self.toggle_drain(enable=False)
-        settings.global_settings(
-            self._qt, self._mw, self.config, self.deck_manager)
+        self._toggle_drain(enable=False)
+        settings.global_settings(self._qt, self._mw, self.config, self.deck_manager)
         config = self.config.get()
         if config['enable']:
             self.update_global_shortcuts()
-            self.toggle_drain(drain_enabled)
+            self._toggle_drain(drain_enabled)
             if self.status['screen'] == 'deckBrowser':
                 self.deck_manager.bar_visible(visible=False)
             else:
@@ -70,15 +69,9 @@ class Lifedrain:
     def deck_settings(self) -> None:
         """Opens a dialog with the Deck Settings."""
         drain_enabled = self._timer.isActive()
-        self.toggle_drain(enable=False)
-        settings.deck_settings(
-            self._qt,
-            self._mw,
-            self.deck_config,
-            self.config,
-            self.deck_manager,
-        )
-        self.toggle_drain(drain_enabled)
+        self._toggle_drain(enable=False)
+        settings.deck_settings(self._qt, self._mw, self.deck_config, self.config, self.deck_manager)
+        self._toggle_drain(drain_enabled)
         self.deck_manager.update()
 
     def update_global_shortcuts(self) -> None:
@@ -99,7 +92,7 @@ class Lifedrain:
         if config['deckSettingsShortcut']:
             shortcuts.append((config['deckSettingsShortcut'], self.deck_settings))
         if config['enable'] and config['pauseShortcut']:
-            shortcuts.append((config['pauseShortcut'], self.toggle_drain))
+            shortcuts.append((config['pauseShortcut'], self._toggle_drain))
 
     def overview_shortcuts(self, shortcuts: list[tuple]) -> None:
         """Generates the overview screen shortcuts."""
@@ -110,18 +103,6 @@ class Lifedrain:
             def full_recover() -> None:
                 self.deck_manager.recover()
             shortcuts.append((config['recoverShortcut'], full_recover))
-
-    @must_be_enabled
-    def toggle_drain(self, config: dict[str, Any], enable=None) -> None:  # noqa: ARG
-        """Toggles the life drain.
-
-        Args:
-            enable: Optional. Enables the drain if True.
-        """
-        if self._timer.isActive() and enable is not True:
-            self._timer.stop()
-        elif not self._timer.isActive() and enable is not False:
-            self._timer.start()
 
     def screen_change(self, state: MainWindowState) -> None:
         """Updates Life Drain when the screen changes.
@@ -138,7 +119,7 @@ class Lifedrain:
             return
 
         if state != 'review':
-            self.toggle_drain(enable=False)
+            self._toggle_drain(enable=False)
             self.status['prev_card'] = None
 
         if self.status['reviewed'] and state in ['overview', 'review']:
@@ -158,12 +139,12 @@ class Lifedrain:
     def opened_window(self, config: dict[str, Any]) -> None:
         """Called when a window is opened while reviewing."""
         if config['stopOnLostFocus']:
-            self.toggle_drain(enable=False)
+            self._toggle_drain(enable=False)
 
     @must_be_enabled
     def show_question(self, config: dict[str, Any], card: Card) -> None:
         """Called when a question is shown."""
-        self.toggle_drain(enable=True)
+        self._toggle_drain(enable=True)
         if self.status['action'] == 'undo':
             self.deck_manager.undo()
         elif self.status['action'] == 'bury':
@@ -184,5 +165,17 @@ class Lifedrain:
     @must_be_enabled
     def show_answer(self, config: dict[str, Any]) -> None:
         """Called when an answer is shown."""
-        self.toggle_drain(not config['stopOnAnswer'])
+        self._toggle_drain(not config['stopOnAnswer'])
         self.status['reviewed'] = True
+
+    @must_be_enabled
+    def _toggle_drain(self, config: dict[str, Any], enable=None) -> None:  # noqa: ARG
+        """Toggles the life drain.
+
+        Args:
+            enable: Optional. Enables the drain if True.
+        """
+        if self._timer.isActive() and enable is not True:
+            self._timer.stop()
+        elif not self._timer.isActive() and enable is not False:
+            self._timer.start()
