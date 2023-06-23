@@ -4,6 +4,7 @@
 from aqt.main import AnkiQt
 
 from .defaults import DEFAULTS
+from .exceptions import GetCollectionError, LoadConfigurationError
 
 
 class GlobalConf:
@@ -24,7 +25,7 @@ class GlobalConf:
         """Get global configuration from Anki's database."""
         conf = self._mw.addonManager.getConfig(__name__)
         if conf is None:
-            raise RuntimeError
+            raise LoadConfigurationError
 
         for field in self.fields:
             if field not in conf:
@@ -38,7 +39,7 @@ class GlobalConf:
         """Saves global configuration into Anki's database."""
         conf = self._mw.addonManager.getConfig(__name__)
         if conf is None:
-            raise RuntimeError
+            raise LoadConfigurationError
 
         for field in self.fields:
             if field in new_conf:
@@ -46,10 +47,6 @@ class GlobalConf:
         for field in DeckConf.fields:
             conf[field] = new_conf[field]
         self._mw.addonManager.writeConfig(__name__, conf)
-
-        # Cleanup old configuration saved in mw.col.conf
-        if self._mw.col is not None and 'lifedrain' in self._mw.col.conf:
-            self._mw.col.conf.remove('lifedrain')
 
 
 class DeckConf:
@@ -63,7 +60,7 @@ class DeckConf:
     def get(self) -> dict:
         """Get current deck configuration from Anki's database."""
         if self._mw.col is None:
-            raise RuntimeError
+            raise GetCollectionError
 
         conf = self._global_conf.get()
         deck = self._mw.col.decks.current()
@@ -80,7 +77,7 @@ class DeckConf:
     def update(self, new_conf: dict) -> None:
         """Saves deck configuration into Anki's database."""
         if self._mw.col is None:
-            raise RuntimeError
+            raise GetCollectionError
 
         conf = self._global_conf.get()
         deck = self._mw.col.decks.current()
@@ -91,8 +88,3 @@ class DeckConf:
             deck_conf[field] = new_conf[field]
         conf['decks'][str(deck['id'])] = deck_conf
         self._mw.addonManager.writeConfig(__name__, conf)
-
-        # Cleanup old configuration saved in mw.col.decks
-        if 'lifedrain' in deck:
-            del deck['lifedrain']
-            self._mw.col.decks.save(deck)

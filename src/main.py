@@ -9,13 +9,14 @@ from aqt import gui_hooks, mw, qt
 from aqt.progress import ProgressManager
 
 from .defaults import DEFAULTS
+from .exceptions import GetCollectionError, GetMainWindowError
 from .lifedrain import Lifedrain
 
 
 def main() -> None:
     """Initialize the Life Drain add-on."""
     if mw is None:
-        raise RuntimeError
+        raise GetMainWindowError
 
     make_timer = ProgressManager(mw).timer
     lifedrain = Lifedrain(make_timer, mw, qt)
@@ -66,9 +67,9 @@ def setup_deck_browser(lifedrain: Lifedrain) -> None:
 
     def action_deck_settings(did: DeckId) -> None:
         if mw is None:
-            raise RuntimeError
+            raise GetMainWindowError
         if mw.col is None:
-            raise RuntimeError
+            raise GetCollectionError
         mw.col.decks.select(did)
         lifedrain.deck_settings()
 

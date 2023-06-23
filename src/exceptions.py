@@ -1,0 +1,19 @@
+class LifedrainError(Exception):
+    """Lifedrain base exception."""
+    def __init__(self, message: str):
+        super().__init__(f'Lifedrain {message}')
+
+class GetMainWindowError(LifedrainError):
+    """Failure to load Anki's main window `aqt.qt.mw`."""
+    def __init__(self):
+        super().__init__("failed to get Anki's main window instance.")
+
+class GetCollectionError(LifedrainError):
+    """Failure to load Anki's collection `aqt.qt.mw.col`."""
+    def __init__(self):
+        super().__init__("failed to get Anki's collection.")
+
+class LoadConfigurationError(LifedrainError):
+    """Failure to load configuration."""
+    def __init__(self):
+        super().__init__('failed to load its configuration.')
