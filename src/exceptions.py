@@ -2,7 +2,7 @@
 # See the LICENCE file in the repository root for full licence text.
 
 class LifedrainError(Exception):
-    """Lifedrain base exception."""
+    """Life Drain's base exception."""
     def __init__(self, message: str):
         super().__init__(f'Lifedrain {message}')
 

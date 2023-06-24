@@ -10,7 +10,7 @@ from .exceptions import GetCollectionError, LoadConfigurationError
 
 
 class GlobalConf:
-    """Manages lifedrain's global configuration."""
+    """Manages Life Drain's global configuration."""
     FIELDS: ClassVar[set[str]] = {
         'enable', 'stopOnAnswer', 'barPosition', 'barHeight', 'barBorderRadius', 'barText',
         'barStyle', 'barFgColor', 'barTextColor', 'enableBgColor', 'barBgColor',
@@ -38,7 +38,11 @@ class GlobalConf:
         return conf
 
     def update(self, new_conf: dict[str, Any]) -> None:
-        """Saves global configuration into Anki's database."""
+        """Saves global configuration into Anki's database.
+
+        Args:
+            new_conf: The new configuration dictionary.
+        """
         conf = self._mw.addonManager.getConfig(__name__)
         if conf is None:
             raise LoadConfigurationError
@@ -52,7 +56,7 @@ class GlobalConf:
 
 
 class DeckConf:
-    """Manages each lifedrain's deck configuration."""
+    """Manages Life Drain's deck configuration."""
     FIELDS: ClassVar[set[str]] = {'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning'}
 
     def __init__(self, mw: AnkiQt):
@@ -77,7 +81,11 @@ class DeckConf:
         return conf_dict
 
     def update(self, new_conf: dict[str, Any]) -> None:
-        """Saves deck configuration into Anki's database."""
+        """Saves deck configuration into Anki's database.
+
+        Args:
+            new_conf: The new configuration dictionary.
+        """
         if self._mw.col is None:
             raise GetCollectionError
 

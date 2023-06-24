@@ -34,11 +34,11 @@ class Lifedrain:
         """
         self._qt = qt
         self._mw = mw
-        self.config = GlobalConf(mw)
-        self.deck_config = DeckConf(mw)
-        self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
         self._timer = make_timer(100, lambda: self.deck_manager.drain(), repeat=True, parent=mw)
         self._timer.stop()
+        self.config = GlobalConf(mw)
+        self._deck_config = DeckConf(mw)
+        self.deck_manager = DeckManager(mw, qt, self.config, self._deck_config)
         self.status: dict[str, Any] = {
             'action': None,  # Flag for bury, suspend, delete
             'reviewed': False,
@@ -52,7 +52,12 @@ class Lifedrain:
         """Opens a dialog with the Global Settings."""
         drain_enabled = self._timer.isActive()
         self._toggle_drain(enable=False)
-        settings.global_settings(self._qt, self._mw, self.config, self.deck_manager)
+        settings.global_settings(
+            aqt=self._qt,
+            mw=self._mw,
+            config=self.config,
+            deck_manager=self.deck_manager,
+        )
         config = self.config.get()
         if config['enable']:
             self.update_global_shortcuts()
@@ -66,7 +71,13 @@ class Lifedrain:
         """Opens a dialog with the Deck Settings."""
         drain_enabled = self._timer.isActive()
         self._toggle_drain(enable=False)
-        settings.deck_settings(self._qt, self._mw, self.deck_config, self.config, self.deck_manager)
+        settings.deck_settings(
+            aqt=self._qt,
+            mw=self._mw,
+            config=self._deck_config,
+            global_config=self.config,
+            deck_manager=self.deck_manager,
+        )
         self._toggle_drain(drain_enabled)
         self.deck_manager.update(self.status['screen'])
 

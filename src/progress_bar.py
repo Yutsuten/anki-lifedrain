@@ -51,7 +51,7 @@ class ProgressBar:
         """Sets the maximum value for the bar.
 
         Args:
-            max_value: The maximum value of the bar. May have 1 decimal place.
+            max_value: The maximum value of the bar. Up to 1 decimal place.
         """
         self._max_value = max_value * 10
         if self._max_value <= 0:
@@ -171,6 +171,7 @@ class ProgressBar:
             self._qprogressbar.setFormat(text)
 
     def _update_bar_color(self) -> None:
+        """Updates the Progress Bar color styling."""
         options = self._bar_options
 
         life_percentage = self._current_value / self._max_value * 100
@@ -227,7 +228,11 @@ class ProgressBar:
 
     @staticmethod
     def _dict_to_css(dictionary: dict[str, str]) -> str:
-        """Convert a python dict to a stylesheet."""
+        """Convert a python dict to a stylesheet.
+
+        Args:
+            dictionary: The python dics to be converted to CSS.
+        """
         css = ''
         for key, value in dictionary.items():
             css += f'\n{key}: {value};'

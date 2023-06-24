@@ -67,7 +67,7 @@ class DeckManager:
         """Updates a deck's current settings and state.
 
         Args:
-            conf: A dictionary with the deck's configuration and state.
+            conf: The deck's configuration and state.
             update_life: Update the current life?
         """
         if conf['id'] not in self._bar_info:
@@ -98,8 +98,8 @@ class DeckManager:
 
         Args:
             bar_info: The currently active deck's life bar information.
-            increment: Optional. A flag that indicates increment or decrement.
             value: Optional. The value used to increment or decrement.
+            increment: Optional. A flag that indicates increment or decrement.
         """
         multiplier = 1 if increment else -1
         if value is None:
@@ -129,7 +129,7 @@ class DeckManager:
 
         Args:
             bar_info: The currently active deck's life bar information.
-            card_type: Optional. Applies different damage depending on card type.
+            card_type: Applies different damage depending on card type.
         """
         damage = bar_info['damageValue']
         if card_type == 0:
