@@ -207,7 +207,7 @@ class DeckManager:
             history[bar_info['currentReview']] = bar_info['currentValue']
 
     def _get_cur_deck_id(self) -> str:
-        """Gets the _cur_deck_id instance variable."""
+        """Gets the currently selected deck id."""
         return 'shared' if self._global_conf.get()['shareDrain'] else self._deck_conf.get()['id']
 
     def _add_deck(self, deck_id:str) -> None:
