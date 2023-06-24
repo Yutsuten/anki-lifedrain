@@ -204,10 +204,8 @@ class DeckManager:
             'history': [conf['maxLife']],
             'currentReview': 0,
         }
-        if start_empty:
-            self._bar_info[deck_id]['currentValue'] = 0
-        else:
-            self._bar_info[deck_id]['currentValue'] = conf['maxLife']
+        self._bar_info[deck_id]['currentValue'] = 0 if start_empty else conf['maxLife']
+        self._game_over = start_empty
 
     def _update_progress_bar_style(self) -> None:
         """Synchronizes the Progress Bar styling with the Global Settings."""
