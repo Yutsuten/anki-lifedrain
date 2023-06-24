@@ -85,7 +85,7 @@ class ProgressBar:
         """Gets the current value of the bar."""
         return float(self._current_value) / 10
 
-    def set_style(self, options: dict) -> None:
+    def set_style(self, options: dict[str, Any]) -> None:
         """Sets the styling of the Progress Bar.
 
         Args:
@@ -226,7 +226,7 @@ class ProgressBar:
                 f'QProgressBar::chunk {{ {bar_chunk} }}')
 
     @staticmethod
-    def _dict_to_css(dictionary: dict) -> str:
+    def _dict_to_css(dictionary: dict[str, str]) -> str:
         """Convert a python dict to a stylesheet."""
         css = ''
         for key, value in dictionary.items():

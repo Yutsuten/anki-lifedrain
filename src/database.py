@@ -1,7 +1,7 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from aqt.main import AnkiQt
 
@@ -23,7 +23,7 @@ class GlobalConf:
     def __init__(self, mw: AnkiQt):
         self._mw = mw
 
-    def get(self) -> dict:
+    def get(self) -> dict[str, Any]:
         """Get global configuration from Anki's database."""
         conf = self._mw.addonManager.getConfig(__name__)
         if conf is None:
@@ -37,7 +37,7 @@ class GlobalConf:
                 conf[field] = DEFAULTS[field]
         return conf
 
-    def update(self, new_conf: dict) -> None:
+    def update(self, new_conf: dict[str, Any]) -> None:
         """Saves global configuration into Anki's database."""
         conf = self._mw.addonManager.getConfig(__name__)
         if conf is None:
@@ -76,7 +76,7 @@ class DeckConf:
             conf_dict[field] = deck_conf.get(field, conf[field])
         return conf_dict
 
-    def update(self, new_conf: dict) -> None:
+    def update(self, new_conf: dict[str, Any]) -> None:
         """Saves deck configuration into Anki's database."""
         if self._mw.col is None:
             raise GetCollectionError

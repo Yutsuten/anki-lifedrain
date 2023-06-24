@@ -63,7 +63,7 @@ class DeckManager:
             self._add_deck(self._cur_deck_id)
         return self._bar_info[self._cur_deck_id]['currentValue']
 
-    def set_deck_conf(self, conf: dict, *, update_life: bool) -> None:
+    def set_deck_conf(self, conf: dict[str, Any], *, update_life: bool) -> None:
         """Updates a deck's current settings and state.
 
         Args:
@@ -132,9 +132,9 @@ class DeckManager:
             card_type: Optional. Applies different damage depending on card type.
         """
         damage = bar_info['damageValue']
-        if card_type == 0 and bar_info['damageNew'] is not None:
+        if card_type == 0:
             damage = bar_info['damageNew']
-        elif card_type == 1 and bar_info['damageLearning'] is not None:
+        elif card_type == 1:
             damage = bar_info['damageLearning']
         self._update_life(bar_info, -1 * damage)
 

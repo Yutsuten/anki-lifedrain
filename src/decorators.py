@@ -9,7 +9,7 @@ from .exceptions import NoDeckSelectedError
 def must_be_enabled(func: Callable) -> Callable:
     """Runs the method only if the add-on is enabled."""
     def _wrapper(self: Any, *args, **kwargs) -> Any:
-        config: dict = self.config.get()
+        config: dict[str, Any] = self.config.get()
         if not config['enable']:
             return None
         return func(self, config, *args, **kwargs)
