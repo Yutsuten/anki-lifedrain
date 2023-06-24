@@ -20,3 +20,8 @@ class LoadConfigurationError(LifedrainError):
     """Failure to load configuration."""
     def __init__(self):
         super().__init__('failed to load its configuration.')
+
+class NoDeckSelectedError(LifedrainError):
+    """Failure to get currently selected deck."""
+    def __init__(self):
+        super().__init__('failed to update its bar because there is no currently selected deck.')

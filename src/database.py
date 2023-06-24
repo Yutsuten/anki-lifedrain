@@ -1,6 +1,8 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
+from typing import ClassVar
+
 from aqt.main import AnkiQt
 
 from .defaults import DEFAULTS
@@ -9,7 +11,7 @@ from .exceptions import GetCollectionError, LoadConfigurationError
 
 class GlobalConf:
     """Manages lifedrain's global configuration."""
-    fields = {
+    FIELDS: ClassVar[set[str]] = {
         'enable', 'stopOnAnswer', 'barPosition', 'barHeight', 'barBorderRadius', 'barText',
         'barStyle', 'barFgColor', 'barTextColor', 'enableBgColor', 'barBgColor',
         'globalSettingsShortcut', 'deckSettingsShortcut', 'pauseShortcut', 'recoverShortcut',
@@ -27,10 +29,10 @@ class GlobalConf:
         if conf is None:
             raise LoadConfigurationError
 
-        for field in self.fields:
+        for field in self.FIELDS:
             if field not in conf:
                 conf[field] = DEFAULTS[field]
-        for field in DeckConf.fields:
+        for field in DeckConf.FIELDS:
             if field not in conf:
                 conf[field] = DEFAULTS[field]
         return conf
@@ -41,17 +43,17 @@ class GlobalConf:
         if conf is None:
             raise LoadConfigurationError
 
-        for field in self.fields:
+        for field in self.FIELDS:
             if field in new_conf:
                 conf[field] = new_conf[field]
-        for field in DeckConf.fields:
+        for field in DeckConf.FIELDS:
             conf[field] = new_conf[field]
         self._mw.addonManager.writeConfig(__name__, conf)
 
 
 class DeckConf:
     """Manages each lifedrain's deck configuration."""
-    fields = {'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning'}
+    FIELDS: ClassVar[set[str]] = {'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning'}
 
     def __init__(self, mw: AnkiQt):
         self._mw = mw
@@ -70,7 +72,7 @@ class DeckConf:
             'id': deck['id'],
             'name': deck['name'],
         }
-        for field in self.fields:
+        for field in self.FIELDS:
             conf_dict[field] = deck_conf.get(field, conf[field])
         return conf_dict
 
@@ -84,7 +86,7 @@ class DeckConf:
         if 'decks' not in conf:
             conf['decks'] = {}
         deck_conf = {}
-        for field in self.fields:
+        for field in self.FIELDS:
             deck_conf[field] = new_conf[field]
         conf['decks'][str(deck['id'])] = deck_conf
         self._mw.addonManager.writeConfig(__name__, conf)

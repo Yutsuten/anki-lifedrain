@@ -5,10 +5,11 @@ from typing import Any, Literal, Optional, Union
 
 from anki.consts import CardType
 from anki.hooks import runHook
-from aqt.main import AnkiQt
+from aqt.main import AnkiQt, MainWindowState
 
 from .database import DeckConf, GlobalConf
 from .defaults import BEHAVIORS
+from .exceptions import NoDeckSelectedError
 from .progress_bar import ProgressBar
 
 
@@ -18,10 +19,6 @@ class DeckManager:
     Users may configure each deck with different settings, and the current
     status of the life bar (e.g. current life) will likely differ for each deck.
     """
-
-    _bar_info = {}
-    _game_over = False
-    _cur_deck_id = None
 
     def __init__(self, mw: AnkiQt, qt: Any, global_conf: GlobalConf, deck_conf: DeckConf):
         """Initializes a Progress Bar, and keeps Anki's main window reference.
@@ -35,23 +32,30 @@ class DeckManager:
         self._progress_bar = ProgressBar(mw, qt)
         self._global_conf = global_conf
         self._deck_conf = deck_conf
-        self.bar_visible = self._progress_bar.set_visible
+        self._bar_info: dict[str, dict[str, Any]] = {}
+        self._game_over: bool = False
+        self._cur_deck_id: Optional[str] = None
 
-    def update(self) -> None:
+    def update(self, state: MainWindowState) -> None:
         """Updates the current deck's life bar."""
-        deck_id = self._get_deck_id()
-        self._cur_deck_id = deck_id
+        if state == 'deckBrowser':
+            self._cur_deck_id = None
+            self._progress_bar.set_visible(visible=False)
+        else:
+            deck_id = self._get_deck_id()
+            self._cur_deck_id = deck_id
+            if deck_id not in self._bar_info:
+                self._add_deck(deck_id)
+            bar_info = self._bar_info[deck_id]
+            bar_info['history'][bar_info['currentReview']] = bar_info['currentValue']
+            self._update_progress_bar_style()
+            self._progress_bar.set_max_value(bar_info['maxValue'])
+            self._progress_bar.set_current_value(bar_info['currentValue'])
+            self._progress_bar.set_visible(visible=True)
 
-        if deck_id not in self._bar_info:
-            self._add_deck(deck_id)
-
-        self._update_progress_bar_style()
-
-        bar_info = self._bar_info[deck_id]
-        self._progress_bar.set_max_value(bar_info['maxValue'])
-        self._progress_bar.set_current_value(bar_info['currentValue'])
-        history = bar_info['history']
-        history[bar_info['currentReview']] = bar_info['currentValue']
+    def hide_life_bar(self) -> None:
+        """Set life bar visibility to False."""
+        self._progress_bar.set_visible(visible=False)
 
     def get_current_life(self) -> Union[int, float]:
         """Get the current deck's current life."""
@@ -95,6 +99,9 @@ class DeckManager:
             increment: Optional. A flag that indicates increment or decrement.
             value: Optional. The value used to increment or decrement.
         """
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+
         multiplier = 1 if increment else -1
         if value is None:
             value = int(self._bar_info[self._cur_deck_id]['recoverValue'])
@@ -102,6 +109,9 @@ class DeckManager:
 
     def recover(self) -> None:
         """Resets the life bar of the currently active deck to the initial value."""
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+
         conf = self._global_conf.get()
         start_empty = conf['startEmpty']
         if not conf['shareDrain']:
@@ -118,6 +128,9 @@ class DeckManager:
         Args:
             card_type: Optional. Applies different damage depending on card type.
         """
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+
         bar_info = self._bar_info[self._cur_deck_id]
         damage = bar_info['damageValue']
         if card_type == 0 and bar_info['damageNew'] is not None:
@@ -128,6 +141,9 @@ class DeckManager:
 
     def answer(self, review_response: Literal[1, 2, 3, 4], card_type: CardType) -> None:
         """Restores or drains life after an answer."""
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+
         if review_response == 1 and self._bar_info[self._cur_deck_id]['damageValue'] is not None:
             self.damage(card_type=card_type)
         else:
@@ -144,6 +160,9 @@ class DeckManager:
 
     def undo(self) -> None:
         """Restore the life to how it was in the previous card."""
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+
         bar_info = self._bar_info[self._cur_deck_id]
         history = bar_info['history']
         if bar_info['currentReview'] == 0:
@@ -158,6 +177,9 @@ class DeckManager:
         Args:
             difference: The amount to increase or decrease.
         """
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+
         self._progress_bar.inc_current_value(difference)
         life = self._progress_bar.get_current_value()
         self._bar_info[self._cur_deck_id]['currentValue'] = life
@@ -169,6 +191,9 @@ class DeckManager:
 
     def _next(self) -> None:
         """Remembers the current life and advances to the next card."""
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+
         bar_info = self._bar_info[self._cur_deck_id]
         bar_info['currentReview'] += 1
         history = bar_info['history']

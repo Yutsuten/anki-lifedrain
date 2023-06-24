@@ -1,7 +1,7 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 from aqt.main import AnkiQt
 
@@ -15,13 +15,6 @@ class ProgressBar:
     also adds a (limited) ability to use decimal values as the current value.
     """
 
-    _current_value = 1
-    _dock = {}
-    _max_value = 1
-    _text_format = ''
-    _current_bar_color = ''
-    _bar_options = {}
-
     def __init__(self, mw: AnkiQt, qt: Any):
         """Initializes a QProgressBar and keeps main window and PyQt references.
 
@@ -32,6 +25,12 @@ class ProgressBar:
         self._mw = mw
         self._qt = qt
         self._qprogressbar = qt.QProgressBar()
+        self._current_value: Union[int, float] = 1
+        self._dock: dict[str, Any] = {}
+        self._max_value: float = 1
+        self._text_format: str = ''
+        self._current_bar_color: str = ''
+        self._bar_options: dict[str, Any] = {}
 
     def set_visible(self, *, visible: bool) -> None:
         """Sets the visibility of the Progress Bar.

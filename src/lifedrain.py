@@ -23,14 +23,6 @@ class Lifedrain:
         deck_manager: An instance of DeckManager.
         status: A dictionary that keeps track the events on Anki.
     """
-    status = {
-        'action': None,  # Flag for bury, suspend, delete
-        'reviewed': False,
-        'review_response': 0,
-        'screen': None,
-        'shortcuts': [],
-        'card_type': None,
-    }
 
     def __init__(self, make_timer: Callable, mw: AnkiQt, qt: Any):
         """Initializes DeckManager and Settings, and add-on initial setup.
@@ -47,6 +39,14 @@ class Lifedrain:
         self.deck_manager = DeckManager(mw, qt, self.config, self.deck_config)
         self._timer = make_timer(100, lambda: self.deck_manager.drain(), repeat=True, parent=mw)
         self._timer.stop()
+        self.status: dict[str, Any] = {
+            'action': None,  # Flag for bury, suspend, delete
+            'reviewed': False,
+            'review_response': 0,
+            'screen': None,
+            'shortcuts': [],
+            'card_type': None,
+        }
 
     def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
@@ -57,14 +57,10 @@ class Lifedrain:
         if config['enable']:
             self.update_global_shortcuts()
             self._toggle_drain(drain_enabled)
-            if self.status['screen'] == 'deckBrowser':
-                self.deck_manager.bar_visible(visible=False)
-            else:
-                self.deck_manager.update()
-                self.deck_manager.bar_visible(visible=True)
+            self.deck_manager.update(self.status['screen'])
         else:
             self.update_global_shortcuts()
-            self.deck_manager.bar_visible(visible=False)
+            self.deck_manager.hide_life_bar()
 
     def deck_settings(self) -> None:
         """Opens a dialog with the Deck Settings."""
@@ -72,7 +68,7 @@ class Lifedrain:
         self._toggle_drain(enable=False)
         settings.deck_settings(self._qt, self._mw, self.deck_config, self.config, self.deck_manager)
         self._toggle_drain(drain_enabled)
-        self.deck_manager.update()
+        self.deck_manager.update(self.status['screen'])
 
     def update_global_shortcuts(self) -> None:
         """Update the global shortcuts."""
@@ -121,19 +117,13 @@ class Lifedrain:
         if state != 'review':
             self._toggle_drain(enable=False)
             self.status['prev_card'] = None
-
         if self.status['reviewed'] and state in ['overview', 'review']:
             self.deck_manager.answer(
                 self.status['review_response'],
                 self.status['card_type'],
             )
             self.status['reviewed'] = False
-
-        if state == 'deckBrowser':
-            self.deck_manager.bar_visible(visible=False)
-        else:
-            self.deck_manager.update()
-            self.deck_manager.bar_visible(visible=True)
+        self.deck_manager.update(state)
 
     @must_be_enabled
     def opened_window(self, config: dict[str, Any]) -> None:
