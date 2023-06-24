@@ -8,8 +8,8 @@ from anki.hooks import runHook
 from aqt.main import AnkiQt, MainWindowState
 
 from .database import DeckConf, GlobalConf
+from .decorators import must_have_active_deck
 from .defaults import BEHAVIORS
-from .exceptions import NoDeckSelectedError
 from .progress_bar import ProgressBar
 
 
@@ -42,11 +42,10 @@ class DeckManager:
             self._cur_deck_id = None
             self._progress_bar.set_visible(visible=False)
         else:
-            deck_id = self._get_deck_id()
-            self._cur_deck_id = deck_id
-            if deck_id not in self._bar_info:
-                self._add_deck(deck_id)
-            bar_info = self._bar_info[deck_id]
+            self._cur_deck_id = self._get_cur_deck_id()
+            if self._cur_deck_id not in self._bar_info:
+                self._add_deck(self._cur_deck_id)
+            bar_info = self._bar_info[self._cur_deck_id]
             bar_info['history'][bar_info['currentReview']] = bar_info['currentValue']
             self._update_progress_bar_style()
             self._progress_bar.set_max_value(bar_info['maxValue'])
@@ -59,11 +58,10 @@ class DeckManager:
 
     def get_current_life(self) -> Union[int, float]:
         """Get the current deck's current life."""
-        deck_id = self._get_deck_id()
-        self._cur_deck_id = deck_id
-        if deck_id not in self._bar_info:
-            self._add_deck(deck_id)
-        return self._bar_info[deck_id]['currentValue']
+        self._cur_deck_id = self._get_cur_deck_id()
+        if self._cur_deck_id not in self._bar_info:
+            self._add_deck(self._cur_deck_id)
+        return self._bar_info[self._cur_deck_id]['currentValue']
 
     def set_deck_conf(self, conf: dict, *, update_life: bool) -> None:
         """Updates a deck's current settings and state.
@@ -75,95 +73,103 @@ class DeckManager:
         if conf['id'] not in self._bar_info:
             self._add_deck(conf['id'])
 
-        deck_id = conf['id']
-        self._bar_info[deck_id]['maxValue'] = conf['maxLife']
-        self._bar_info[deck_id]['recoverValue'] = conf['recover']
-        self._bar_info[deck_id]['damageValue'] = conf['damage']
-        self._bar_info[deck_id]['damageNew'] = conf['damageNew']
-        self._bar_info[deck_id]['damageLearning'] = conf['damageLearning']
+        bar_info = self._bar_info[conf['id']]
+        bar_info['maxValue'] = conf['maxLife']
+        bar_info['recoverValue'] = conf['recover']
+        bar_info['damageValue'] = conf['damage']
+        bar_info['damageNew'] = conf['damageNew']
+        bar_info['damageLearning'] = conf['damageLearning']
 
         if update_life:
             current_value = conf.get('currentValue', conf['maxLife'])
             if current_value > conf['maxLife']:
                 current_value = conf['maxLife']
-            self._bar_info[deck_id]['currentValue'] = current_value
+            bar_info['currentValue'] = current_value
 
-    def drain(self) -> None:
+    @must_have_active_deck
+    def drain(self, bar_info: dict[str, Any]) -> None:
         """Life loss due to drain."""
-        self._update_life(-0.1)
+        self._update_life(bar_info, -0.1)
 
-    def heal(self, value:Optional[Union[int, float]]=None, *, increment:bool=True) -> None:
+    @must_have_active_deck
+    def heal(self, bar_info: dict[str, Any], value:Optional[Union[int, float]]=None, *,
+             increment:bool=True) -> None:
         """Partially heal life of the currently active deck.
 
         Args:
+            bar_info: The currently active deck's life bar information.
             increment: Optional. A flag that indicates increment or decrement.
             value: Optional. The value used to increment or decrement.
         """
-        if self._cur_deck_id is None:
-            raise NoDeckSelectedError
-
         multiplier = 1 if increment else -1
         if value is None:
-            value = int(self._bar_info[self._cur_deck_id]['recoverValue'])
-        self._update_life(multiplier * value)
+            value = int(bar_info['recoverValue'])
+        self._update_life(bar_info, multiplier * value)
 
-    def recover(self) -> None:
-        """Resets the life bar of the currently active deck to the initial value."""
-        if self._cur_deck_id is None:
-            raise NoDeckSelectedError
+    @must_have_active_deck
+    def recover(self, bar_info: dict[str, Any]) -> None:
+        """Resets the life bar of the currently active deck to the initial value.
 
+        Args:
+            bar_info: The currently active deck's life bar information.
+        """
         conf = self._global_conf.get()
         start_empty = conf['startEmpty']
         if not conf['shareDrain']:
             conf = self._deck_conf.get()
 
         life = 0 if start_empty else conf['maxLife']
-        self._bar_info[self._cur_deck_id]['currentValue'] = life
+        bar_info['currentValue'] = life
         self._progress_bar.set_current_value(life)
         self._game_over = start_empty
 
-    def damage(self, card_type: CardType) -> None:
+    @must_have_active_deck
+    def damage(self, bar_info: dict[str, Any], card_type: CardType) -> None:
         """Apply damage.
 
         Args:
+            bar_info: The currently active deck's life bar information.
             card_type: Optional. Applies different damage depending on card type.
         """
-        if self._cur_deck_id is None:
-            raise NoDeckSelectedError
-
-        bar_info = self._bar_info[self._cur_deck_id]
         damage = bar_info['damageValue']
         if card_type == 0 and bar_info['damageNew'] is not None:
             damage = bar_info['damageNew']
         elif card_type == 1 and bar_info['damageLearning'] is not None:
             damage = bar_info['damageLearning']
-        self._update_life(-1 * damage)
+        self._update_life(bar_info, -1 * damage)
 
-    def answer(self, review_response: Literal[1, 2, 3, 4], card_type: CardType) -> None:
-        """Restores or drains life after an answer."""
-        if self._cur_deck_id is None:
-            raise NoDeckSelectedError
+    @must_have_active_deck
+    def answer(self, bar_info: dict[str, Any], review_response: Literal[1, 2, 3, 4],
+               card_type: CardType) -> None:
+        """Restores or drains life after an answer.
 
-        if review_response == 1 and self._bar_info[self._cur_deck_id]['damageValue'] is not None:
+        Args:
+            bar_info: The currently active deck's life bar information.
+            review_response: The response given by the user.
+            card_type: The card type of the answered card.
+        """
+        if review_response == 1 and bar_info['damageValue'] is not None:
             self.damage(card_type=card_type)
         else:
             self.heal()
-        self._next()
+        self._next(bar_info)
 
-    def action(self, behavior_index: Literal[0, 1, 2]) -> None:
+    @must_have_active_deck
+    def action(self, bar_info: dict[str, Any], behavior_index: Literal[0, 1, 2]) -> None:
         """Bury/suspend handling."""
         if behavior_index == BEHAVIORS.index('Drain life'):
             self.heal(increment=False)
         elif behavior_index == BEHAVIORS.index('Recover life'):
             self.heal(increment=True)
-        self._next()
+        self._next(bar_info)
 
-    def undo(self) -> None:
-        """Restore the life to how it was in the previous card."""
-        if self._cur_deck_id is None:
-            raise NoDeckSelectedError
+    @must_have_active_deck
+    def undo(self, bar_info: dict[str, Any]) -> None:
+        """Restore the life to how it was in the previous card.
 
-        bar_info = self._bar_info[self._cur_deck_id]
+        Args:
+            bar_info: The currently active deck's life bar information.
+        """
         history = bar_info['history']
         if bar_info['currentReview'] == 0:
             return
@@ -171,30 +177,28 @@ class DeckManager:
         bar_info['currentValue'] = history[bar_info['currentReview']]
         self._progress_bar.set_current_value(bar_info['currentValue'])
 
-    def _update_life(self, difference: Union[int, float]) -> None:
+    def _update_life(self, bar_info: dict[str, Any], difference: Union[int, float]) -> None:
         """Apply recover/damage/drain.
 
         Args:
+            bar_info: The currently active deck's life bar information.
             difference: The amount to increase or decrease.
         """
-        if self._cur_deck_id is None:
-            raise NoDeckSelectedError
-
         self._progress_bar.inc_current_value(difference)
         life = self._progress_bar.get_current_value()
-        self._bar_info[self._cur_deck_id]['currentValue'] = life
+        bar_info['currentValue'] = life
         if life > 0:
             self._game_over = False
         elif not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
 
-    def _next(self) -> None:
-        """Remembers the current life and advances to the next card."""
-        if self._cur_deck_id is None:
-            raise NoDeckSelectedError
+    def _next(self, bar_info: dict[str, Any]) -> None:
+        """Remembers the current life and advances to the next card.
 
-        bar_info = self._bar_info[self._cur_deck_id]
+        Args:
+            bar_info: The currently active deck's life bar information.
+        """
         bar_info['currentReview'] += 1
         history = bar_info['history']
         if len(history) == bar_info['currentReview']:
@@ -202,12 +206,9 @@ class DeckManager:
         else:
             history[bar_info['currentReview']] = bar_info['currentValue']
 
-    def _get_deck_id(self) -> str:
-        global_conf = self._global_conf.get()
-        if global_conf['shareDrain']:
-            return 'shared'
-        conf = self._deck_conf.get()
-        return conf['id']
+    def _get_cur_deck_id(self) -> str:
+        """Updates the _cur_deck_id instance variable."""
+        return 'shared' if self._global_conf.get()['shareDrain'] else self._deck_conf.get()['id']
 
     def _add_deck(self, deck_id:str) -> None:
         """Adds a deck to the list of decks that are being managed.
