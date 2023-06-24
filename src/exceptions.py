@@ -24,4 +24,4 @@ class LoadConfigurationError(LifedrainError):
 class NoDeckSelectedError(LifedrainError):
     """Failure to get currently selected deck."""
     def __init__(self):
-        super().__init__('failed to update its bar because there is no currently selected deck.')
+        super().__init__('failed to update life bar because there is no currently selected deck.')
