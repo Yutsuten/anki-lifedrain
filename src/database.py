@@ -1,14 +1,17 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
+from typing import Any, ClassVar
+
 from aqt.main import AnkiQt
 
 from .defaults import DEFAULTS
+from .exceptions import GetCollectionError, LoadConfigurationError
 
 
 class GlobalConf:
-    """Manages lifedrain's global configuration."""
-    fields = {
+    """Manages Life Drain's global configuration."""
+    FIELDS: ClassVar[set[str]] = {
         'enable', 'stopOnAnswer', 'barPosition', 'barHeight', 'barBorderRadius', 'barText',
         'barStyle', 'barFgColor', 'barTextColor', 'enableBgColor', 'barBgColor',
         'globalSettingsShortcut', 'deckSettingsShortcut', 'pauseShortcut', 'recoverShortcut',
@@ -20,41 +23,41 @@ class GlobalConf:
     def __init__(self, mw: AnkiQt):
         self._mw = mw
 
-    def get(self) -> dict:
+    def get(self) -> dict[str, Any]:
         """Get global configuration from Anki's database."""
         conf = self._mw.addonManager.getConfig(__name__)
         if conf is None:
-            raise RuntimeError
+            raise LoadConfigurationError
 
-        for field in self.fields:
+        for field in self.FIELDS:
             if field not in conf:
                 conf[field] = DEFAULTS[field]
-        for field in DeckConf.fields:
+        for field in DeckConf.FIELDS:
             if field not in conf:
                 conf[field] = DEFAULTS[field]
         return conf
 
-    def update(self, new_conf: dict) -> None:
-        """Saves global configuration into Anki's database."""
+    def update(self, new_conf: dict[str, Any]) -> None:
+        """Saves global configuration into Anki's database.
+
+        Args:
+            new_conf: The new configuration dictionary.
+        """
         conf = self._mw.addonManager.getConfig(__name__)
         if conf is None:
-            raise RuntimeError
+            raise LoadConfigurationError
 
-        for field in self.fields:
+        for field in self.FIELDS:
             if field in new_conf:
                 conf[field] = new_conf[field]
-        for field in DeckConf.fields:
+        for field in DeckConf.FIELDS:
             conf[field] = new_conf[field]
         self._mw.addonManager.writeConfig(__name__, conf)
 
-        # Cleanup old configuration saved in mw.col.conf
-        if self._mw.col is not None and 'lifedrain' in self._mw.col.conf:
-            self._mw.col.conf.remove('lifedrain')
-
 
 class DeckConf:
-    """Manages each lifedrain's deck configuration."""
-    fields = {'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning'}
+    """Manages Life Drain's deck configuration."""
+    FIELDS: ClassVar[set[str]] = {'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning'}
 
     def __init__(self, mw: AnkiQt):
         self._mw = mw
@@ -63,7 +66,7 @@ class DeckConf:
     def get(self) -> dict:
         """Get current deck configuration from Anki's database."""
         if self._mw.col is None:
-            raise RuntimeError
+            raise GetCollectionError
 
         conf = self._global_conf.get()
         deck = self._mw.col.decks.current()
@@ -73,26 +76,25 @@ class DeckConf:
             'id': deck['id'],
             'name': deck['name'],
         }
-        for field in self.fields:
+        for field in self.FIELDS:
             conf_dict[field] = deck_conf.get(field, conf[field])
         return conf_dict
 
-    def update(self, new_conf: dict) -> None:
-        """Saves deck configuration into Anki's database."""
+    def update(self, new_conf: dict[str, Any]) -> None:
+        """Saves deck configuration into Anki's database.
+
+        Args:
+            new_conf: The new configuration dictionary.
+        """
         if self._mw.col is None:
-            raise RuntimeError
+            raise GetCollectionError
 
         conf = self._global_conf.get()
         deck = self._mw.col.decks.current()
         if 'decks' not in conf:
             conf['decks'] = {}
         deck_conf = {}
-        for field in self.fields:
+        for field in self.FIELDS:
             deck_conf[field] = new_conf[field]
         conf['decks'][str(deck['id'])] = deck_conf
         self._mw.addonManager.writeConfig(__name__, conf)
-
-        # Cleanup old configuration saved in mw.col.decks
-        if 'lifedrain' in deck:
-            del deck['lifedrain']
-            self._mw.col.decks.save(deck)

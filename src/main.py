@@ -9,13 +9,14 @@ from aqt import gui_hooks, mw, qt
 from aqt.progress import ProgressManager
 
 from .defaults import DEFAULTS
+from .exceptions import GetCollectionError, GetMainWindowError
 from .lifedrain import Lifedrain
 
 
 def main() -> None:
     """Initialize the Life Drain add-on."""
     if mw is None:
-        raise RuntimeError
+        raise GetMainWindowError
 
     make_timer = ProgressManager(mw).timer
     lifedrain = Lifedrain(make_timer, mw, qt)
@@ -27,15 +28,10 @@ def main() -> None:
     setup_review(lifedrain)
 
     mw.addonManager.setConfigAction(__name__, lifedrain.global_settings)
-    hooks.addHook('LifeDrain.recover', lifedrain.deck_manager.recover)
 
 
 def setup_shortcuts(lifedrain: Lifedrain) -> None:
     """Configure the shortcuts provided by the add-on."""
-
-    def global_shortcuts() -> None:
-        lifedrain.clear_global_shortcuts()
-        lifedrain.set_global_shortcuts()
 
     def state_shortcuts(state: str, shortcuts: list[tuple]) -> None:
         if state == 'review':
@@ -43,7 +39,7 @@ def setup_shortcuts(lifedrain: Lifedrain) -> None:
         elif state == 'overview':
             lifedrain.overview_shortcuts(shortcuts)
 
-    gui_hooks.collection_did_load.append(lambda col: global_shortcuts())  # noqa: ARG
+    gui_hooks.collection_did_load.append(lambda col: lifedrain.update_global_shortcuts())  # noqa: ARG
     gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
 
 
@@ -66,9 +62,9 @@ def setup_deck_browser(lifedrain: Lifedrain) -> None:
 
     def action_deck_settings(did: DeckId) -> None:
         if mw is None:
-            raise RuntimeError
+            raise GetMainWindowError
         if mw.col is None:
-            raise RuntimeError
+            raise GetCollectionError
         mw.col.decks.select(did)
         lifedrain.deck_settings()
 

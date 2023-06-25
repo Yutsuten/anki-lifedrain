@@ -3,18 +3,22 @@
 
 from typing import Any, Callable
 
+from .exceptions import NoDeckSelectedError
+
 
 def must_be_enabled(func: Callable) -> Callable:
     """Runs the method only if the add-on is enabled."""
     def _wrapper(self: Any, *args, **kwargs) -> Any:
-        try:
-            config: dict = self.config.get()
-            self.deck_config.get()
-        except AttributeError:
-            return None
-
+        config: dict[str, Any] = self.config.get()
         if not config['enable']:
             return None
         return func(self, config, *args, **kwargs)
+    return _wrapper
 
+def must_have_active_deck(func: Callable) -> Callable:
+    """Runs the method only if there is a deck currently active."""
+    def _wrapper(self: Any, *args, **kwargs) -> Any:
+        if self._cur_deck_id is None:
+            raise NoDeckSelectedError
+        return func(self, self._bar_info[self._cur_deck_id], *args, **kwargs)
     return _wrapper

@@ -1,7 +1,7 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 from aqt.main import AnkiQt
 
@@ -15,13 +15,6 @@ class ProgressBar:
     also adds a (limited) ability to use decimal values as the current value.
     """
 
-    _current_value = 1
-    _dock = {}
-    _max_value = 1
-    _text_format = ''
-    _current_bar_color = ''
-    _bar_options = {}
-
     def __init__(self, mw: AnkiQt, qt: Any):
         """Initializes a QProgressBar and keeps main window and PyQt references.
 
@@ -32,6 +25,12 @@ class ProgressBar:
         self._mw = mw
         self._qt = qt
         self._qprogressbar = qt.QProgressBar()
+        self._current_value: Union[int, float] = 1
+        self._dock: dict[str, Any] = {}
+        self._max_value: float = 1
+        self._text_format: str = ''
+        self._current_bar_color: str = ''
+        self._bar_options: dict[str, Any] = {}
 
     def set_visible(self, *, visible: bool) -> None:
         """Sets the visibility of the Progress Bar.
@@ -52,7 +51,7 @@ class ProgressBar:
         """Sets the maximum value for the bar.
 
         Args:
-            max_value: The maximum value of the bar. May have 1 decimal place.
+            max_value: The maximum value of the bar. Up to 1 decimal place.
         """
         self._max_value = max_value * 10
         if self._max_value <= 0:
@@ -86,15 +85,15 @@ class ProgressBar:
         """Gets the current value of the bar."""
         return float(self._current_value) / 10
 
-    def set_style(self, options: dict) -> None:
+    def set_style(self, options: dict[str, Any]) -> None:
         """Sets the styling of the Progress Bar.
 
         Args:
             options: A dictionary with bar styling information.
         """
         self._bar_options = options
-        self._qprogressbar.setTextVisible(options['text'] != 0)  # 0 = No text
         text_format = TEXT_FORMAT[options['text']]
+        self._qprogressbar.setTextVisible('format' in text_format)
         if 'format' in text_format:
             self._text_format = text_format['format']
             self._qprogressbar.setFormat(text_format['format'])
@@ -129,14 +128,17 @@ class ProgressBar:
 
         existing_widgets = [
             widget for widget in self._mw.findChildren(self._qt.QDockWidget)
-            if self._mw.dockWidgetArea(widget) == dock_area
+            if self._mw.dockWidgetArea(widget) == dock_area  # pyright: ignore [reportGeneralTypeIssues] # noqa: E501
         ]
         if not existing_widgets:
             self._mw.addDockWidget(dock_area, self._dock['widget'])
         else:
             self._mw.setDockNestingEnabled(enabled=True)
-            self._mw.splitDockWidget(existing_widgets[0], self._dock['widget'],
-                                     self._qt.Qt.Vertical)
+            self._mw.splitDockWidget(
+                existing_widgets[0],  # pyright: ignore [reportGeneralTypeIssues]
+                self._dock['widget'],
+                self._qt.Qt.Vertical,
+            )
         self._mw.web.setFocus()
         self._qprogressbar.setVisible(bar_visible)
 
@@ -162,12 +164,14 @@ class ProgressBar:
             if self._current_value % 10 != 0:
                 current_value += 1
             max_value = int(self._max_value / 10)
-            text = self._text_format.replace('%v', str(current_value)).replace(
-                '%m', str(max_value)).replace(
-                    '%p', str(int(100 * current_value / max_value)))
+            text = self._text_format
+            text = text.replace('%v', str(current_value))
+            text = text.replace('%m', str(max_value))
+            text = text.replace('%p', str(int(100 * current_value / max_value)))
             self._qprogressbar.setFormat(text)
 
     def _update_bar_color(self) -> None:
+        """Updates the Progress Bar color styling."""
         options = self._bar_options
 
         life_percentage = self._current_value / self._max_value * 100
@@ -223,8 +227,12 @@ class ProgressBar:
                 f'QProgressBar::chunk {{ {bar_chunk} }}')
 
     @staticmethod
-    def _dict_to_css(dictionary: dict) -> str:
-        """Convert a python dict to a stylesheet."""
+    def _dict_to_css(dictionary: dict[str, str]) -> str:
+        """Convert a python dict to a stylesheet.
+
+        Args:
+            dictionary: The python dics to be converted to CSS.
+        """
         css = ''
         for key, value in dictionary.items():
             css += f'\n{key}: {value};'

@@ -279,7 +279,7 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
     dialog.exec()
 
 
-def _global_basic_tab(aqt: Any, conf: dict) -> Any:
+def _global_basic_tab(aqt: Any, conf: dict[str, Any]) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)
@@ -316,7 +316,7 @@ Invalid shortcuts, or already used shortcuts won't work.'''
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget: Any, conf: dict) -> None:
+    def load_data(widget: Any, conf: dict[str, Any]) -> None:
         widget.enableAddon.set_value(conf['enable'])
         widget.stopOnAnswer.set_value(conf['stopOnAnswer'])
         widget.stopOnLostFocus.set_value(conf['stopOnLostFocus'])
@@ -334,7 +334,7 @@ Invalid shortcuts, or already used shortcuts won't work.'''
     return tab
 
 
-def _global_bar_style_tab(aqt: Any, conf: dict) -> Any:
+def _global_bar_style_tab(aqt: Any, conf: dict[str, Any]) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)
@@ -367,7 +367,7 @@ If checked, you can choose a background color on the next field.''')
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget: Any, conf: dict) -> None:
+    def load_data(widget: Any, conf: dict[str, Any]) -> None:
         widget.positionList.set_value(conf['barPosition'])
         widget.heightInput.set_value(conf['barHeight'])
         widget.borderRadiusInput.set_value(conf['barBorderRadius'])
@@ -387,7 +387,7 @@ If checked, you can choose a background color on the next field.''')
     return tab
 
 
-def _global_deck_defaults(aqt: Any, conf: dict) -> Any:
+def _global_deck_defaults(aqt: Any, conf: dict[str, Any]) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)
@@ -409,7 +409,7 @@ answering with 'Again'.")
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget: Any, conf: dict) -> None:
+    def load_data(widget: Any, conf: dict[str, Any]) -> None:
         widget.shareDrain.set_value(conf['shareDrain'])
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
@@ -512,7 +512,7 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
     dialog.exec()
 
 
-def _deck_basic_tab(aqt: Any, conf: dict, life: Union[int, float]) -> Any:
+def _deck_basic_tab(aqt: Any, conf: dict[str, Any], life: Union[int, float]) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)
@@ -525,7 +525,7 @@ that is recovered after answering a card.''')
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget: Any, conf: dict) -> None:
+    def load_data(widget: Any, conf: dict[str, Any]) -> None:
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
         widget.currentValueInput.set_value(int(life))
@@ -535,7 +535,7 @@ that is recovered after answering a card.''')
     return tab
 
 
-def _deck_damage_tab(aqt: Any, conf: dict) -> Any:
+def _deck_damage_tab(aqt: Any, conf: dict[str, Any]) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)
@@ -551,7 +551,7 @@ answering with 'Again'.")
         tab.fill_space()
         return tab.widget
 
-    def load_data(widget: Any, conf: dict) -> None:
+    def load_data(widget: Any, conf: dict[str, Any]) -> None:
         def update_damageinput() -> None:
             damage_enabled = widget.enableDamageInput.isChecked()
             widget.damageInput.setEnabled(damage_enabled)
