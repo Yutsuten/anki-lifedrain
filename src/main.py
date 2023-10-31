@@ -97,8 +97,9 @@ def setup_review(lifedrain: Lifedrain) -> None:
         lambda card: lifedrain.show_answer())  # noqa: ARG
     gui_hooks.reviewer_did_answer_card.append(
         lambda *args: lifedrain.status.update({'review_response': args[2]}))
-    gui_hooks.review_did_undo.append(
-        lambda card_id: lifedrain.status.update({'action': 'undo'}))  # noqa: ARG
+    if hasattr(gui_hooks, 'review_did_undo'):
+        gui_hooks.review_did_undo.append(
+            lambda card_id: lifedrain.status.update({'action': 'undo'}))  # noqa: ARG
     gui_hooks.state_did_undo.append(
         lambda out: lifedrain.status.update({'action': 'undo'}))  # noqa: ARG
 
