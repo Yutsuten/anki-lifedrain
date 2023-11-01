@@ -1,15 +1,19 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
+from __future__ import annotations
+
 from operator import itemgetter
-from typing import Any, Iterator, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterator, Optional, Union
 
-from aqt.main import AnkiQt
-
-from .database import DeckConf, GlobalConf
-from .deck_manager import DeckManager
 from .defaults import BEHAVIORS, DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 from .version import VERSION
+
+if TYPE_CHECKING:
+    from aqt.main import AnkiQt
+
+    from .database import DeckConf, GlobalConf
+    from .deck_manager import DeckManager
 
 
 class Form:
@@ -512,7 +516,7 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
     dialog.exec()
 
 
-def _deck_basic_tab(aqt: Any, conf: dict[str, Any], life: Union[int, float]) -> Any:
+def _deck_basic_tab(aqt: Any, conf: dict[str, Any], life: float) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)

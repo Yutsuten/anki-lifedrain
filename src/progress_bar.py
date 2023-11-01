@@ -1,11 +1,14 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Literal, Union
+from __future__ import annotations
 
-from aqt.main import AnkiQt
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
+
+if TYPE_CHECKING:
+    from aqt.main import AnkiQt
 
 
 class ProgressBar:
@@ -128,7 +131,7 @@ class ProgressBar:
 
         existing_widgets = [
             widget for widget in self._mw.findChildren(self._qt.QDockWidget)
-            if self._mw.dockWidgetArea(widget) == dock_area  # pyright: ignore [reportGeneralTypeIssues] # noqa: E501
+            if self._mw.dockWidgetArea(widget) == dock_area  # pyright: ignore [reportGeneralTypeIssues]
         ]
         if not existing_widgets:
             self._mw.addDockWidget(dock_area, self._dock['widget'])

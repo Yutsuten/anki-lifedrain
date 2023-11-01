@@ -1,15 +1,18 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Callable
+from __future__ import annotations
 
-from anki.cards import Card
-from aqt.main import AnkiQt, MainWindowState
+from typing import TYPE_CHECKING, Any, Callable, Union
 
 from . import settings
 from .database import DeckConf, GlobalConf
 from .deck_manager import DeckManager
 from .decorators import must_be_enabled
+
+if TYPE_CHECKING:
+    from anki.cards import Card
+    from aqt.main import AnkiQt, MainWindowState
 
 
 class Lifedrain:
@@ -170,10 +173,11 @@ class Lifedrain:
         self.status['reviewed'] = True
 
     @must_be_enabled
-    def _toggle_drain(self, config: dict[str, Any], enable=None) -> None:  # noqa: ARG
+    def _toggle_drain(self, config: dict[str, Any], enable: Union[bool, None]=None) -> None:  # noqa: ARG002
         """Toggles the life drain.
 
         Args:
+            config: Global configuration dictionary.
             enable: Optional. Enables the drain if True.
         """
         if self._timer.isActive() and enable is not True:
