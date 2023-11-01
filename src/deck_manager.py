@@ -1,16 +1,21 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, Literal, Optional, Union
+from __future__ import annotations
 
-from anki.consts import CardType
+from typing import TYPE_CHECKING, Any, Literal, Optional, Union
+
 from anki.hooks import runHook
-from aqt.main import AnkiQt, MainWindowState
 
-from .database import DeckConf, GlobalConf
 from .decorators import must_have_active_deck
 from .defaults import BEHAVIORS
 from .progress_bar import ProgressBar
+
+if TYPE_CHECKING:
+    from anki.consts import CardType
+    from aqt.main import AnkiQt, MainWindowState
+
+    from .database import DeckConf, GlobalConf
 
 
 class DeckManager:
@@ -177,7 +182,7 @@ class DeckManager:
         bar_info['currentValue'] = history[bar_info['currentReview']]
         self._progress_bar.set_current_value(bar_info['currentValue'])
 
-    def _update_life(self, bar_info: dict[str, Any], difference: Union[int, float]) -> None:
+    def _update_life(self, bar_info: dict[str, Any], difference: float) -> None:
         """Apply recover/damage/drain.
 
         Args:

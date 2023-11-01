@@ -1,6 +1,8 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
+from __future__ import annotations
+
 from typing import Any, Callable
 
 from anki import hooks
@@ -39,7 +41,7 @@ def setup_shortcuts(lifedrain: Lifedrain) -> None:
         elif state == 'overview':
             lifedrain.overview_shortcuts(shortcuts)
 
-    gui_hooks.collection_did_load.append(lambda col: lifedrain.update_global_shortcuts())  # noqa: ARG
+    gui_hooks.collection_did_load.append(lambda col: lifedrain.update_global_shortcuts())  # noqa: ARG005
     gui_hooks.state_shortcuts_will_change.append(state_shortcuts)
 
 
@@ -47,7 +49,7 @@ def setup_state_change(lifedrain: Lifedrain) -> None:
     """Set hooks triggered when changing state."""
     gui_hooks.state_will_change.append(lambda *args: lifedrain.screen_change(args[0]))
     gui_hooks.state_did_reset.append(
-        lambda *args: lifedrain.status.update({'reviewed': False}))  # noqa: ARG
+        lambda *args: lifedrain.status.update({'reviewed': False}))  # noqa: ARG005
 
 
 def setup_deck_browser(lifedrain: Lifedrain) -> None:
@@ -57,7 +59,7 @@ def setup_deck_browser(lifedrain: Lifedrain) -> None:
         menu.insertAction(menu.actions()[2], action)
         qt.qconnect(
             action.triggered,
-            lambda b: action_deck_settings(DeckId(did))  # noqa: ARG
+            lambda b: action_deck_settings(DeckId(did)),  # noqa: ARG005
         )
 
     def action_deck_settings(did: DeckId) -> None:
@@ -94,32 +96,32 @@ def setup_review(lifedrain: Lifedrain) -> None:
     """Set hooks triggered while reviewing."""
     gui_hooks.reviewer_did_show_question.append(lifedrain.show_question)
     gui_hooks.reviewer_did_show_answer.append(
-        lambda card: lifedrain.show_answer())  # noqa: ARG
+        lambda card: lifedrain.show_answer())  # noqa: ARG005
     gui_hooks.reviewer_did_answer_card.append(
         lambda *args: lifedrain.status.update({'review_response': args[2]}))
     if hasattr(gui_hooks, 'review_did_undo'):
         gui_hooks.review_did_undo.append(
-            lambda card_id: lifedrain.status.update({'action': 'undo'}))  # noqa: ARG
+            lambda card_id: lifedrain.status.update({'action': 'undo'}))  # noqa: ARG005
     gui_hooks.state_did_undo.append(
-        lambda out: lifedrain.status.update({'action': 'undo'}))  # noqa: ARG
+        lambda out: lifedrain.status.update({'action': 'undo'}))  # noqa: ARG005
 
     gui_hooks.browser_will_show.append(
-        lambda browser: lifedrain.opened_window())  # noqa: ARG
+        lambda browser: lifedrain.opened_window())  # noqa: ARG005
     gui_hooks.editor_did_init.append(
-        lambda editor: lifedrain.opened_window())  # noqa: ARG
+        lambda editor: lifedrain.opened_window())  # noqa: ARG005
     gui_hooks.deck_options_did_load.append(
-        lambda deck_options: lifedrain.opened_window())  # noqa: ARG
+        lambda deck_options: lifedrain.opened_window())  # noqa: ARG005
     gui_hooks.filtered_deck_dialog_did_load_deck.append(
-        lambda *args: lifedrain.opened_window())  # noqa: ARG
+        lambda *args: lifedrain.opened_window())  # noqa: ARG005
 
     # Action on cards
     hooks.notes_will_be_deleted.append(
-        lambda *args: lifedrain.status.update({'action': 'delete'}))  # noqa: ARG
+        lambda *args: lifedrain.status.update({'action': 'delete'}))  # noqa: ARG005
     gui_hooks.reviewer_will_suspend_note.append(
-        lambda *args: lifedrain.status.update({'action': 'suspend'}))  # noqa: ARG
+        lambda *args: lifedrain.status.update({'action': 'suspend'}))  # noqa: ARG005
     gui_hooks.reviewer_will_suspend_card.append(
-        lambda *args: lifedrain.status.update({'action': 'suspend'}))  # noqa: ARG
+        lambda *args: lifedrain.status.update({'action': 'suspend'}))  # noqa: ARG005
     gui_hooks.reviewer_will_bury_note.append(
-        lambda *args: lifedrain.status.update({'action': 'bury'}))  # noqa: ARG
+        lambda *args: lifedrain.status.update({'action': 'bury'}))  # noqa: ARG005
     gui_hooks.reviewer_will_bury_card.append(
-        lambda *args: lifedrain.status.update({'action': 'bury'}))  # noqa: ARG
+        lambda *args: lifedrain.status.update({'action': 'bury'}))  # noqa: ARG005

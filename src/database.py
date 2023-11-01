@@ -1,12 +1,15 @@
 # Copyright (c) Yutsuten <https://github.com/Yutsuten>. Licensed under AGPL-3.0.
 # See the LICENCE file in the repository root for full licence text.
 
-from typing import Any, ClassVar
+from __future__ import annotations
 
-from aqt.main import AnkiQt
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from .defaults import DEFAULTS
 from .exceptions import GetCollectionError, LoadConfigurationError
+
+if TYPE_CHECKING:
+    from aqt.main import AnkiQt
 
 
 class GlobalConf:
