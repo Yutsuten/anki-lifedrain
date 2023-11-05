@@ -128,6 +128,7 @@ class Lifedrain:
         if not config['enable']:
             return
 
+        self.deck_manager.update(state)
         if state != 'review':
             self._toggle_drain(enable=False)
             self.status['prev_card'] = None
@@ -137,7 +138,6 @@ class Lifedrain:
                 self.status['card_type'],
             )
             self.status['reviewed'] = False
-        self.deck_manager.update(state)
 
     @must_be_enabled
     def opened_window(self, config: dict[str, Any]) -> None:
