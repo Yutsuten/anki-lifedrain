@@ -211,12 +211,6 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
             damage_new = deck_defaults.damageNewInput.value()
             damage_learning = deck_defaults.damageLearningInput.value()
 
-            # When damage_*** is set to None, it defaults to damage
-            if damage_new == damage:
-                damage_new = None
-            if damage_learning == damage:
-                damage_learning = None
-
         conf = {
             'enable': basic_tab.enableAddon.get_value(),
             'stopOnAnswer': basic_tab.stopOnAnswer.get_value(),
@@ -460,12 +454,6 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
             damage = damage_tab.damageInput.value()
             damage_new = damage_tab.damageNewInput.value()
             damage_learning = damage_tab.damageLearningInput.value()
-
-            # When damage_*** is set to None, it defaults to damage
-            if damage_new == damage:
-                damage_new = None
-            if damage_learning == damage:
-                damage_learning = None
 
         conf = config.get()
         conf.update({
