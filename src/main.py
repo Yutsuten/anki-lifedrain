@@ -48,8 +48,6 @@ def setup_shortcuts(lifedrain: Lifedrain) -> None:
 def setup_state_change(lifedrain: Lifedrain) -> None:
     """Set hooks triggered when changing state."""
     gui_hooks.state_will_change.append(lambda *args: lifedrain.screen_change(args[0]))
-    gui_hooks.state_did_reset.append(
-        lambda *args: lifedrain.status.update({'reviewed': False}))  # noqa: ARG005
 
 
 def setup_deck_browser(lifedrain: Lifedrain) -> None:
