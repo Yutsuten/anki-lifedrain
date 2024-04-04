@@ -37,7 +37,7 @@ class Form:
             color: Optional. The color of the text in hex format.
         """
         label = self._qt.QLabel(text)
-        label.setWordWrap(True)  # noqa: FBT003
+        label.setWordWrap(True)
         if color:
             label.setStyleSheet(f'color: {color}')
 

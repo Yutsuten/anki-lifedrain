@@ -1,7 +1,7 @@
 # Rules
 line-length = 100
-select = ["ALL"]
-ignore = [
+lint.select = ["ALL"]
+lint.ignore = [
   "D100",    # Missing docstring in public module
   "D104",    # Missing docstring in public package
   "D107",    # Missing docstring in `__init__`
@@ -14,10 +14,10 @@ ignore = [
   "UP035",   # Deprecated import
 ]
 
-[pydocstyle]
+[lint.pydocstyle]
 convention = "google"
 
-[flake8-quotes]
+[lint.flake8-quotes]
 docstring-quotes = "double"
 inline-quotes = "single"
 multiline-quotes = "single"
