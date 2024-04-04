@@ -1,5 +1,0 @@
-[MASTER]
-ignore-patterns=test_*
-
-[MESSAGES CONTROL]
-disable=unused-argument
