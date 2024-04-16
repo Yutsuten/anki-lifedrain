@@ -457,6 +457,7 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
 
         conf = config.get()
         conf.update({
+            'enable': basic_tab.enable.isChecked(),
             'maxLife': basic_tab.maxLifeInput.value(),
             'recover': basic_tab.recoverInput.value(),
             'damage': damage,
@@ -508,6 +509,8 @@ def _deck_basic_tab(aqt: Any, conf: dict[str, Any], life: float) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)
+        tab.check_box('enable', 'Enable for this deck',
+                      'Enable/disable Life Drain for this deck.')
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
 seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
@@ -518,6 +521,7 @@ that is recovered after answering a card.''')
         return tab.widget
 
     def load_data(widget: Any, conf: dict[str, Any]) -> None:
+        widget.enable.set_value(conf['enable'])
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
         widget.currentValueInput.set_value(int(life))

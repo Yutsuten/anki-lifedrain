@@ -55,7 +55,7 @@ class DeckManager:
             self._update_progress_bar_style()
             self._progress_bar.set_max_value(bar_info['maxValue'])
             self._progress_bar.set_current_value(bar_info['currentValue'])
-            self._progress_bar.set_visible(visible=True)
+            self._progress_bar.set_visible(visible=bar_info['enable'])
 
     def hide_life_bar(self) -> None:
         """Set life bar visibility to False."""
@@ -79,6 +79,7 @@ class DeckManager:
             self._add_deck(conf['id'])
 
         bar_info = self._bar_info[conf['id']]
+        bar_info['enable'] = conf['enable']
         bar_info['maxValue'] = conf['maxLife']
         bar_info['recoverValue'] = conf['recover']
         bar_info['damageValue'] = conf['damage']
@@ -227,6 +228,7 @@ class DeckManager:
             conf = self._deck_conf.get()
 
         self._bar_info[deck_id] = {
+            'enable': conf['enable'],
             'maxValue': conf['maxLife'],
             'recoverValue': conf['recover'],
             'damageValue': conf['damage'],
