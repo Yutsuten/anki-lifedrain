@@ -22,5 +22,8 @@ def must_have_active_deck(func: Callable) -> Callable:
     def _wrapper(self: Any, *args, **kwargs) -> Any:
         if self._cur_deck_id is None:
             raise NoDeckSelectedError
-        return func(self, self._bar_info[self._cur_deck_id], *args, **kwargs)
+        bar_info = self._bar_info[self._cur_deck_id]
+        if not bar_info['enable']:
+            return lambda: None
+        return func(self, bar_info, *args, **kwargs)
     return _wrapper
