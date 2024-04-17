@@ -201,15 +201,15 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
     """Opens a dialog with the Global Settings."""
 
     def save() -> None:
-        enable_damage = deck_defaults.enableDamageInput.isChecked()
+        enable_damage = deck_defaults_tab.enableDamageInput.isChecked()
 
         damage = None
         damage_new = None
         damage_learning = None
         if enable_damage:
-            damage = deck_defaults.damageInput.value()
-            damage_new = deck_defaults.damageNewInput.value()
-            damage_learning = deck_defaults.damageLearningInput.value()
+            damage = deck_defaults_tab.damageInput.value()
+            damage_new = deck_defaults_tab.damageNewInput.value()
+            damage_learning = deck_defaults_tab.damageLearningInput.value()
 
         conf = {
             'enable': basic_tab.enableAddon.get_value(),
@@ -236,9 +236,9 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
             'barTextColor': bar_style_tab.textColorDialog.get_value(),
             'enableBgColor': bar_style_tab.enableBgColor.get_value(),
             'barBgColor': bar_style_tab.bgColorDialog.get_value(),
-            'shareDrain': deck_defaults.shareDrain.get_value(),
-            'maxLife': deck_defaults.maxLifeInput.value(),
-            'recover': deck_defaults.recoverInput.value(),
+            'shareDrain': deck_defaults_tab.shareDrain.get_value(),
+            'maxLife': deck_defaults_tab.maxLifeInput.value(),
+            'recover': deck_defaults_tab.recoverInput.value(),
             'damage': damage,
             'damageNew': damage_new,
             'damageLearning': damage_learning,
@@ -250,24 +250,31 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
 
         return dialog.accept()
 
+    def clicked(button: Any) -> None:
+        if button_box.buttonRole(button) == aqt.QDialogButtonBox.ButtonRole.ResetRole:
+            _global_settings_restore_defaults(basic_tab, bar_style_tab, deck_defaults_tab)
+
     conf = config.get()
     dialog = aqt.QDialog(mw)
     dialog.setWindowTitle(f'Life Drain Global Settings (v{VERSION})')
 
     basic_tab = _global_basic_tab(aqt, conf)
     bar_style_tab = _global_bar_style_tab(aqt, conf)
-    deck_defaults = _global_deck_defaults(aqt, conf)
+    deck_defaults_tab = _global_deck_defaults(aqt, conf)
 
     tab_widget = aqt.QTabWidget()
     tab_widget.addTab(basic_tab, 'Basic')
     tab_widget.addTab(bar_style_tab, 'Bar Style')
-    tab_widget.addTab(deck_defaults, 'Deck Defaults')
+    tab_widget.addTab(deck_defaults_tab, 'Deck Defaults')
 
     button_box = aqt.QDialogButtonBox(
         aqt.QDialogButtonBox.StandardButton.Ok |
-        aqt.QDialogButtonBox.StandardButton.Cancel)
+        aqt.QDialogButtonBox.StandardButton.Cancel |
+        aqt.QDialogButtonBox.StandardButton.RestoreDefaults,
+    )
     button_box.rejected.connect(dialog.reject)
     button_box.accepted.connect(save)
+    button_box.clicked.connect(clicked)
 
     outer_form = Form(aqt, dialog)
     outer_form.add_widget(tab_widget)
@@ -420,9 +427,7 @@ answering with 'Again'.")
 
         enable_damage = conf['damage'] is not None
         damage = conf['damage'] if enable_damage else 5
-
         damage_new = conf['damageNew'] if conf['damageNew'] is not None else damage
-
         damage_learning = conf['damageLearning'] if conf['damageLearning'] is not None else damage
 
         widget.enableDamageInput.set_value(enable_damage)
@@ -438,6 +443,48 @@ answering with 'Again'.")
     tab = generate_form()
     load_data(tab, conf)
     return tab
+
+
+def _global_settings_restore_defaults(basic_tab: Any, bar_style_tab: Any,
+                                      deck_defaults_tab: Any) -> None:
+    basic_tab.enableAddon.set_value(DEFAULTS['enable'])
+    basic_tab.stopOnAnswer.set_value(DEFAULTS['stopOnAnswer'])
+    basic_tab.stopOnLostFocus.set_value(DEFAULTS['stopOnLostFocus'])
+    basic_tab.startEmpty.set_value(DEFAULTS['startEmpty'])
+    basic_tab.behavUndo.set_value(DEFAULTS['behavUndo'])
+    basic_tab.behavBury.set_value(DEFAULTS['behavBury'])
+    basic_tab.behavSuspend.set_value(DEFAULTS['behavSuspend'])
+    basic_tab.globalShortcut.set_value(DEFAULTS['globalSettingsShortcut'])
+    basic_tab.deckShortcut.set_value(DEFAULTS['deckSettingsShortcut'])
+    basic_tab.pauseShortcut.set_value(DEFAULTS['pauseShortcut'])
+    basic_tab.recoverShortcut.set_value(DEFAULTS['recoverShortcut'])
+
+    bar_style_tab.positionList.set_value(DEFAULTS['barPosition'])
+    bar_style_tab.heightInput.set_value(DEFAULTS['barHeight'])
+    bar_style_tab.borderRadiusInput.set_value(DEFAULTS['barBorderRadius'])
+    bar_style_tab.styleList.set_value(DEFAULTS['barStyle'])
+    bar_style_tab.fgColorDialog.set_value(DEFAULTS['barFgColor'])
+    bar_style_tab.thresholdWarn.set_value(DEFAULTS['barThresholdWarn'])
+    bar_style_tab.fgColorWarnDialog.set_value(DEFAULTS['barFgColorWarn'])
+    bar_style_tab.thresholdDanger.set_value(DEFAULTS['barThresholdDanger'])
+    bar_style_tab.fgColorDangerDialog.set_value(DEFAULTS['barFgColorDanger'])
+    bar_style_tab.textList.set_value(DEFAULTS['barText'])
+    bar_style_tab.textColorDialog.set_value(DEFAULTS['barTextColor'])
+    bar_style_tab.enableBgColor.set_value(DEFAULTS['enableBgColor'])
+    bar_style_tab.bgColorDialog.set_value(DEFAULTS['barBgColor'])
+
+    deck_defaults_tab.shareDrain.set_value(DEFAULTS['shareDrain'])
+    deck_defaults_tab.maxLifeInput.set_value(DEFAULTS['maxLife'])
+    deck_defaults_tab.recoverInput.set_value(DEFAULTS['recover'])
+    enable_damage = DEFAULTS['damage'] is not None
+    damage = DEFAULTS['damage'] if enable_damage else 5
+    deck_defaults_tab.enableDamageInput.set_value(enable_damage)
+    deck_defaults_tab.damageInput.set_value(damage)
+    deck_defaults_tab.damageNewInput.set_value(damage)
+    deck_defaults_tab.damageLearningInput.set_value(damage)
+    deck_defaults_tab.damageInput.setEnabled(enable_damage)
+    deck_defaults_tab.damageNewInput.setEnabled(enable_damage)
+    deck_defaults_tab.damageLearningInput.setEnabled(enable_damage)
 
 
 def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalConf,
@@ -476,6 +523,10 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
         deck_manager.set_deck_conf(conf, update_life=True)
         return dialog.accept()
 
+    def clicked(button: Any) -> None:
+        if button_box.buttonRole(button) == aqt.QDialogButtonBox.ButtonRole.ResetRole:
+            _deck_settings_restore_defaults(basic_tab, damage_tab)
+
     conf = config.get()
     dialog = aqt.QDialog(mw)
     dialog.setWindowTitle(f'Life Drain Deck Settings for {conf["name"]}')
@@ -493,9 +544,12 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
 
     button_box = aqt.QDialogButtonBox(
         aqt.QDialogButtonBox.StandardButton.Ok |
-        aqt.QDialogButtonBox.StandardButton.Cancel)
+        aqt.QDialogButtonBox.StandardButton.Cancel |
+        aqt.QDialogButtonBox.StandardButton.RestoreDefaults,
+    )
     button_box.rejected.connect(dialog.reject)
     button_box.accepted.connect(save)
+    button_box.clicked.connect(clicked)
 
     outer_form = Form(aqt, dialog)
     outer_form.add_widget(tab_widget)
@@ -556,9 +610,7 @@ answering with 'Again'.")
 
         enable_damage = conf['damage'] is not None
         damage = conf['damage'] if enable_damage else 5
-
         damage_new = conf['damageNew'] if conf['damageNew'] is not None else damage
-
         damage_learning = conf['damageLearning'] if conf['damageLearning'] is not None else damage
 
         widget.enableDamageInput.set_value(enable_damage)
@@ -574,3 +626,19 @@ answering with 'Again'.")
     tab = generate_form()
     load_data(tab, conf)
     return tab
+
+def _deck_settings_restore_defaults(basic_tab: Any, damage_tab: Any) -> None:
+    basic_tab.enable.set_value(DEFAULTS['enable'])
+    basic_tab.maxLifeInput.set_value(DEFAULTS['maxLife'])
+    basic_tab.recoverInput.set_value(DEFAULTS['recover'])
+    basic_tab.currentValueInput.set_value(DEFAULTS['maxLife'])
+
+    enable_damage = DEFAULTS['damage'] is not None
+    damage = DEFAULTS['damage'] if enable_damage else 5
+    damage_tab.enableDamageInput.set_value(enable_damage)
+    damage_tab.damageInput.set_value(damage)
+    damage_tab.damageNewInput.set_value(damage)
+    damage_tab.damageLearningInput.set_value(damage)
+    damage_tab.damageInput.setEnabled(enable_damage)
+    damage_tab.damageNewInput.setEnabled(enable_damage)
+    damage_tab.damageLearningInput.setEnabled(enable_damage)
