@@ -47,6 +47,7 @@ DEFAULTS = {
     'stopOnAnswer': False,
     'stopOnLostFocus': True,
     'startEmpty': False,
+    'invert': False,
     'enable': True,
     'enableBgColor': False,
     'globalSettingsShortcut': 'Ctrl+Shift+L',

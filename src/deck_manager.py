@@ -254,7 +254,9 @@ class DeckManager:
             'borderRadius': conf['barBorderRadius'],
             'text': conf['barText'],
             'textColor': conf['barTextColor'],
-            'customStyle': conf['barStyle']}
+            'customStyle': conf['barStyle'],
+            'invert': conf['invert'],
+        }
         if conf['enableBgColor']:
             progress_bar_style['bgColor'] = conf['barBgColor']
         self._progress_bar.set_style(progress_bar_style)

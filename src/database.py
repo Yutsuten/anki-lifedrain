@@ -20,7 +20,7 @@ class GlobalConf:
         'globalSettingsShortcut', 'deckSettingsShortcut', 'pauseShortcut', 'recoverShortcut',
         'behavUndo', 'behavBury', 'behavSuspend', 'stopOnLostFocus', 'shareDrain',
         'barThresholdWarn', 'barFgColorWarn', 'barThresholdDanger', 'barFgColorDanger',
-        'startEmpty',
+        'startEmpty', 'invert',
     }
 
     def __init__(self, mw: AnkiQt):
