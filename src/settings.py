@@ -223,6 +223,7 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
             'behavUndo': basic_tab.behavUndo.get_value(),
             'behavBury': basic_tab.behavBury.get_value(),
             'behavSuspend': basic_tab.behavSuspend.get_value(),
+            'invert': bar_style_tab.invert.get_value(),
             'barPosition': bar_style_tab.positionList.get_value(),
             'barHeight': bar_style_tab.heightInput.get_value(),
             'barBorderRadius': bar_style_tab.borderRadiusInput.get_value(),
@@ -343,6 +344,8 @@ def _global_bar_style_tab(aqt: Any, conf: dict[str, Any]) -> Any:
 
     def generate_form() -> Any:
         tab = Form(aqt)
+        tab.check_box('invert', 'Invert bar movement',
+                      'Reduce life from left to right instead of right to left.')
         tab.combo_box('positionList', 'Position', POSITION_OPTIONS,
                       'Place to show the life bar.')
         tab.spin_box('heightInput', 'Height', [1, 40],
@@ -373,6 +376,7 @@ If checked, you can choose a background color on the next field.''')
         return tab.widget
 
     def load_data(widget: Any, conf: dict[str, Any]) -> None:
+        widget.invert.set_value(conf['invert'])
         widget.positionList.set_value(conf['barPosition'])
         widget.heightInput.set_value(conf['barHeight'])
         widget.borderRadiusInput.set_value(conf['barBorderRadius'])

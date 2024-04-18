@@ -102,6 +102,7 @@ class ProgressBar:
             self._qprogressbar.setFormat(text_format['format'])
         self._current_bar_color = ''
         self._update_bar_color()
+        self._qprogressbar.setInvertedAppearance(options['invert'])
 
     def dock_at(self, position_index: Literal[0, 1]) -> None:
         """Docks the bar at the specified position in the Anki window.
