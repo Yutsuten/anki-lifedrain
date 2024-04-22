@@ -141,6 +141,32 @@ class Form:
         self._layout.addWidget(spin_box, self._row, 2, 1, 2)
         self._row += 1
 
+    def double_spin_box(self, sb_name: str, label_text: str, val_range: list[float],
+                        tooltip: Optional[str]=None) -> None:
+        """Creates a double spin box in the current row of the form.
+
+        Args:
+            sb_name: The name of the spin box. Not visible by the user.
+            label_text: A text that describes what is the spin box for.
+            val_range: A list of two floats that are the range.
+            tooltip: The tooltip to be shown.
+        """
+        label = self._qt.QLabel(label_text)
+        double_spin_box = self._qt.QDoubleSpinBox(self.widget)
+        double_spin_box.setRange(val_range[0], val_range[1])
+        double_spin_box.setDecimals(1)
+        if tooltip is not None:
+            label.setToolTip(tooltip)
+            double_spin_box.setToolTip(tooltip)
+
+        double_spin_box.get_value = double_spin_box.value
+        double_spin_box.set_value = double_spin_box.setValue
+
+        setattr(self.widget, sb_name, double_spin_box)
+        self._layout.addWidget(label, self._row, 0)
+        self._layout.addWidget(double_spin_box, self._row, 2, 1, 2)
+        self._row += 1
+
     def color_select(self, cs_name: str, label_text: str, tooltip: Optional[str]=None) -> None:
         """Creates a color select in the current row of the form.
 
@@ -573,8 +599,8 @@ def _deck_basic_tab(aqt: Any, conf: dict[str, Any], life: float) -> Any:
 seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
 that is recovered after answering a card.''')
-        tab.spin_box('currentValueInput', 'Current life', [0, 10000],
-                     'Current life, in seconds.')
+        tab.double_spin_box('currentValueInput', 'Current life', [0, 10000],
+                            'Current life, in seconds.')
         tab.fill_space()
         return tab.widget
 
@@ -582,7 +608,7 @@ that is recovered after answering a card.''')
         widget.enable.set_value(conf['enable'])
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
-        widget.currentValueInput.set_value(int(life))
+        widget.currentValueInput.set_value(life)
 
     tab = generate_form()
     load_data(tab, conf)
