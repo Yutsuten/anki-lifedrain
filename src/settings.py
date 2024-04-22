@@ -155,6 +155,7 @@ class Form:
         double_spin_box = self._qt.QDoubleSpinBox(self.widget)
         double_spin_box.setRange(val_range[0], val_range[1])
         double_spin_box.setDecimals(1)
+        double_spin_box.setSingleStep(0.1)
         if tooltip is not None:
             label.setToolTip(tooltip)
             double_spin_box.setToolTip(tooltip)
