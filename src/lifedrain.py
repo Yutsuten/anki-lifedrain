@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from . import settings
 from .database import DeckConf, GlobalConf
@@ -27,18 +27,15 @@ class Lifedrain:
         status: A dictionary that keeps track the events on Anki.
     """
 
-    def __init__(self, make_timer: Callable, mw: AnkiQt, qt: Any):
+    def __init__(self, mw: AnkiQt, qt: Any):
         """Initializes DeckManager and Settings, and add-on initial setup.
 
         Args:
-            make_timer: A function that creates a timer.
             mw: Anki's main window.
             qt: The PyQt library.
         """
         self._qt = qt
         self._mw = mw
-        self._timer = make_timer(100, lambda: self.deck_manager.drain(), repeat=True, parent=mw)
-        self._timer.stop()
         self.config = GlobalConf(mw)
         self._deck_config = DeckConf(mw)
         self.deck_manager = DeckManager(mw, qt, self.config, self._deck_config)
@@ -53,8 +50,8 @@ class Lifedrain:
 
     def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
-        drain_enabled = self._timer.isActive()
-        self._toggle_drain(enable=False)
+        drain_enabled = self.deck_manager.timer.isActive()
+        self.toggle_drain(enable=False)
         settings.global_settings(
             aqt=self._qt,
             mw=self._mw,
@@ -64,7 +61,7 @@ class Lifedrain:
         config = self.config.get()
         if config['enable']:
             self.update_global_shortcuts()
-            self._toggle_drain(drain_enabled)
+            self.toggle_drain(drain_enabled)
             self.deck_manager.update(self.status['screen'])
         else:
             self.update_global_shortcuts()
@@ -72,8 +69,8 @@ class Lifedrain:
 
     def deck_settings(self) -> None:
         """Opens a dialog with the Deck Settings."""
-        drain_enabled = self._timer.isActive()
-        self._toggle_drain(enable=False)
+        drain_enabled = self.deck_manager.timer.isActive()
+        self.toggle_drain(enable=False)
         settings.deck_settings(
             aqt=self._qt,
             mw=self._mw,
@@ -81,7 +78,7 @@ class Lifedrain:
             global_config=self.config,
             deck_manager=self.deck_manager,
         )
-        self._toggle_drain(drain_enabled)
+        self.toggle_drain(drain_enabled)
         self.deck_manager.update(self.status['screen'])
 
     def update_global_shortcuts(self) -> None:
@@ -102,7 +99,7 @@ class Lifedrain:
         if config['deckSettingsShortcut']:
             shortcuts.append((config['deckSettingsShortcut'], self.deck_settings))
         if config['enable'] and config['pauseShortcut']:
-            shortcuts.append((config['pauseShortcut'], self._toggle_drain))
+            shortcuts.append((config['pauseShortcut'], self.toggle_drain))
 
     def overview_shortcuts(self, shortcuts: list[tuple]) -> None:
         """Generates the overview screen shortcuts."""
@@ -110,9 +107,10 @@ class Lifedrain:
         if config['deckSettingsShortcut']:
             shortcuts.append((config['deckSettingsShortcut'], self.deck_settings))
         if config['enable'] and config['recoverShortcut']:
-            def full_recover() -> None:
-                self.deck_manager.recover()
-            shortcuts.append((config['recoverShortcut'], full_recover))
+            def start_recover() -> None:
+                self.deck_manager.recovering = True
+                self.toggle_drain()
+            shortcuts.append((config['recoverShortcut'], start_recover))
 
     def screen_change(self, state: MainWindowState) -> None:
         """Updates Life Drain when the screen changes.
@@ -130,25 +128,27 @@ class Lifedrain:
 
         self.deck_manager.update(state)
         if state != 'review':
-            self._toggle_drain(enable=False)
+            self.toggle_drain(enable=False)
             self.status['prev_card'] = None
-        if self.status['reviewed'] and state in ['overview', 'review']:
+        if state != 'overview':
+            self.deck_manager.recovering = False
+        if state != 'deckBrowser' and self.status['reviewed']:
             self.deck_manager.answer(
                 self.status['review_response'],
                 self.status['card_type'],
             )
-            self.status['reviewed'] = False
+        self.status['reviewed'] = False
 
     @must_be_enabled
     def opened_window(self, config: dict[str, Any]) -> None:
         """Called when a window is opened while reviewing."""
         if config['stopOnLostFocus']:
-            self._toggle_drain(enable=False)
+            self.toggle_drain(enable=False)
 
     @must_be_enabled
     def show_question(self, config: dict[str, Any], card: Card) -> None:
         """Called when a question is shown."""
-        self._toggle_drain(enable=True)
+        self.toggle_drain(enable=True)
         if self.status['action'] == 'undo':
             self.deck_manager.undo()
         elif self.status['action'] == 'bury':
@@ -169,18 +169,19 @@ class Lifedrain:
     @must_be_enabled
     def show_answer(self, config: dict[str, Any]) -> None:
         """Called when an answer is shown."""
-        self._toggle_drain(not config['stopOnAnswer'])
+        self.toggle_drain(not config['stopOnAnswer'])
         self.status['reviewed'] = True
 
     @must_be_enabled
-    def _toggle_drain(self, config: dict[str, Any], enable: Union[bool, None]=None) -> None:  # noqa: ARG002
+    def toggle_drain(self, config: dict[str, Any], enable: Union[bool, None]=None) -> None:  # noqa: ARG002
         """Toggles the life drain.
 
         Args:
             config: Global configuration dictionary.
             enable: Optional. Enables the drain if True.
         """
-        if self._timer.isActive() and enable is not True:
-            self._timer.stop()
-        elif not self._timer.isActive() and enable is not False:
-            self._timer.start()
+        is_active = self.deck_manager.timer.isActive()
+        if is_active and enable is not True:
+            self.deck_manager.timer.stop()
+        elif not is_active and enable is not False:
+            self.deck_manager.timer.start()

@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal, Optional, Union
 
 from anki.hooks import runHook
+from aqt.progress import ProgressManager
 
 from .decorators import must_have_active_deck
 from .defaults import BEHAVIORS
@@ -34,6 +35,9 @@ class DeckManager:
             global_conf: An instance of GlobalConf.
             deck_conf: An instance of DeckConf.
         """
+        self.recovering: bool = False
+        self.timer = ProgressManager(mw).timer(100, self.life_timer, repeat=True, parent=mw)
+        self.timer.stop()
         self._progress_bar = ProgressBar(mw, qt)
         self._global_conf = global_conf
         self._deck_conf = deck_conf
@@ -82,6 +86,7 @@ class DeckManager:
         bar_info['enable'] = conf['enable']
         bar_info['maxValue'] = conf['maxLife']
         bar_info['recoverValue'] = conf['recover']
+        bar_info['fullRecoverSpeed'] = conf['fullRecoverSpeed']
         bar_info['damageValue'] = conf['damage']
         bar_info['damageNew'] = conf['damageNew']
         bar_info['damageLearning'] = conf['damageLearning']
@@ -93,9 +98,18 @@ class DeckManager:
             bar_info['currentValue'] = current_value
 
     @must_have_active_deck
-    def drain(self, bar_info: dict[str, Any]) -> None:
-        """Life loss due to drain."""
-        self._update_life(bar_info, -0.1)
+    def life_timer(self, bar_info: dict[str, Any]) -> None:
+        """Life loss due to drain, or life gained due to recover."""
+        if self.recovering:
+            if bar_info['fullRecoverSpeed'] == 0:
+                self.recover()
+            else:
+                self._update_life(bar_info, bar_info['fullRecoverSpeed'] / 10)
+        else:
+            self._update_life(bar_info, -0.1)  # Drain
+
+        if bar_info['currentValue'] in [0, bar_info['maxValue']]:
+            self.timer.stop()
 
     @must_have_active_deck
     def heal(self, bar_info: dict[str, Any], value:Optional[Union[int, float]]=None, *,
@@ -231,6 +245,7 @@ class DeckManager:
             'enable': conf['enable'],
             'maxValue': conf['maxLife'],
             'recoverValue': conf['recover'],
+            'fullRecoverSpeed': conf['fullRecoverSpeed'],
             'damageValue': conf['damage'],
             'damageNew': conf['damageNew'],
             'damageLearning': conf['damageLearning'],

@@ -29,6 +29,7 @@ TEXT_FORMAT = [{
 DEFAULTS = {
     'maxLife': 120,
     'recover': 5,
+    'fullRecoverSpeed': 0,
     'damage': None,
     'damageNew': None,
     'damageLearning': None,
