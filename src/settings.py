@@ -437,7 +437,7 @@ that is recovered after answering a card.''')
         tab.double_spin_box('fullRecoverInput', 'Full recover speed', [-10000, 10000], '''Amount \
 to recover each second when clicking the "Recover" button in the deck overview screen. Negative \
 values allowed.
-Use 0 for the default behaviour: instant recovery.
+Use 0 for the default behavior: instant recovery.
 The recover will stop once life reaches 0, maximum, or when leaving deck overview screen.''')
         tab.check_box('enableDamageInput', 'Enable damage',
                       "Enable the damage feature. It will be triggered when \
@@ -613,7 +613,7 @@ that is recovered after answering a card.''')
         tab.double_spin_box('fullRecoverInput', 'Full recover speed', [-10000, 10000], '''Amount \
 to recover each second when clicking the "Recover" button in the deck overview screen. Negative \
 values allowed.
-Use 0 for the default behaviour: instant recovery.
+Use 0 for the default behavior: instant recovery.
 The recover will stop once life reaches 0, maximum, or when leaving deck overview screen.''')
         tab.fill_space()
         return tab.widget
