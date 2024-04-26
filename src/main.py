@@ -8,7 +8,6 @@ from typing import Any, Callable
 from anki import hooks
 from anki.decks import DeckId
 from aqt import gui_hooks, mw, qt
-from aqt.progress import ProgressManager
 
 from .defaults import DEFAULTS
 from .exceptions import GetCollectionError, GetMainWindowError
@@ -20,8 +19,7 @@ def main() -> None:
     if mw is None:
         raise GetMainWindowError
 
-    make_timer = ProgressManager(mw).timer
-    lifedrain = Lifedrain(make_timer, mw, qt)
+    lifedrain = Lifedrain(mw, qt)
 
     setup_shortcuts(lifedrain)
     setup_state_change(lifedrain)
@@ -82,7 +80,8 @@ def setup_overview(lifedrain: Lifedrain) -> None:
             if url == 'lifedrain':
                 lifedrain.deck_settings()
             elif url == 'recover':
-                lifedrain.deck_manager.recover()
+                lifedrain.deck_manager.recovering = True
+                lifedrain.toggle_drain()
             return link_handler(url=url)
 
         return custom_link_handler

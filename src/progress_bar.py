@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, Union
+import math
+from typing import TYPE_CHECKING, Any, Literal
 
 from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
 
@@ -28,7 +29,7 @@ class ProgressBar:
         self._mw = mw
         self._qt = qt
         self._qprogressbar = qt.QProgressBar()
-        self._current_value: Union[int, float] = 1
+        self._current_value: float = 1
         self._dock: dict[str, Any] = {}
         self._max_value: float = 1
         self._text_format: str = ''
@@ -56,10 +57,8 @@ class ProgressBar:
         Args:
             max_value: The maximum value of the bar. Up to 1 decimal place.
         """
-        self._max_value = max_value * 10
-        if self._max_value <= 0:
-            self._max_value = 1
-        self._qprogressbar.setRange(0, self._max_value)
+        self._max_value = max(1, max_value)
+        self._qprogressbar.setRange(0, self._max_value * 10)
 
     def set_current_value(self, current_value: float) -> None:
         """Sets the current value for the bar.
@@ -67,7 +66,7 @@ class ProgressBar:
         Args:
             current_value: The current value of the bar. Up to 1 decimal place.
         """
-        self._current_value = int(current_value * 10)
+        self._current_value = current_value
         self._validate_current_value()
         self._update_text()
         self._update_bar_color()
@@ -78,15 +77,14 @@ class ProgressBar:
         Args:
             increment: A positive or negative number. Up to 1 decimal place.
         """
-        self._current_value += int(increment * 10)
+        self._current_value += increment
         self._validate_current_value()
-        if self._current_value % 10 == 0 or abs(increment) >= 1:
-            self._update_text()
-            self._update_bar_color()
+        self._update_text()
+        self._update_bar_color()
 
     def get_current_value(self) -> float:
         """Gets the current value of the bar."""
-        return float(self._current_value) / 10
+        return self._current_value
 
     def set_style(self, options: dict[str, Any]) -> None:
         """Sets the styling of the Progress Bar.
@@ -152,7 +150,7 @@ class ProgressBar:
             self._current_value = self._max_value
         elif self._current_value < 0:
             self._current_value = 0
-        self._qprogressbar.setValue(self._current_value)
+        self._qprogressbar.setValue(int(self._current_value * 10))
         self._qprogressbar.update()
 
     def _update_text(self) -> None:
@@ -160,14 +158,12 @@ class ProgressBar:
         if not self._text_format:
             return
         if self._text_format == 'mm:ss':
-            minutes = int(self._current_value / 600)
-            seconds = int((self._current_value / 10) % 60)
+            minutes = int(self._current_value / 60)
+            seconds = int(self._current_value) % 60
             self._qprogressbar.setFormat(f'{minutes:01d}:{seconds:02d}')
         else:
-            current_value = int(self._current_value / 10)
-            if self._current_value % 10 != 0:
-                current_value += 1
-            max_value = int(self._max_value / 10)
+            current_value = math.ceil(self._current_value)
+            max_value = int(self._max_value)
             text = self._text_format
             text = text.replace('%v', str(current_value))
             text = text.replace('%m', str(max_value))

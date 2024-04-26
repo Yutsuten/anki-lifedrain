@@ -61,7 +61,7 @@ class GlobalConf:
 class DeckConf:
     """Manages Life Drain's deck configuration."""
     FIELDS: ClassVar[set[str]] = {
-        'enable', 'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning',
+        'enable', 'maxLife', 'recover', 'damage', 'damageNew', 'damageLearning', 'fullRecoverSpeed',
     }
 
     def __init__(self, mw: AnkiQt):

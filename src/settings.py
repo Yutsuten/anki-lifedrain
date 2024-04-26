@@ -267,6 +267,7 @@ def global_settings(aqt: Any, mw: AnkiQt, config: GlobalConf, deck_manager: Deck
             'shareDrain': deck_defaults_tab.shareDrain.get_value(),
             'maxLife': deck_defaults_tab.maxLifeInput.value(),
             'recover': deck_defaults_tab.recoverInput.value(),
+            'fullRecoverSpeed': deck_defaults_tab.fullRecoverInput.value(),
             'damage': damage,
             'damageNew': damage_new,
             'damageLearning': damage_learning,
@@ -433,6 +434,11 @@ def _global_deck_defaults(aqt: Any, conf: dict[str, Any]) -> Any:
 seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
 that is recovered after answering a card.''')
+        tab.double_spin_box('fullRecoverInput', 'Full recover speed', [-10000, 10000], '''Amount \
+to recover each second when clicking the "Recover" button in the deck overview screen. Negative \
+values allowed.
+Use 0 for the default behavior: instant recovery.
+The recover will stop once life reaches 0, maximum, or when leaving deck overview screen.''')
         tab.check_box('enableDamageInput', 'Enable damage',
                       "Enable the damage feature. It will be triggered when \
 answering with 'Again'.")
@@ -449,6 +455,7 @@ answering with 'Again'.")
         widget.shareDrain.set_value(conf['shareDrain'])
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
+        widget.fullRecoverInput.set_value(conf['fullRecoverSpeed'])
 
         def update_damageinput() -> None:
             damage_enabled = widget.enableDamageInput.isChecked()
@@ -538,6 +545,7 @@ def deck_settings(aqt: Any, mw: AnkiQt, config: DeckConf, global_config: GlobalC
             'enable': basic_tab.enable.isChecked(),
             'maxLife': basic_tab.maxLifeInput.value(),
             'recover': basic_tab.recoverInput.value(),
+            'fullRecoverSpeed': basic_tab.fullRecoverInput.value(),
             'damage': damage,
             'damageNew': damage_new,
             'damageLearning': damage_learning,
@@ -598,10 +606,15 @@ def _deck_basic_tab(aqt: Any, conf: dict[str, Any], life: float) -> Any:
                       'Enable/disable Life Drain for this deck.')
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
 seconds for the life bar go from full to empty.''')
-        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
+        tab.spin_box('recoverInput', 'Answer recover', [0, 1000], '''Time in seconds \
 that is recovered after answering a card.''')
         tab.double_spin_box('currentValueInput', 'Current life', [0, 10000],
                             'Current life, in seconds.')
+        tab.double_spin_box('fullRecoverInput', 'Full recover speed', [-10000, 10000], '''Amount \
+to recover each second when clicking the "Recover" button in the deck overview screen. Negative \
+values allowed.
+Use 0 for the default behavior: instant recovery.
+The recover will stop once life reaches 0, maximum, or when leaving deck overview screen.''')
         tab.fill_space()
         return tab.widget
 
@@ -610,6 +623,7 @@ that is recovered after answering a card.''')
         widget.maxLifeInput.set_value(conf['maxLife'])
         widget.recoverInput.set_value(conf['recover'])
         widget.currentValueInput.set_value(life)
+        widget.fullRecoverInput.set_value(conf['fullRecoverSpeed'])
 
     tab = generate_form()
     load_data(tab, conf)
