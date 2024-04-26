@@ -6,5 +6,5 @@ build: prepare
 
 prepare:
 	mkdir -p dist
-	rm -rf dist/lifedrain.zip
+	rm -f dist/lifedrain.zip
 	find src -name __pycache__ -type d -exec rm -r {} +
