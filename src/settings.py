@@ -181,7 +181,7 @@ class Form:
             if not color_dialog.exec():
                 return
             color = color_dialog.currentColor().name()
-            css = 'QLabel { background-color: %s; }' % color
+            css = f'QLabel {{ background-color: {color}; }}'
             preview_label.setStyleSheet(css)
 
         label = self._qt.QLabel(label_text)
@@ -197,15 +197,15 @@ class Form:
             preview_label.setToolTip(tooltip)
 
         def set_value(color: str) -> None:
-            css = 'QLabel { background-color: %s; }' % color
+            css = f'QLabel {{ background-color: {color}; }}'
             color_dialog.setCurrentColor(self._qt.QColor(color))
             preview_label.setStyleSheet(css)
 
         color_dialog.get_value = lambda: color_dialog.currentColor().name()
         color_dialog.set_value = set_value
 
-        setattr(self.widget, '%sPreview' % cs_name, preview_label)
-        setattr(self.widget, '%sDialog' % cs_name, color_dialog)
+        setattr(self.widget, f'{cs_name}Preview', preview_label)
+        setattr(self.widget, f'{cs_name}Dialog', color_dialog)
         self._layout.addWidget(label, self._row, 0)
         self._layout.addWidget(select_button, self._row, 2)
         self._layout.addWidget(preview_label, self._row, 3)
