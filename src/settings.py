@@ -432,7 +432,7 @@ def _global_deck_defaults(aqt: Any, conf: dict[str, Any]) -> Any:
                       'Current life will be shared between all decks.')
         tab.spin_box('maxLifeInput', 'Maximum life', [1, 10000], '''Time in \
 seconds for the life bar go from full to empty.''')
-        tab.spin_box('recoverInput', 'Recover', [0, 1000], '''Time in seconds \
+        tab.spin_box('recoverInput', 'Answer recover', [0, 1000], '''Time in seconds \
 that is recovered after answering a card.''')
         tab.double_spin_box('fullRecoverInput', 'Full recover speed', [-10000, 10000], '''Amount \
 to recover each second when clicking the "Recover" button in the deck overview screen. Negative \
