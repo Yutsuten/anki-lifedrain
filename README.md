@@ -2,7 +2,7 @@
 
 MAINTENANCE NOTICE:
 
-- I won't accept new feature requests. The ones that already exist will eventually be implemented.
+- I won't accept new feature requests. But small enhancements may be accepted.
 - My focus will be to keep the add-on working on newer versions of Anki.
 
 An [Anki](https://apps.ankiweb.net/) add-on that adds a life bar to your reviews.
