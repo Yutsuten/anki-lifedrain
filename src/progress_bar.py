@@ -6,7 +6,7 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, Any, Literal
 
-from .defaults import POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
+from .defaults import POSITION_OPTIONS, TEXT_FORMAT
 
 if TYPE_CHECKING:
     from aqt.main import AnkiQt
@@ -185,20 +185,21 @@ class ProgressBar:
             return
 
         self._current_bar_color = bar_color
-        custom_style = STYLE_OPTIONS[options['customStyle']] \
-            .replace(' ', '').lower()
-        if custom_style != 'default':
+        if options['customStyle']:
+            available_styles = ['default', *self._qt.QStyleFactory.keys()]
+            custom_style = available_styles[options['customStyle']]
+
             qstyle = self._qt.QStyleFactory.create(custom_style)
             self._qprogressbar.setStyle(qstyle)
 
             palette = self._qt.QPalette()
             fg_color = self._qt.QColor(bar_color)
-            palette.setColor(self._qt.QPalette.Highlight, fg_color)
+            palette.setColor(self._qt.QPalette.ColorRole.Highlight, fg_color)
 
             if 'bgColor' in options:
                 bg_color = self._qt.QColor(options['bgColor'])
-                palette.setColor(self._qt.QPalette.Base, bg_color)
-                palette.setColor(self._qt.QPalette.Window, bg_color)
+                palette.setColor(self._qt.QPalette.ColorRole.Base, bg_color)
+                palette.setColor(self._qt.QPalette.ColorRole.Window, bg_color)
 
             self._qprogressbar.setPalette(palette)
 
@@ -207,6 +208,7 @@ class ProgressBar:
             self._qprogressbar.setStyleSheet(
                 f'QProgressBar {{ {bar_elem} }}')
         else:
+            # Default style
             bar_elem_dict = {
                 'text-align': 'center',
                 'border-radius': f'{options["borderRadius"]}px',

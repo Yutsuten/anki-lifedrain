@@ -3,10 +3,6 @@
 
 BEHAVIORS = ['Drain life', 'Do nothing', 'Recover life']
 POSITION_OPTIONS = ['Top', 'Bottom']
-STYLE_OPTIONS = [
-    'Default', 'Cde', 'Cleanlooks', 'Fusion', 'Gtk', 'Macintosh', 'Motif',
-    'Plastique', 'Windows', 'Windows Vista', 'Windows XP',
-]
 TEXT_FORMAT = [{
     'text': 'None',
 }, {
@@ -44,7 +40,7 @@ DEFAULTS = {
     'barBorderRadius': 0,
     'barText': 0,
     'barTextColor': '#000',
-    'barStyle': STYLE_OPTIONS.index('Default'),
+    'barStyle': 0,
     'stopOnAnswer': False,
     'stopOnLostFocus': True,
     'startEmpty': False,
