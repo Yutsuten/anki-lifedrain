@@ -381,7 +381,7 @@ def _global_bar_style_tab(aqt: Any, conf: dict[str, Any]) -> Any:
         tab.spin_box('borderRadiusInput', 'Border radius', [0, 20],
                      'Add a rounded border to the life bar.')
         tab.combo_box('styleList', 'Style', ['Default', *aqt.QStyleFactory.keys()], '''Style of \
-the life bar (not all options may work on your platform).''')
+the life bar.''')
         tab.color_select('fgColor', 'Bar color (default)',
                          "Color of the life bar's foreground.")
         tab.spin_box('thresholdWarn', 'Warn threshold (%)', [0, 99],
