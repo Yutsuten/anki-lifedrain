@@ -6,7 +6,7 @@ from __future__ import annotations
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any, Iterator, Optional, Union
 
-from .defaults import BEHAVIORS, DEFAULTS, POSITION_OPTIONS, STYLE_OPTIONS, TEXT_FORMAT
+from .defaults import BEHAVIORS, DEFAULTS, POSITION_OPTIONS, TEXT_FORMAT
 from .version import VERSION
 
 if TYPE_CHECKING:
@@ -380,8 +380,8 @@ def _global_bar_style_tab(aqt: Any, conf: dict[str, Any]) -> Any:
                      'Height of the life bar.')
         tab.spin_box('borderRadiusInput', 'Border radius', [0, 20],
                      'Add a rounded border to the life bar.')
-        tab.combo_box('styleList', 'Style', STYLE_OPTIONS, '''Style of the \
-life bar (not all options may work on your platform).''')
+        tab.combo_box('styleList', 'Style', ['Default', *aqt.QStyleFactory.keys()], '''Style of \
+the life bar.''')
         tab.color_select('fgColor', 'Bar color (default)',
                          "Color of the life bar's foreground.")
         tab.spin_box('thresholdWarn', 'Warn threshold (%)', [0, 99],

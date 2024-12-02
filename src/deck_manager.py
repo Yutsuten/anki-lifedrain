@@ -92,10 +92,10 @@ class DeckManager:
         bar_info['damageLearning'] = conf['damageLearning']
 
         if update_life:
-            current_value = conf.get('currentValue', conf['maxLife'])
-            if current_value > conf['maxLife']:
-                current_value = conf['maxLife']
-            bar_info['currentValue'] = current_value
+            bar_info['currentValue'] = min(
+                conf.get('currentValue', conf['maxLife']),
+                conf['maxLife'],
+            )
 
     @must_have_active_deck
     def life_timer(self, bar_info: dict[str, Any]) -> None:
