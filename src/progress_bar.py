@@ -185,16 +185,14 @@ class ProgressBar:
             return
 
         self._current_bar_color = bar_color
-        if options['customStyle']:
-            available_styles = ['default', *self._qt.QStyleFactory.keys()]
-            custom_style = available_styles[options['customStyle']]
+        available_styles = self._qt.QStyleFactory.keys()
 
-            qstyle = self._qt.QStyleFactory.create(custom_style)
+        if options['customStyle'] and options['customStyle'] <= len(available_styles):
+            qstyle = self._qt.QStyleFactory.create(available_styles[options['customStyle'] - 1])
             self._qprogressbar.setStyle(qstyle)
 
             palette = self._qt.QPalette()
-            fg_color = self._qt.QColor(bar_color)
-            palette.setColor(self._qt.QPalette.ColorRole.Highlight, fg_color)
+            palette.setColor(self._qt.QPalette.ColorRole.Highlight, self._qt.QColor(bar_color))
 
             if 'bgColor' in options:
                 bg_color = self._qt.QColor(options['bgColor'])
