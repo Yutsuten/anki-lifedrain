@@ -50,17 +50,16 @@ class Lifedrain:
         }
 
     def reset_daily(self) -> None:
-        """Resets the lifedrain bar for all decks once per day,
-        using Anki's rollover hour instead of a hard-coded 4am.
+        """Resets the lifedrain bar for all decks once per day.
+
+        Uses Anki's rollover hour instead of a hard-coded 4am.
         """
         # Safely get the rollover hour from Anki's config.
         # Default to 4 if it's not set.
         rollover_hour = self._mw.col.conf.get('rollover', 4)
-
-        effective_date = (datetime.now() - timedelta(hours=rollover_hour)).date()
+        effective_date = (datetime.now().astimezone() - timedelta(hours=rollover_hour)).date()
         if not hasattr(self, '_last_reset_date') or self._last_reset_date != effective_date:
-            # Reset each deck's lifedrain bar
-            for deck_id, bar_info in self.deck_manager._bar_info.items():
+            for bar_info in self.deck_manager.get_bar_info().values():
                 self.deck_manager.recover(bar_info)
             self._last_reset_date = effective_date
 
@@ -198,7 +197,7 @@ class Lifedrain:
     @must_be_enabled
     def toggle_drain(
         self,
-        config: dict[str, Any],
+        _config: dict[str, Any],
         enable: Union[bool, None] = None,
     ) -> None:
         """Toggles the life drain.
