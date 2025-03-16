@@ -57,8 +57,7 @@ class Lifedrain:
         # Safely get the rollover hour from Anki's config.
         # Default to 4 if it's not set.
         if self._mw.col is None:
-            exp = 'Collection is not loaded'
-            raise RuntimeError(exp)
+            return
         rollover_hour = self._mw.col.conf.get('rollover', 4)
 
         effective_date = (datetime.now().astimezone() - timedelta(hours=rollover_hour)).date()
