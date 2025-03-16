@@ -56,10 +56,14 @@ class Lifedrain:
         """
         # Safely get the rollover hour from Anki's config.
         # Default to 4 if it's not set.
-        rollover_hour = self._mw.col.conf.get('rollover', 4)  # type: ignore  # noqa: PGH003
+        if self._mw.col is None:
+            exp = 'Collection is not loaded'
+            raise RuntimeError(exp)
+        rollover_hour = self._mw.col.conf.get('rollover', 4)
+
         effective_date = (datetime.now().astimezone() - timedelta(hours=rollover_hour)).date()
         if not hasattr(self, '_last_reset_date') or self._last_reset_date != effective_date:
-            for bar_info in self.deck_manager._bar_info.values():  # noqa: SLF001
+            for bar_info in self.deck_manager.bar_infos.values():
                 self.deck_manager.recover(bar_info)
             self._last_reset_date = effective_date
 
