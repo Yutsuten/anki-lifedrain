@@ -1,5 +1,3 @@
 aqt
 pyqt6
 pyqt6-webengine
-pyright
-ruff-lsp

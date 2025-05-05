@@ -17,6 +17,7 @@ The objective is to give a visual feedback of how fast the questions are being a
 If the life is low, it means that you are distracted or taking too much time to answer.
 
 ## Install
+
 ### Recommended
 
 - Install from the [AnkiWeb](https://ankiweb.net/shared/info/715575551).
