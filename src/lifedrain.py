@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Union
 
 from . import settings
@@ -48,6 +49,23 @@ class Lifedrain:
             'card_type': None,
         }
 
+    def reset_daily(self) -> None:
+        """Resets the lifedrain bar for all decks once per day.
+
+        Uses Anki's rollover hour instead of a hard-coded 4am.
+        """
+        # Safely get the rollover hour from Anki's config.
+        # Default to 4 if it's not set.
+        if self._mw.col is None:
+            return
+        rollover_hour = self._mw.col.conf.get('rollover', 4)
+
+        effective_date = (datetime.now().astimezone() - timedelta(hours=rollover_hour)).date()
+        if not hasattr(self, '_last_reset_date') or self._last_reset_date != effective_date:
+            for bar_info in self.deck_manager.bar_infos.values():
+                self.deck_manager.recover(bar_info)
+            self._last_reset_date = effective_date
+
     def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
         drain_enabled = self.deck_manager.timer.isActive()
@@ -89,9 +107,11 @@ class Lifedrain:
 
         config = self.config.get()
         if config['globalSettingsShortcut']:
-            self.status['shortcuts'] = self._mw.applyShortcuts([
-                (config['globalSettingsShortcut'], self.global_settings),
-            ])
+            self.status['shortcuts'] = self._mw.applyShortcuts(
+                [
+                    (config['globalSettingsShortcut'], self.global_settings),
+                ],
+            )
 
     def review_shortcuts(self, shortcuts: list[tuple]) -> None:
         """Generates the review screen shortcuts."""
@@ -107,9 +127,11 @@ class Lifedrain:
         if config['deckSettingsShortcut']:
             shortcuts.append((config['deckSettingsShortcut'], self.deck_settings))
         if config['enable'] and config['recoverShortcut']:
+
             def start_recover() -> None:
                 self.deck_manager.recovering = True
                 self.toggle_drain()
+
             shortcuts.append((config['recoverShortcut'], start_recover))
 
     def screen_change(self, state: MainWindowState) -> None:
@@ -120,6 +142,9 @@ class Lifedrain:
         """
         if state not in ['deckBrowser', 'overview', 'review']:
             return
+
+        # Check for a new day (using 4am boundary) and reset if needed
+        self.reset_daily()
 
         self.status['screen'] = state
         config = self.config.get()
@@ -173,7 +198,11 @@ class Lifedrain:
         self.status['reviewed'] = True
 
     @must_be_enabled
-    def toggle_drain(self, config: dict[str, Any], enable: Union[bool, None]=None) -> None:  # noqa: ARG002
+    def toggle_drain(
+        self,
+        _config: dict[str, Any],
+        enable: Union[bool, None] = None,
+    ) -> None:
         """Toggles the life drain.
 
         Args:

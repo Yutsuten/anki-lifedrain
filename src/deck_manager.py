@@ -45,6 +45,11 @@ class DeckManager:
         self._game_over: bool = False
         self._cur_deck_id: Optional[str] = None
 
+    @property
+    def bar_infos(self) -> dict[str, dict[str, Any]]:
+        """Public accessor for the bar info for each deck."""
+        return self._bar_info
+
     def update(self, state: MainWindowState) -> None:
         """Updates the current deck's life bar."""
         if state == 'deckBrowser':
@@ -112,8 +117,13 @@ class DeckManager:
             self.timer.stop()
 
     @must_have_active_deck
-    def heal(self, bar_info: dict[str, Any], value:Optional[Union[int, float]]=None, *,
-             increment:bool=True) -> None:
+    def heal(
+        self,
+        bar_info: dict[str, Any],
+        value: Optional[Union[int, float]] = None,
+        *,
+        increment: bool = True,
+    ) -> None:
         """Partially heal life of the currently active deck.
 
         Args:
@@ -159,8 +169,9 @@ class DeckManager:
         self._update_life(bar_info, -1 * damage)
 
     @must_have_active_deck
-    def answer(self, bar_info: dict[str, Any], review_response: Literal[1, 2, 3, 4],
-               card_type: CardType) -> None:
+    def answer(
+        self, bar_info: dict[str, Any], review_response: Literal[1, 2, 3, 4], card_type: CardType,
+    ) -> None:
         """Restores or drains life after an answer.
 
         Args:
@@ -230,7 +241,7 @@ class DeckManager:
         """Gets the currently selected deck id."""
         return 'shared' if self._global_conf.get()['shareDrain'] else self._deck_conf.get()['id']
 
-    def _add_deck(self, deck_id:str) -> None:
+    def _add_deck(self, deck_id: str) -> None:
         """Adds a deck to the list of decks that are being managed.
 
         Args:
