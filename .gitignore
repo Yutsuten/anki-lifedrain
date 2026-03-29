@@ -1,10 +1,9 @@
 # Cache files
 __pycache__
-tmp/
 meta.json
 
 # Dist files
 dist/
 
 # Virtual environment
-.venv/
+/.venv/
