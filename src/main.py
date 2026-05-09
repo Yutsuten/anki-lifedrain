@@ -81,7 +81,6 @@ def setup_overview(lifedrain: Lifedrain) -> None:
                 lifedrain.deck_settings()
             elif url == 'recover':
                 lifedrain.deck_manager.recovering = True
-                lifedrain.toggle_drain()
             return link_handler(url=url)
 
         return custom_link_handler

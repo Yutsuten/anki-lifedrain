@@ -36,6 +36,7 @@ class DeckManager:
             deck_conf: An instance of DeckConf.
         """
         self.recovering: bool = False
+        self.drain: bool = False
         self.timer = ProgressManager(mw).timer(100, self.life_timer, repeat=True, parent=mw)
         self.timer.stop()
         self._progress_bar = ProgressBar(mw, qt)
@@ -48,9 +49,12 @@ class DeckManager:
     def update(self, state: MainWindowState) -> None:
         """Updates the current deck's life bar."""
         if state == 'deckBrowser':
+            self.recovering = False
+            self.timer.stop()
             self._cur_deck_id = None
             self._progress_bar.set_visible(visible=False)
         else:
+            self.timer.start()
             self._cur_deck_id = self._get_cur_deck_id()
             if self._cur_deck_id not in self._bar_info:
                 self._add_deck(self._cur_deck_id)
@@ -105,11 +109,8 @@ class DeckManager:
                 self.recover()
             else:
                 self._update_life(bar_info, bar_info['fullRecoverSpeed'] / 10)
-        else:
+        elif self.drain:
             self._update_life(bar_info, -0.1)  # Drain
-
-        if bar_info['currentValue'] in [0, bar_info['maxValue']]:
-            self.timer.stop()
 
     @must_have_active_deck
     def heal(self, bar_info: dict[str, Any], value:Optional[Union[int, float]]=None, *,
@@ -142,6 +143,7 @@ class DeckManager:
         bar_info['currentValue'] = life
         self._progress_bar.set_current_value(life)
         self._game_over = start_empty
+        self.recovering = False
 
     @must_have_active_deck
     def damage(self, bar_info: dict[str, Any], card_type: CardType) -> None:
@@ -212,6 +214,9 @@ class DeckManager:
         elif not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
+        if life >= bar_info['maxValue']:
+            self.recovering = False
+
 
     def _next(self, bar_info: dict[str, Any]) -> None:
         """Remembers the current life and advances to the next card.
