@@ -179,7 +179,7 @@ class Lifedrain:
         self.status['reviewed'] = True
 
     @must_be_enabled
-    def toggle_drain(self, config: dict[str, Any], enable: Union[bool, None]=None) -> None:  # noqa: ARG002
+    def toggle_drain(self, config: dict[str, Any], enable: Union[bool, None]=None) -> None:  # noqa: ARG002, FBT001
         """Toggles the life drain.
 
         Args:
