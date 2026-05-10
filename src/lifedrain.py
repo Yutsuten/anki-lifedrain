@@ -61,7 +61,7 @@ class Lifedrain:
         config = self.config.get()
         if config['enable']:
             self.update_global_shortcuts()
-            self.toggle_drain(drain_enabled)
+            self.toggle_drain(enable=drain_enabled)
             self.deck_manager.update(self.status['screen'])
         else:
             self.update_global_shortcuts()
@@ -78,7 +78,7 @@ class Lifedrain:
             global_config=self.config,
             deck_manager=self.deck_manager,
         )
-        self.toggle_drain(drain_enabled)
+        self.toggle_drain(enable=drain_enabled)
         self.deck_manager.update(self.status['screen'])
 
     def update_global_shortcuts(self) -> None:
@@ -175,11 +175,11 @@ class Lifedrain:
     @must_be_enabled
     def show_answer(self, config: dict[str, Any]) -> None:
         """Called when an answer is shown."""
-        self.toggle_drain(not config['stopOnAnswer'])
+        self.toggle_drain(enable=not config['stopOnAnswer'])
         self.status['reviewed'] = True
 
     @must_be_enabled
-    def toggle_drain(self, config: dict[str, Any], enable: Union[bool, None]=None) -> None:  # noqa: ARG002, FBT001
+    def toggle_drain(self, config: dict[str, Any], *, enable: Union[bool, None]=None) -> None:  # noqa: ARG002
         """Toggles the life drain.
 
         Args:
