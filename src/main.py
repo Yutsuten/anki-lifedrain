@@ -73,8 +73,9 @@ def setup_overview(lifedrain: Lifedrain) -> None:
     """Add a Life Drain button into the overview screen."""
 
     def bottom_bar_draw(link_handler: Callable[..., bool], links: list[list]) -> Callable:
-        links.append([DEFAULTS['deckSettingsShortcut'], 'lifedrain', 'Life Drain'])
-        links.append(['None', 'recover', 'Recover'])
+        config = lifedrain.config.get()
+        links.append([config.get('deckSettingsShortcut') or 'None', 'lifedrain', 'Life Drain'])
+        links.append([config.get('recoverShortcut') or 'None', 'recover', 'Recover'])
 
         def custom_link_handler(url: str) -> bool:
             if url == 'lifedrain':
