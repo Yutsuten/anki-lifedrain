@@ -214,7 +214,7 @@ class DeckManager:
         elif not self._game_over:
             self._game_over = True
             runHook('LifeDrain.gameOver')
-        if life >= bar_info['maxValue']:
+        if life >= bar_info['maxValue'] or life <= 0:
             self.recovering = False
 
 

@@ -9,7 +9,6 @@ from anki import hooks
 from anki.decks import DeckId
 from aqt import gui_hooks, mw, qt
 
-from .defaults import DEFAULTS
 from .exceptions import GetCollectionError, GetMainWindowError
 from .lifedrain import Lifedrain
 
