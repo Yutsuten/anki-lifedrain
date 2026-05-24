@@ -9,7 +9,6 @@ from anki import hooks
 from anki.decks import DeckId
 from aqt import gui_hooks, mw, qt
 
-from .defaults import DEFAULTS
 from .exceptions import GetCollectionError, GetMainWindowError
 from .lifedrain import Lifedrain
 
@@ -73,15 +72,15 @@ def setup_overview(lifedrain: Lifedrain) -> None:
     """Add a Life Drain button into the overview screen."""
 
     def bottom_bar_draw(link_handler: Callable[..., bool], links: list[list]) -> Callable:
-        links.append([DEFAULTS['deckSettingsShortcut'], 'lifedrain', 'Life Drain'])
-        links.append(['None', 'recover', 'Recover'])
+        config = lifedrain.config.get()
+        links.append([config.get('deckSettingsShortcut') or 'None', 'lifedrain', 'Life Drain'])
+        links.append([config.get('recoverShortcut') or 'None', 'recover', 'Recover'])
 
         def custom_link_handler(url: str) -> bool:
             if url == 'lifedrain':
                 lifedrain.deck_settings()
             elif url == 'recover':
                 lifedrain.deck_manager.recovering = True
-                lifedrain.toggle_drain()
             return link_handler(url=url)
 
         return custom_link_handler

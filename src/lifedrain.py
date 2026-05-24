@@ -50,7 +50,7 @@ class Lifedrain:
 
     def global_settings(self) -> None:
         """Opens a dialog with the Global Settings."""
-        drain_enabled = self.deck_manager.timer.isActive()
+        drain_enabled = self.deck_manager.drain
         self.toggle_drain(enable=False)
         settings.global_settings(
             aqt=self._qt,
@@ -69,7 +69,7 @@ class Lifedrain:
 
     def deck_settings(self) -> None:
         """Opens a dialog with the Deck Settings."""
-        drain_enabled = self.deck_manager.timer.isActive()
+        drain_enabled = self.deck_manager.drain
         self.toggle_drain(enable=False)
         settings.deck_settings(
             aqt=self._qt,
@@ -100,6 +100,12 @@ class Lifedrain:
             shortcuts.append((config['deckSettingsShortcut'], self.deck_settings))
         if config['enable'] and config['pauseShortcut']:
             shortcuts.append((config['pauseShortcut'], self.toggle_drain))
+        if config['enable'] and config['recoverShortcut']:
+
+            def start_recover() -> None:
+                self.deck_manager.recovering = True
+
+            shortcuts.append((config['recoverShortcut'], start_recover))
 
     def overview_shortcuts(self, shortcuts: list[tuple]) -> None:
         """Generates the overview screen shortcuts."""
@@ -109,7 +115,7 @@ class Lifedrain:
         if config['enable'] and config['recoverShortcut']:
             def start_recover() -> None:
                 self.deck_manager.recovering = True
-                self.toggle_drain()
+
             shortcuts.append((config['recoverShortcut'], start_recover))
 
     def screen_change(self, state: MainWindowState) -> None:
@@ -130,7 +136,7 @@ class Lifedrain:
         if state != 'review':
             self.toggle_drain(enable=False)
             self.status['prev_card'] = None
-        if state != 'overview':
+        if state not in ['overview', 'review']:
             self.deck_manager.recovering = False
         if state != 'deckBrowser' and self.status['reviewed']:
             self.deck_manager.answer(
@@ -180,8 +186,7 @@ class Lifedrain:
             config: Global configuration dictionary.
             enable: Optional. Enables the drain if True.
         """
-        is_active = self.deck_manager.timer.isActive()
-        if is_active and enable is not True:
-            self.deck_manager.timer.stop()
-        elif not is_active and enable is not False:
-            self.deck_manager.timer.start()
+        if enable is None:
+            self.deck_manager.drain = not self.deck_manager.drain
+        else:
+            self.deck_manager.drain = enable

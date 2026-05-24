@@ -435,10 +435,10 @@ seconds for the life bar go from full to empty.''')
         tab.spin_box('recoverInput', 'Answer recover', [0, 1000], '''Time in seconds \
 that is recovered after answering a card.''')
         tab.double_spin_box('fullRecoverInput', 'Full recover speed', [-10000, 10000], '''Amount \
-to recover each second when clicking the "Recover" button in the deck overview screen. Negative \
-values allowed.
+to recover each second when clicking the "Recover" button in the deck overview screen or using \
+the Recover shortcut on the review screen or deck overview screen. Negative values allowed.
 Use 0 for the default behavior: instant recovery.
-The recover will stop once life reaches 0, maximum, or when leaving deck overview screen.''')
+The recover will stop once life reaches 0, maximum, or if going back to deck browser screen.''')
         tab.check_box('enableDamageInput', 'Enable damage',
                       "Enable the damage feature. It will be triggered when \
 answering with 'Again'.")
@@ -611,10 +611,10 @@ that is recovered after answering a card.''')
         tab.double_spin_box('currentValueInput', 'Current life', [0, 10000],
                             'Current life, in seconds.')
         tab.double_spin_box('fullRecoverInput', 'Full recover speed', [-10000, 10000], '''Amount \
-to recover each second when clicking the "Recover" button in the deck overview screen. Negative \
-values allowed.
+to recover each second when clicking the "Recover" button in the deck overview screen or using \
+the Recover shortcut on the review screen or deck overview screen. Negative values allowed.
 Use 0 for the default behavior: instant recovery.
-The recover will stop once life reaches 0, maximum, or when leaving deck overview screen.''')
+The recover will stop once life reaches 0, maximum, or if going back to deck browser screen.''')
         tab.fill_space()
         return tab.widget
 
