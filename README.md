@@ -37,12 +37,3 @@ If you find any bugs, feel free to [open an issue](https://github.com/Yutsuten/a
 If you have experience with coding, feel free to open a Pull Request!
 
 Any feedback and help is very welcome!
-
-## Donations
-
-A lot of time is being used to maintain this add-on.
-I'm doing this on my spare time (I have a full-time job!).
-
-If you like this add-on, donation of any value will be greatly appreciated!
-
-To donate, use the "Sponsor" button on the top of this page.
